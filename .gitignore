@@ -1,0 +1,28 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+node_modules
+dist
+dist-ssr
+
+# Env (.env.example만 커밋)
+.env
+.env.*
+!.env.example
+*.local
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
+# Editor
+.vscode/*
+!.vscode/settings.json
+.idea
+.DS_Store
+*.sw?
