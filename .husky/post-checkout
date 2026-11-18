@@ -1,0 +1,30 @@
+# $1: 이전 HEAD, $2: 새 HEAD, $3: 1이면 브랜치 체크아웃, 0이면 파일 체크아웃
+# 브랜치 체크아웃을 확인해요
+if [ "$3" = "1" ]; then
+  echo "🔄 브랜치 체크아웃을 감지했어요"
+
+  # git worktree add 등으로 새 작업 트리가 만들어지면 이전 HEAD가 null(0000…)이라
+  # 비교할 커밋이 없고 node_modules도 없으므로 바로 설치해요
+  if [ "$1" = "0000000000000000000000000000000000000000" ]; then
+    echo "🌱 새 작업 트리를 감지했어요. pnpm install을 실행할게요..."
+
+    if ! pnpm install; then
+      echo "❌ pnpm install 실행 중 오류가 발생했어요"
+      exit 1
+    fi
+
+    echo "✅ pnpm install이 성공적으로 완료되었어요!"
+  # 현재 HEAD와 체크아웃된 커밋 간 package.json 변경 여부 확인
+  elif git diff --name-only "$1" "$2" | grep -qE "package\.json|pnpm-lock\.yaml"; then
+    echo "📦 패키지 변경사항을 감지했어요. pnpm install을 실행할게요..."
+
+    if ! pnpm install; then
+      echo "❌ pnpm install 실행 중 오류가 발생했어요"
+      exit 1
+    fi
+
+    echo "✅ pnpm install이 성공적으로 완료되었어요!"
+  else
+    echo "✅ 패키지 변경사항을 감지하지 못했어요. pnpm install 실행을 건너뛸게요"
+  fi
+fi
