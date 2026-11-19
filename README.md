@@ -36,7 +36,7 @@ pnpm dev                    # http://localhost:5173
 | 시점                  | 동작                                |
 | --------------------- | ----------------------------------- |
 | 커밋 전               | `pnpm lint`                         |
-| push 전               | `pnpm build`                        |
+| push 전               | 브랜치 이름 검사, `pnpm build`      |
 | 브랜치 전환 · pull 후 | 패키지 변경이 있으면 `pnpm install` |
 
 ## CI
