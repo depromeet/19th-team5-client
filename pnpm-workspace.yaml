@@ -1,0 +1,9 @@
+# pnpm v11부터 프로젝트 설정은 .npmrc가 아니라 이 파일에 둔다.
+# (.npmrc에는 인증·레지스트리 설정만 둘 수 있다)
+
+# engines.node와 맞지 않는 Node 버전에서는 설치를 실패시킨다.
+engineStrict: true
+
+# 의존성의 설치 스크립트(postinstall 등)는 여기서 허용한 패키지만 실행된다.
+allowBuilds:
+  esbuild: true
