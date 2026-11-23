@@ -18,6 +18,8 @@
     "test": "pnpm test:e2e",
     "test:e2e": "playwright test --pass-with-no-tests",
     "test:e2e:install": "playwright install chromium",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
     "prepare": "husky"
   },
   "dependencies": {
@@ -28,6 +30,7 @@
     "axios": "^1.21.1",
     "react": "~19.3.1",
     "react-dom": "~19.3.1",
+    "react-hook-form": "^7.92.0",
     "react-router": "^8.5.1",
     "three": "^0.187.0",
     "zustand": "^5.1.0"
@@ -35,6 +38,8 @@
   "devDependencies": {
     "@biomejs/biome": "2.6.8",
     "@playwright/test": "^1.65.1",
+    "@storybook/addon-docs": "^10.6.8",
+    "@storybook/react-vite": "^10.6.8",
     "@types/node": "^24.19.2",
     "@types/react": "~19.3.0",
     "@types/react-dom": "~19.3.0",
@@ -42,7 +47,9 @@
     "@vanilla-extract/vite-plugin": "^5.2.6",
     "@vitejs/plugin-react": "^6.3.0",
     "husky": "^9.1.7",
+    "storybook": "^10.6.8",
     "typescript": "~7.0.2",
-    "vite": "^8.3.8"
+    "vite": "^8.3.8",
+    "vite-plugin-svgr": "^5.2.0"
   }
 }
