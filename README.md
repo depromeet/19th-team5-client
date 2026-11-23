@@ -63,3 +63,26 @@ E2E가 실패하면 Playwright 리포트가 Artifact로 업로드됩니다(7일 
 | 코드 퀄리티   | Biome, Husky                |
 | 테스트        | Playwright                  |
 | 패키지 매니저 | pnpm 12                     |
+
+## 디자인 토큰
+
+앱 시작 시 SVG 디자인 시스템의 값을 `:root`에 등록합니다. 각 화면의
+`*.css.ts`에서 `@/styles/tokens.css`의 `tokens`를 가져와 사용합니다.
+
+```ts
+import { style } from '@vanilla-extract/css';
+import { tokens } from '@/styles/tokens.css';
+
+export const title = style({
+  ...tokens.typography.h1,
+  color: tokens.color.text.title,
+  marginBottom: tokens.space[32],
+});
+```
+
+`tokens.grid`에는 1920px 데스크톱 그리드와 화면별 분할 값이,
+`tokens.component`에는 로고·아이콘·출입증·버튼·입력·다이얼로그·GNB의 스타일 값이 있습니다.
+컴포넌트별 토큰은 `src/components/<이름>/<이름>.css.ts`에서 관리합니다.
+브랜드 색은 `src/styles/colors.css.ts`의 `brandPrimary`에서 변경합니다.
+Primary 50~900과 이를 참조하는 링크·GNB 버튼·방문증 색상이 함께 바뀝니다.
+일반 Primary 버튼의 배경은 시안에 지정된 임시 블랙(`neutral[900]`)입니다.
