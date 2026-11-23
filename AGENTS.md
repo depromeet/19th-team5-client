@@ -75,3 +75,5 @@
   - 빌드: `pnpm build`
   - 테스트: `pnpm test` (= `pnpm test:e2e`, Playwright)
   - Playwright 브라우저 최초 설치: `pnpm test:e2e:install`
+  - Storybook 개발 서버: `pnpm storybook`
+  - Storybook 빌드: `pnpm build-storybook`

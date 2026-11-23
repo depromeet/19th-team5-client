@@ -22,14 +22,16 @@ pnpm dev                    # http://localhost:5173
 
 ### 스크립트
 
-| 명령             | 설명                       |
-| ---------------- | -------------------------- |
-| `pnpm dev`       | 개발 서버                  |
-| `pnpm build`     | 타입 검사 후 프로덕션 빌드 |
-| `pnpm lint`      | Biome 검사 + 타입 검사     |
-| `pnpm lint:fix`  | Biome 자동 수정            |
-| `pnpm typecheck` | 타입 검사                  |
-| `pnpm test`      | E2E 테스트 (Playwright)    |
+| 명령                   | 설명                                        |
+| ---------------------- | ------------------------------------------- |
+| `pnpm dev`             | 개발 서버                                   |
+| `pnpm build`           | 타입 검사 후 프로덕션 빌드                  |
+| `pnpm lint`            | Biome 검사 + 타입 검사                      |
+| `pnpm lint:fix`        | Biome 자동 수정                             |
+| `pnpm typecheck`       | 타입 검사                                   |
+| `pnpm test`            | E2E 테스트 (Playwright)                     |
+| `pnpm storybook`       | Storybook 개발 서버 (http://localhost:6006) |
+| `pnpm build-storybook` | Storybook 정적 빌드 (`storybook-static/`)   |
 
 ### Git hook
 
@@ -59,7 +61,10 @@ E2E가 실패하면 Playwright 리포트가 Artifact로 업로드됩니다(7일 
 | 상태 관리     | TanStack Query, Zustand     |
 | HTTP          | Axios                       |
 | 스타일링      | vanilla-extract (+ recipes) |
+| 아이콘        | SVGR (vite-plugin-svgr)     |
+| 폼            | React Hook Form             |
 | 3D            | three.js, React Three Fiber |
+| 컴포넌트 문서 | Storybook 10                |
 | 코드 퀄리티   | Biome, Husky                |
 | 테스트        | Playwright                  |
 | 패키지 매니저 | pnpm 12                     |
