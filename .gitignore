@@ -26,3 +26,7 @@ dist-ssr
 .idea
 .DS_Store
 *.sw?
+
+# Storybook
+/storybook-static/
+*storybook.log
