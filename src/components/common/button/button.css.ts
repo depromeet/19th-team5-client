@@ -35,7 +35,7 @@ export const button = recipe({
         ...typography.bodyMStrong,
         paddingBlock: '16px',
         paddingInline: '24px',
-        borderRadius: '14px',
+        borderRadius: '16px',
       },
       medium: {
         ...typography.bodySStrong,
