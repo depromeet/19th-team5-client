@@ -65,14 +65,12 @@ const _DialogRoot = ({
         className={joinClassNames(styles.root, className)}
         aria-labelledby={titleId}
         aria-describedby={descriptionId}
-        // 유저 행동을 강제하는 흐름이라 Esc·바깥 클릭으로 닫지 않는다.
         closedby='none'
         onCancel={(event) => {
           event.preventDefault();
           onCancel?.(event);
         }}
         onClose={(event) => {
-          // 브라우저가 Esc 반복 입력 등으로 강제로 닫으면 상태에 맞춰 다시 연다.
           if (open) event.currentTarget.showModal();
           onClose?.(event);
         }}
