@@ -34,6 +34,7 @@
     "react-hook-form": "^7.92.0",
     "react-router": "^8.5.1",
     "three": "^0.187.0",
+    "wavesurfer.js": "^8.1.0",
     "zustand": "^5.1.0"
   },
   "devDependencies": {

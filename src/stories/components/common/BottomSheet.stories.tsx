@@ -69,7 +69,11 @@ export const InterviewQuestion = {
 export const InterviewCommonAsking: InterviewStory = {
   ...InterviewQuestion,
   name: '면접관 질문 카드 · 1부 질문 중',
-  args: { ...InterviewQuestion.args, initialPart: 'common', initialMic: 'on' },
+  args: {
+    ...InterviewQuestion.args,
+    initialPart: 'common',
+    initialAsking: true,
+  },
 };
 
 const memoExamples = [
@@ -147,5 +151,5 @@ export const InterviewFree: InterviewStory = {
 export const InterviewFreeAsking: InterviewStory = {
   ...InterviewQuestion,
   name: '면접관 질문 카드 · 3부 질문 중',
-  args: { ...InterviewQuestion.args, initialPart: 'free', initialMic: 'on' },
+  args: { ...InterviewQuestion.args, initialPart: 'free', initialAsking: true },
 };

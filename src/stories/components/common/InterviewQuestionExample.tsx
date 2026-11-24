@@ -8,14 +8,15 @@ import {
   BottomSheet,
   type BottomSheetCandidate,
   Button,
+  Pulse,
 } from '@/components/common';
 import { useDisclosure } from '@/hooks/useDisclosure';
+import { useMicrophoneInput } from '@/hooks/useMicrophoneInput';
 import * as shared from './bottomSheetStory.css';
 import * as styles from './interviewQuestionExample.css';
 import { QuestionNavigation } from './QuestionNavigation';
 
 type Part = 'common' | 'custom' | 'free';
-type Mic = 'speaking' | 'on' | 'off';
 type Notes = Partial<Record<string, Record<string, string>>>;
 
 const questions = {
@@ -71,42 +72,33 @@ const pastNotes: Notes = {
 };
 
 function MicrophoneControls({
-  mic,
-  onToggle,
+  onMicChange,
   onExit,
 }: {
-  mic: Mic;
-  onToggle: () => void;
+  onMicChange: (isOn: boolean) => void;
   onExit: () => void;
 }) {
-  const isOn = mic !== 'off';
+  const { requested, stream, error, toggle } = useMicrophoneInput(onMicChange);
+  const status = stream ? '마이크 켜짐' : requested ? '연결 중' : '마이크 꺼짐';
   return (
     <div className={styles.microphoneControls}>
       <Button
         className={styles.iconButton}
-        variant={isOn ? 'danger' : 'secondary'}
+        variant={stream ? 'danger' : 'secondary'}
         aria-label='마이크'
-        aria-pressed={isOn}
-        onClick={onToggle}
+        aria-pressed={requested}
+        onClick={toggle}
       >
-        {mic === 'speaking' ? (
-          <svg aria-hidden='true' width='24' height='24' viewBox='0 0 24 24'>
-            <path
-              fill='none'
-              stroke='currentColor'
-              strokeWidth='2.5'
-              strokeLinecap='round'
-              d='M3 10v4 M7.5 7v10 M12 3v18 M16.5 7v10 M21 10v4'
-            />
-          </svg>
-        ) : isOn ? (
+        {stream ? (
+          <Pulse stream={stream} />
+        ) : requested ? (
           <IconMicrophoneFill aria-hidden='true' size={24} />
         ) : (
           <IconMicrophoneSlashFill aria-hidden='true' size={24} />
         )}
       </Button>
-      <span className={styles.micStatus} data-on={isOn}>
-        마이크 {isOn ? '켜짐' : '꺼짐'}
+      <span className={styles.micStatus} data-on={!!stream} aria-live='polite'>
+        {error || status}
       </span>
       <Button
         className={styles.iconButton}
@@ -123,19 +115,15 @@ function MicrophoneControls({
 export function InterviewQuestionExample({
   candidates,
   initialPart,
-  initialMic,
+  initialAsking = false,
 }: {
   candidates: readonly BottomSheetCandidate[];
   initialPart?: Part;
-  initialMic?: Mic;
+  initialAsking?: boolean;
 }) {
-  const { isOpen, open, close } = useDisclosure(
-    initialPart !== undefined || initialMic !== undefined,
-  );
+  const { isOpen, open, close } = useDisclosure(initialPart !== undefined);
   const [part, setPart] = useState<Part>(initialPart ?? 'common');
-  const [mic, setMic] = useState<Mic>(
-    initialMic ?? (part === 'common' ? 'speaking' : 'off'),
-  );
+  const [isAsking, setIsAsking] = useState(initialAsking);
   const [selectedId, setSelectedId] = useState<string | null>(
     candidates[0]?.id ?? null,
   );
@@ -166,9 +154,9 @@ export function InterviewQuestionExample({
     ([key, text]) => key !== '3부 메모' && text.length > 0,
   );
 
-  function changePart(next: Part) {
-    setPart(next);
-    setMic(next === 'common' ? 'speaking' : 'off');
+  function closeCard() {
+    close();
+    setIsAsking(initialAsking);
   }
 
   return (
@@ -176,7 +164,7 @@ export function InterviewQuestionExample({
       <Button onClick={open}>면접관 질문 열기</Button>
       <BottomSheet
         isOpen={isOpen}
-        onRequestClose={close}
+        onRequestClose={closeCard}
         aria-label='면접관 질문 카드'
       >
         <BottomSheet.Header>
@@ -187,12 +175,12 @@ export function InterviewQuestionExample({
               onSelect={setSelectedId}
             />
             {part === 'custom' && (
-              <Button variant='secondary' onClick={() => changePart('free')}>
+              <Button variant='secondary' onClick={() => setPart('free')}>
                 2부 건너뛰기
               </Button>
             )}
             {part === 'free' && (
-              <Button variant='danger' onClick={close}>
+              <Button variant='danger' onClick={closeCard}>
                 면접 마치기
               </Button>
             )}
@@ -208,7 +196,7 @@ export function InterviewQuestionExample({
                   placeholder={
                     part === 'free'
                       ? '3부 메모 · 꼬리질문과 답변을 적어 두세요'
-                      : `${mic === 'on' ? 'QA2.' : 'Q1.'}\n답변을 들으며 떠오른 점을 적어 두세요`
+                      : `${isAsking ? 'QA2.' : 'Q1.'}\n답변을 들으며 떠오른 점을 적어 두세요`
                   }
                   maxLength={100}
                   disabled={candidateId === null}
@@ -270,7 +258,7 @@ export function InterviewQuestionExample({
                   />
                   <h3 className={shared.question}>{question.title}</h3>
                   <p className={styles.intent}>
-                    {(part === 'custom' || mic === 'on') && '의도 · '}
+                    {(part === 'custom' || isAsking) && '의도 · '}
                     {question.intent}
                   </p>
                 </>
@@ -296,11 +284,13 @@ export function InterviewQuestionExample({
                   </div>
                 </>
               )}
-              <MicrophoneControls
-                mic={mic}
-                onToggle={() => setMic(mic === 'off' ? 'on' : 'off')}
-                onExit={close}
-              />
+              {isOpen && (
+                <MicrophoneControls
+                  key={part}
+                  onMicChange={setIsAsking}
+                  onExit={closeCard}
+                />
+              )}
             </div>
           </BottomSheet.Panel>
         </BottomSheet.Body>

@@ -208,6 +208,9 @@ importers:
       three:
         specifier: ^0.187.0
         version: 0.187.0
+      wavesurfer.js:
+        specifier: ^8.1.0
+        version: 8.1.0
       zustand:
         specifier: ^5.1.0
         version: 5.1.0(@types/react@19.3.0)(react@19.3.1)(use-sync-external-store@1.7.0(react@19.3.1))
@@ -2323,6 +2326,9 @@ packages:
       yaml:
         optional: true
 
+  wavesurfer.js@8.1.0:
+    resolution: {integrity: sha512-7/FFjqZxrtZ5pYyjTbb5HPmMAwq5vx4qZRKFsMz1E1wLDVVkueKatR9RW3FjpKQTHFgCpc7VUYUpwTjyIZKLwQ==}
+
   webpack-virtual-modules@0.6.2:
     resolution: {integrity: sha512-66/V2i5hQanC51vBQKPH4aI8NMAcBW59FVBs+rC7eGHupMyfn34q7rZIE+ETlJ+XTevqfUhVVBgSUNSW2flEUQ==}
 
@@ -4210,6 +4216,8 @@ snapshots:
       '@types/node': 24.19.2
       esbuild: 0.28.2
       fsevents: 2.3.3
+
+  wavesurfer.js@8.1.0: {}
 
   webpack-virtual-modules@0.6.2: {}
 
