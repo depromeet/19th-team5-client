@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <title>면접 질문 카드 테스트</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module">
+      import { createElement } from 'react';
+      import { createRoot } from 'react-dom/client';
+      import { InterviewQuestionExample } from '/src/stories/common/BottomSheet/InterviewQuestionExample.tsx';
+
+      createRoot(document.getElementById('root')).render(
+        createElement(InterviewQuestionExample, {
+          candidates: [{ id: 'A', name: '면접자 A' }],
+        }),
+      );
+    </script>
+  </body>
+</html>

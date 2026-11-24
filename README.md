@@ -33,6 +33,8 @@ pnpm dev                    # http://localhost:5173
 | `pnpm storybook`       | Storybook 개발 서버 (http://localhost:6006) |
 | `pnpm build-storybook` | Storybook 정적 빌드 (`storybook-static/`)   |
 
+공통 컴포넌트 스토리는 `src/stories/common/<컴포넌트명>/`에 둡니다. 예를 들어 `GNB/`에는 `GNB.stories.tsx`와 미리보기 전용 스타일 `gnb.stories.css.ts`를 함께 둡니다.
+
 ### Git hook
 
 | 시점                  | 동작                                |
@@ -61,13 +63,25 @@ E2E가 실패하면 Playwright 리포트가 Artifact로 업로드됩니다(7일 
 | 상태 관리     | TanStack Query, Zustand     |
 | HTTP          | Axios                       |
 | 스타일링      | vanilla-extract (+ recipes) |
-| 아이콘        | SVGR (vite-plugin-svgr)     |
+| 아이콘        | SEED Design, SVGR           |
 | 폼            | React Hook Form             |
 | 3D            | three.js, React Three Fiber |
 | 컴포넌트 문서 | Storybook 10                |
 | 코드 퀄리티   | Biome, Husky                |
 | 테스트        | Playwright                  |
 | 패키지 매니저 | pnpm 12                     |
+
+## 아이콘 사용법
+
+SEED 아이콘을 이름으로 import해 JSX 태그로 사용합니다.
+
+```tsx
+import { IconBellLine } from '@karrotmarket/react-monochrome-icon';
+
+<IconBellLine size={20} role='img' aria-label='알림' />;
+```
+
+프로젝트 SVG 아이콘은 `src/assets/icons/`에 케밥 케이스 파일명으로 저장합니다. `index.ts`에서 SVGR의 `?react`로 불러와 `IconIdMini`처럼 PascalCase 이름으로 내보내고, 사용하는 컴포넌트에서는 `@/assets/icons`에서 가져옵니다.
 
 ## 디자인 토큰
 
