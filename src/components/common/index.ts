@@ -1,3 +1,4 @@
+export { AddButton, type AddButtonProps } from './add-button';
 export type { BottomSheetCandidate } from './bottom-sheet';
 export { BottomSheet } from './bottom-sheet';
 export { Button } from './button';
