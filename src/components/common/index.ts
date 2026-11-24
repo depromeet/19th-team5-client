@@ -11,6 +11,7 @@ export type { GNBProps } from './gnb';
 export { GNB } from './gnb';
 export { Pulse, type PulseProps } from './pulse';
 export { Radio } from './radio';
+export { Tabs } from './tabs';
 export { Tag } from './tag';
 export { TextArea } from './text-area';
 export { TextField } from './text-field';
