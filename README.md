@@ -61,13 +61,23 @@ E2E가 실패하면 Playwright 리포트가 Artifact로 업로드됩니다(7일 
 | 상태 관리     | TanStack Query, Zustand     |
 | HTTP          | Axios                       |
 | 스타일링      | vanilla-extract (+ recipes) |
-| 아이콘        | SVGR (vite-plugin-svgr)     |
+| 아이콘        | SEED Design, SVGR           |
 | 폼            | React Hook Form             |
 | 3D            | three.js, React Three Fiber |
 | 컴포넌트 문서 | Storybook 10                |
 | 코드 퀄리티   | Biome, Husky                |
 | 테스트        | Playwright                  |
 | 패키지 매니저 | pnpm 12                     |
+
+## 아이콘 사용법
+
+SEED 아이콘을 이름으로 import해 JSX 태그로 사용합니다.
+
+```tsx
+import { IconBellLine } from '@karrotmarket/react-monochrome-icon';
+
+<IconBellLine size={20} role='img' aria-label='알림' />;
+```
 
 ## 디자인 토큰
 
