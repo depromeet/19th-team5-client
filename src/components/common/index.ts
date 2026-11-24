@@ -1,6 +1,12 @@
+export type { BottomSheetCandidate } from './bottom-sheet';
+export { BottomSheet } from './bottom-sheet';
 export { Button } from './button';
 export { Checkbox } from './checkbox';
 export { Dialog } from './dialog';
+export { FloatingCard, type FloatingCardProps } from './floating-card';
+export type { GNBProps } from './gnb';
+export { GNB } from './gnb';
+export { Pulse, type PulseProps } from './pulse';
 export { Radio } from './radio';
 export { Tag } from './tag';
 export { TextArea } from './text-area';

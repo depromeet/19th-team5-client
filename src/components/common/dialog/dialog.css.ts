@@ -2,7 +2,7 @@ import { style } from '@vanilla-extract/css';
 import { color, radius, space, typography } from '@/styles/token';
 
 const dim = `${color.neutral[900]}99`;
-const shadow = `0 20px 56px ${color.neutral[900]}29`;
+export const dialogShadow = `0 20px 56px ${color.neutral[900]}29`;
 
 export const root = style({
   flexDirection: 'column',
@@ -12,7 +12,7 @@ export const root = style({
   border: 'none',
   borderRadius: radius[24],
   background: color.neutral[0],
-  boxShadow: shadow,
+  boxShadow: dialogShadow,
   selectors: {
     '&[open]': { display: 'flex' },
     '&::backdrop': { background: dim },
