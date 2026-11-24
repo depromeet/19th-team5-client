@@ -1,5 +1,5 @@
 import { style } from '@vanilla-extract/css';
-import { color, radius, typography } from '@/styles/token';
+import { color, radius, space, typography } from '@/styles/token';
 
 export const hiddenInput = style({
   position: 'absolute',
@@ -29,7 +29,7 @@ export const chip = style({
   display: 'inline-flex',
   alignItems: 'center',
   height: '38px',
-  paddingInline: '16px',
+  paddingInline: space[16],
   borderRadius: radius.full,
   background: color.neutral[0],
   color: color.neutral[700],
