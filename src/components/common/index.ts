@@ -1,4 +1,5 @@
 export { AddButton, type AddButtonProps } from './add-button';
+export { Avatar, type AvatarProps } from './avatar';
 export type { BottomSheetCandidate } from './bottom-sheet';
 export { BottomSheet } from './bottom-sheet';
 export { Button } from './button';
