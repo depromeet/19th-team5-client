@@ -1,7 +1,7 @@
 import { IconLockFill } from '@karrotmarket/react-monochrome-icon';
 import type { ComponentPropsWithRef } from 'react';
 import { Link, type To } from 'react-router';
-import { logo } from '@/components/logo/logo.css';
+import { IconIdMini } from '@/assets/icons';
 import { Button } from '../button';
 import * as styles from './gnb.css';
 
@@ -64,29 +64,7 @@ export type GNBProps = Pick<
 function TicketBalance({ label, amount }: { label: string; amount: string }) {
   return (
     <span className={styles.ticket}>
-      <svg
-        className={styles.ticketIcon}
-        width='16'
-        height='22'
-        viewBox='0 0 16 22'
-        aria-hidden='true'
-      >
-        <rect
-          x='0.48'
-          y='1.08'
-          width='15.04'
-          height='19.84'
-          rx='3.52'
-          className={styles.ticketCard}
-          stroke='currentColor'
-          strokeWidth='0.96'
-        />
-        <g fill='currentColor'>
-          <rect x='4.8' y='3.8' width='6.4' height='1.6' rx='0.8' />
-          <circle cx='8' cy='11' r='2.4' />
-          <rect x='4' y='15' width='8' height='2.4' rx='1.2' />
-        </g>
-      </svg>
+      <IconIdMini className={styles.ticketIcon} aria-hidden='true' />
       <span>{label}</span>
       <span className={styles.ticketCount}>{amount}</span>
     </span>
@@ -207,9 +185,9 @@ export function GNB(props: GNBProps) {
     >
       <div className={styles.content}>
         {variant === 'waiting' ? (
-          <span className={logo}>{labels.brand}</span>
+          <span className={styles.logo}>{labels.brand}</span>
         ) : (
-          <Link to={homeTo} className={logo} aria-label={labels.home}>
+          <Link to={homeTo} className={styles.logo} aria-label={labels.home}>
             {labels.brand}
           </Link>
         )}

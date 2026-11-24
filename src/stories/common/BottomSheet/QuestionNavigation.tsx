@@ -3,7 +3,7 @@ import {
   IconChevronRightLine,
 } from '@karrotmarket/react-monochrome-icon';
 import { Button } from '@/components/common';
-import * as styles from './bottomSheetStory.css';
+import * as styles from './bottomSheet.stories.css';
 
 type QuestionNavigationProps = {
   category: string;

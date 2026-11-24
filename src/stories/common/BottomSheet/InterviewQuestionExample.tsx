@@ -12,7 +12,7 @@ import {
 } from '@/components/common';
 import { useDisclosure } from '@/hooks/useDisclosure';
 import { useMicrophoneInput } from '@/hooks/useMicrophoneInput';
-import * as shared from './bottomSheetStory.css';
+import * as shared from './bottomSheet.stories.css';
 import * as styles from './interviewQuestionExample.css';
 import { QuestionNavigation } from './QuestionNavigation';
 

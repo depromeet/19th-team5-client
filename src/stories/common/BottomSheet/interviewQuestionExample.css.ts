@@ -1,6 +1,6 @@
 import { style } from '@vanilla-extract/css';
 import { color, radius, space, typography } from '@/styles/token';
-import * as shared from './bottomSheetStory.css';
+import * as shared from './bottomSheet.stories.css';
 
 export const questionCard = style([
   shared.interviewCard,

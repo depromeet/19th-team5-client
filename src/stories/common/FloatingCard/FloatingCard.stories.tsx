@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { type ComponentProps, useState } from 'react';
 import { Button, FloatingCard } from '@/components/common';
-import * as styles from './floatingCardStory.css';
+import * as styles from './floatingCard.stories.css';
 
 type PreviewProps = ComponentProps<typeof FloatingCard> & {
   actionCount?: 0 | 1 | 2;

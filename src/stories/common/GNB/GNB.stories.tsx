@@ -2,9 +2,10 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import type { ComponentProps } from 'react';
 import { MemoryRouter, useLocation, useNavigate } from 'react-router';
 import { fn } from 'storybook/test';
-import { GNB, gnbLabels } from '@/components/common';
+import { GNB } from '@/components/common';
+import { gnbLabels } from '@/constants/gnbLabels';
 import { space, typography } from '@/styles/token';
-import { comparison, stickyHeader } from './gnbStory.css';
+import { comparison, stickyHeader } from './gnb.stories.css';
 
 type GNBProps = ComponentProps<typeof GNB>;
 type MemberProps = Extract<GNBProps, { variant: 'member' }>;
@@ -56,7 +57,7 @@ const meta = {
     docs: {
       description: {
         component:
-          '상위 화면에서 상태에 맞는 `gnbLabels.member`, `gnbLabels.guest`, `gnbLabels.waiting`을 `labels`로 전달합니다. 문구 하나만 바꿀 때는 `labels={{ ...gnbLabels.guest, enter: "면접 시작하기" }}`처럼 기본 문구를 펼쳐 사용합니다. 개별 상태 예시는 `className`으로 스크롤 시 상단에 고정합니다.',
+          '상위 화면에서 `@/constants/gnbLabels`를 가져와 상태에 맞는 `gnbLabels.member`, `gnbLabels.guest`, `gnbLabels.waiting`을 `labels`로 전달합니다. 문구 하나만 바꿀 때는 `labels={{ ...gnbLabels.guest, enter: "면접 시작하기" }}`처럼 기본 문구를 펼쳐 사용합니다. 개별 상태 예시는 `className`으로 스크롤 시 상단에 고정합니다.',
       },
     },
   },

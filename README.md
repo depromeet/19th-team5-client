@@ -33,6 +33,8 @@ pnpm dev                    # http://localhost:5173
 | `pnpm storybook`       | Storybook 개발 서버 (http://localhost:6006) |
 | `pnpm build-storybook` | Storybook 정적 빌드 (`storybook-static/`)   |
 
+공통 컴포넌트 스토리는 `src/stories/common/<컴포넌트명>/`에 둡니다. 예를 들어 `GNB/`에는 `GNB.stories.tsx`와 미리보기 전용 스타일 `gnb.stories.css.ts`를 함께 둡니다.
+
 ### Git hook
 
 | 시점                  | 동작                                |
@@ -78,6 +80,8 @@ import { IconBellLine } from '@karrotmarket/react-monochrome-icon';
 
 <IconBellLine size={20} role='img' aria-label='알림' />;
 ```
+
+프로젝트 SVG 아이콘은 `src/assets/icons/`에 케밥 케이스 파일명으로 저장합니다. `index.ts`에서 SVGR의 `?react`로 불러와 `IconIdMini`처럼 PascalCase 이름으로 내보내고, 사용하는 컴포넌트에서는 `@/assets/icons`에서 가져옵니다.
 
 ## 디자인 토큰
 

@@ -27,6 +27,14 @@ export const content = style({
   },
 });
 
+export const logo = style({
+  ...typography.h3,
+  width: space[80],
+  flexShrink: 0,
+  color: color.neutral[900],
+  textDecoration: 'none',
+});
+
 export const menu = style({
   display: 'flex',
   alignItems: 'center',
@@ -133,8 +141,7 @@ export const ticket = style({
   },
 });
 
-export const ticketCard = style({ fill: color.neutral[0] });
-export const ticketIcon = style({ color: color.neutral[400], flexShrink: 0 });
+export const ticketIcon = style({ flexShrink: 0 });
 export const ticketCount = style({ color: color.neutral[900] });
 
 export const waitingMessage = style({

@@ -1,4 +1,4 @@
-import type { GNBProps } from './GNB';
+import type { GNBProps } from '@/components/common/gnb';
 
 type VisibleGNBProps = Exclude<GNBProps, { variant: 'interview' }>;
 type LabelsByVariant = {
