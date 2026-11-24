@@ -15,13 +15,9 @@ export type TextAreaProps = Omit<
   ComponentPropsWithRef<'textarea'>,
   'children'
 > & {
-  /** 입력 위 라벨. `required`이면 `*`가 함께 표시돼요. */
   label?: ReactNode;
-  /** 입력 아래 도움말. `error`이면 에러 색으로 표시돼요. */
   helperText?: ReactNode;
-  /** 에러 상태. 테두리·글자수·도움말이 에러 색으로 바뀌고 `aria-invalid`가 설정돼요. */
   error?: boolean;
-  /** `maxLength`가 있을 때 `현재 / 최대` 글자수를 표시할지 여부 */
   showCount?: boolean;
 };
 

@@ -6,7 +6,6 @@ const focusRing = {
   outlineOffset: '2px',
 };
 
-// 시각적으로 숨기되 포커스·스크린리더 접근은 유지한다.
 export const hiddenInput = style({
   position: 'absolute',
   width: '1px',
@@ -19,7 +18,6 @@ export const hiddenInput = style({
   whiteSpace: 'nowrap',
 });
 
-// 투명한 input이 박스 전체를 덮어 클릭을 직접 받는다.
 export const overlayInput = style({
   position: 'absolute',
   inset: 0,
