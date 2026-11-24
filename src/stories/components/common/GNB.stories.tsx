@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import type { ComponentProps } from 'react';
 import { MemoryRouter, useLocation, useNavigate } from 'react-router';
 import { fn } from 'storybook/test';
-import { GNB } from '@/components/common';
+import { GNB, gnbLabels } from '@/components/common';
 import { space, typography } from '@/styles/token';
 import { comparison, stickyHeader } from './gnbStory.css';
 
@@ -11,34 +11,6 @@ type MemberProps = Extract<GNBProps, { variant: 'member' }>;
 type GuestProps = Extract<GNBProps, { variant: 'guest' }>;
 type WaitingProps = Extract<GNBProps, { variant: 'waiting' }>;
 
-const sharedLabels = { brand: 'MOING', navigation: '주 메뉴' };
-const homeLabel = 'MOING 홈';
-const memberLabels = {
-  ...sharedLabels,
-  home: homeLabel,
-  lobby: '로비',
-  myPage: '마이페이지',
-  notifications: '알림',
-  notificationsUnread: '읽지 않은 알림 있음',
-  tickets: '면접권',
-  ticketUnit: '장',
-  bookInterview: '면접방 예약',
-} satisfies MemberProps['labels'];
-const guestLabels = {
-  ...sharedLabels,
-  home: homeLabel,
-  lobby: '로비 둘러보기',
-  about: '서비스 소개',
-  login: '로그인',
-  enter: '입장하기',
-} satisfies GuestProps['labels'];
-const waitingLabels = {
-  ...sharedLabels,
-  lobby: memberLabels.lobby,
-  myPage: memberLabels.myPage,
-  waitingMessage: '면접 시작 전까지 대기해주세요',
-} satisfies WaitingProps['labels'];
-
 const labelsControl = {
   control: 'object',
   description: '상위 화면에서 전달하는 GNB 문구입니다.',
@@ -46,8 +18,8 @@ const labelsControl = {
 
 function PreviewDestination({ args }: { args: GNBProps }) {
   const { hash } = useLocation();
-  const member = args.variant === 'member' ? args.labels : memberLabels;
-  const guest = args.variant === 'guest' ? args.labels : guestLabels;
+  const member = args.variant === 'member' ? args.labels : gnbLabels.member;
+  const guest = args.variant === 'guest' ? args.labels : gnbLabels.guest;
   const destinations: Record<string, string> = {
     '#lobby': args.variant === 'guest' ? guest.lobby : member.lobby,
     '#my-page': member.myPage,
@@ -84,7 +56,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'GNB 문구는 상위 화면에서 labels로 전달합니다. 개별 상태 예시는 className으로 스크롤 시 상단에 고정합니다.',
+          '상위 화면에서 상태에 맞는 `gnbLabels.member`, `gnbLabels.guest`, `gnbLabels.waiting`을 `labels`로 전달합니다. 문구 하나만 바꿀 때는 `labels={{ ...gnbLabels.guest, enter: "면접 시작하기" }}`처럼 기본 문구를 펼쳐 사용합니다. 개별 상태 예시는 `className`으로 스크롤 시 상단에 고정합니다.',
       },
     },
   },
@@ -94,7 +66,7 @@ export default meta;
 
 const memberArgs: MemberProps = {
   variant: 'member',
-  labels: memberLabels,
+  labels: gnbLabels.member,
   lobbyTo: '#lobby',
   myPageTo: '#my-page',
   notificationsTo: '#notifications',
@@ -159,7 +131,7 @@ export const MemberZeroTickets: StoryObj<MemberProps> = {
 
 const guestArgs: GuestProps = {
   variant: 'guest',
-  labels: guestLabels,
+  labels: gnbLabels.guest,
   lobbyTo: '#lobby',
   aboutTo: '#about',
   onLogin: fn(),
@@ -193,7 +165,7 @@ export const Guest: StoryObj<GuestProps> = {
 
 export const Waiting: StoryObj<WaitingProps> = {
   name: '대기실 잠김',
-  args: { variant: 'waiting', labels: waitingLabels },
+  args: { variant: 'waiting', labels: gnbLabels.waiting },
   argTypes: { labels: labelsControl },
   parameters: { controls: { disable: false, include: ['labels'] } },
   render: (args) => <GNB {...args} className={stickyHeader} />,
@@ -223,7 +195,7 @@ export const Overview: StoryObj<typeof GNB> = {
         <GuestPreview {...guestArgs} />
       </section>
       <section aria-label='대기실 잠김'>
-        <GNB variant='waiting' labels={waitingLabels} />
+        <GNB variant='waiting' labels={gnbLabels.waiting} />
       </section>
     </div>
   ),
@@ -233,7 +205,7 @@ export const CustomLabels: StoryObj<GuestProps> = {
   name: '상위 화면에서 문구 변경',
   args: {
     ...guestArgs,
-    labels: { ...guestLabels, enter: '면접 시작하기' },
+    labels: { ...gnbLabels.guest, enter: '면접 시작하기' },
   },
   render: (args) => (
     <div className={comparison}>
@@ -244,7 +216,7 @@ export const CustomLabels: StoryObj<GuestProps> = {
         <GNB
           variant='waiting'
           labels={{
-            ...waitingLabels,
+            ...gnbLabels.waiting,
             waitingMessage: '면접이 시작되면 알려드릴게요',
           }}
         />
