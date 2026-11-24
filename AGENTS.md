@@ -12,7 +12,7 @@
   - `src/utils/` — 공통 유틸리티
   - `src/apis/` — axios 인스턴스(`client.ts`)와 API 호출 함수
   - `src/queries/` — TanStack Query 관련 코드. QueryClient(`queryClient.ts`)와 query key·옵션·쿼리 훅
-  - `src/styles/` — vanilla-extract 전역 스타일·토큰
+  - `src/styles/` — vanilla-extract 전역 스타일. 디자인 토큰은 `src/styles/token/`(`@/styles/token`)
   - `src/types/` — 공통 타입
 - `public/models/` — 3D 에셋(glb). git으로 관리한다.
 - `e2e/` — Playwright E2E 테스트
@@ -75,3 +75,5 @@
   - 빌드: `pnpm build`
   - 테스트: `pnpm test` (= `pnpm test:e2e`, Playwright)
   - Playwright 브라우저 최초 설치: `pnpm test:e2e:install`
+  - Storybook 개발 서버: `pnpm storybook`
+  - Storybook 빌드: `pnpm build-storybook`

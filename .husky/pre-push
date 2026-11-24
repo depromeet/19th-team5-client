@@ -2,7 +2,7 @@ echo "🌿 git push 전 브랜치 이름을 확인할게요..."
 
 # 브랜치 컨벤션: 작업유형/#이슈번호 (예: chore/#1)
 # 작업유형은 커밋 메시지 prefix와 같아요. main은 예외로 허용해요
-BRANCH_PATTERN='^(chore|docs|feature|fix|refactor|style)/#[0-9]+$'
+BRANCH_PATTERN='^(chore|docs|feat|fix|refactor|style)/#[0-9]+$'
 
 # stdin 한 줄 = push 대상 하나: <로컬 ref> <로컬 sha> <원격 ref> <원격 sha>
 while read -r local_ref local_sha remote_ref remote_sha; do
@@ -21,7 +21,7 @@ while read -r local_ref local_sha remote_ref remote_sha; do
   if ! echo "$branch" | grep -qE "$BRANCH_PATTERN"; then
     echo "❌ '$branch'은(는) 브랜치 컨벤션에 맞지 않아요. git push를 취소할게요"
     echo "   형식: 작업유형/#이슈번호 (예: chore/#1)"
-    echo "   작업유형: chore, docs, feature, fix, refactor, style"
+    echo "   작업유형: chore, docs, feat, fix, refactor, style"
     exit 1
   fi
 done

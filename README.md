@@ -22,14 +22,16 @@ pnpm dev                    # http://localhost:5173
 
 ### 스크립트
 
-| 명령             | 설명                       |
-| ---------------- | -------------------------- |
-| `pnpm dev`       | 개발 서버                  |
-| `pnpm build`     | 타입 검사 후 프로덕션 빌드 |
-| `pnpm lint`      | Biome 검사 + 타입 검사     |
-| `pnpm lint:fix`  | Biome 자동 수정            |
-| `pnpm typecheck` | 타입 검사                  |
-| `pnpm test`      | E2E 테스트 (Playwright)    |
+| 명령                   | 설명                                        |
+| ---------------------- | ------------------------------------------- |
+| `pnpm dev`             | 개발 서버                                   |
+| `pnpm build`           | 타입 검사 후 프로덕션 빌드                  |
+| `pnpm lint`            | Biome 검사 + 타입 검사                      |
+| `pnpm lint:fix`        | Biome 자동 수정                             |
+| `pnpm typecheck`       | 타입 검사                                   |
+| `pnpm test`            | E2E 테스트 (Playwright)                     |
+| `pnpm storybook`       | Storybook 개발 서버 (http://localhost:6006) |
+| `pnpm build-storybook` | Storybook 정적 빌드 (`storybook-static/`)   |
 
 ### Git hook
 
@@ -59,30 +61,39 @@ E2E가 실패하면 Playwright 리포트가 Artifact로 업로드됩니다(7일 
 | 상태 관리     | TanStack Query, Zustand     |
 | HTTP          | Axios                       |
 | 스타일링      | vanilla-extract (+ recipes) |
+| 아이콘        | SVGR (vite-plugin-svgr)     |
+| 폼            | React Hook Form             |
 | 3D            | three.js, React Three Fiber |
+| 컴포넌트 문서 | Storybook 10                |
 | 코드 퀄리티   | Biome, Husky                |
 | 테스트        | Playwright                  |
 | 패키지 매니저 | pnpm 12                     |
 
 ## 디자인 토큰
 
-앱 시작 시 SVG 디자인 시스템의 값을 `:root`에 등록합니다. 각 화면의
-`*.css.ts`에서 `@/styles/tokens.css`의 `tokens`를 가져와 사용합니다.
+Figma 「디자인 시스템」(DS/01~03)의 값을 `src/styles/token/`에 `as const` 상수로 정의합니다.
+CSS 변수로 등록하지 않으므로 recipe·style과 JS(three.js 등)에서 같은 값을 그대로 씁니다.
+
+| 계층       | 파일                                  | 내용                                                               |
+| ---------- | ------------------------------------- | ------------------------------------------------------------------ |
+| Primitive  | `src/styles/token/primitives.ts`      | color, fontFamily, fontSize, fontWeight, lineHeight, space, radius |
+| Foundation | `src/styles/token/foundations.ts`     | typography (Figma 텍스트 스타일 13개)                              |
+| Component  | `src/components/<이름>/<이름>.css.ts` | recipe·style로 작성하는 컴포넌트 스타일                            |
 
 ```ts
 import { style } from '@vanilla-extract/css';
-import { tokens } from '@/styles/tokens.css';
+import { color, space, typography } from '@/styles/token';
 
 export const title = style({
-  ...tokens.typography.h1,
-  color: tokens.color.text.title,
-  marginBottom: tokens.space[32],
+  ...typography.h1,
+  color: color.neutral[900],
+  marginBottom: space[32],
 });
 ```
 
-`tokens.grid`에는 1920px 데스크톱 그리드와 화면별 분할 값이,
-`tokens.component`에는 로고·아이콘·출입증·버튼·입력·다이얼로그·GNB의 스타일 값이 있습니다.
-컴포넌트별 토큰은 `src/components/<이름>/<이름>.css.ts`에서 관리합니다.
-브랜드 색은 `src/styles/colors.css.ts`의 `brandPrimary`에서 변경합니다.
-Primary 50~900과 이를 참조하는 링크·GNB 버튼·방문증 색상이 함께 바뀝니다.
-일반 Primary 버튼의 배경은 시안에 지정된 임시 블랙(`neutral[900]`)입니다.
+- 토큰은 primitive → foundation → component 한 방향으로만 소비합니다.
+  `src/styles/`는 `src/components/`를 import하지 않습니다.
+- 길이 값은 모두 px 문자열, fontWeight는 숫자입니다.
+- Semantic 토큰은 디자인 파트와 확정되지 않아 두지 않습니다.
+  컴포넌트 고유 값(폭, 그림자, Dim 등)은 각 컴포넌트의 `.css.ts`에 정의합니다.
+- Primary 색이 바뀌면 디자인 파트가 전달한 값으로 `primitives.ts`를 교체합니다.
