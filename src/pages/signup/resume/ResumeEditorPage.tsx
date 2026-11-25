@@ -6,7 +6,7 @@ import { Avatar } from '@/components/common/avatar';
 import { Button } from '@/components/common/button';
 import { Checkbox } from '@/components/common/checkbox';
 import { Radio } from '@/components/common/radio';
-import { canRegisterResume } from '../../../store/ResumeStore';
+import { canRegisterResume } from '../../../stores/ResumeStore';
 import { isComplete } from '../AvatarDraft';
 import * as signup from '../Signup.css';
 import {

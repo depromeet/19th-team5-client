@@ -3,7 +3,7 @@ import { useOutletContext } from 'react-router';
 import { useStore } from 'zustand';
 import { signupApi } from '@/apis/SignupApi';
 import { Button } from '@/components/common/button';
-import type { ResumeState } from '@/store/ResumeStore';
+import type { ResumeState } from '@/stores/ResumeStore';
 import { SignupContent, type SignupContext } from './components/SignupContent';
 import * as styles from './Signup.css';
 
