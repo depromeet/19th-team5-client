@@ -66,7 +66,15 @@ export const memberLink = style([
   {
     gap: space[4],
     color: color.neutral[400],
-    selectors: { '&[aria-current="page"]': { color: color.neutral[900] } },
+    selectors: {
+      '&[aria-current]': { color: color.neutral[900] },
+      'button&:disabled': {
+        border: 0,
+        padding: 0,
+        background: 'transparent',
+        cursor: 'not-allowed',
+      },
+    },
   },
 ]);
 
@@ -115,6 +123,10 @@ export const filledButton = style({
       padding: `${space[8]} ${space[16]}`,
       borderRadius: radius[12],
       background: color.primary[500],
+    },
+    'button&:disabled': {
+      background: color.primary[500],
+      color: color.neutral[0],
     },
   },
   '@media': {
