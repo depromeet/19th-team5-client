@@ -1,5 +1,5 @@
 import { Button } from '@/components/common/button';
-import * as styles from '../../Interview.css';
+import * as styles from '@/components/review/Review.css';
 import * as resultStyles from '../ReceivedReviewPage.css';
 
 export function ResultSummary({

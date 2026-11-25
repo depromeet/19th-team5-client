@@ -6,15 +6,11 @@ import * as styles from '../FeedbackPage.css';
 export function FeedbackCandidateTabs({
   candidates,
   activeId,
-  submittedIds,
-  disabled,
   panelId,
   onSelect,
 }: {
   candidates: FeedbackCandidate[];
   activeId: string;
-  submittedIds: string[];
-  disabled: boolean;
   panelId: string;
   onSelect: (id: string) => void;
 }) {
@@ -58,12 +54,10 @@ export function FeedbackCandidateTabs({
             aria-controls={panelId}
             selected={selected}
             tabIndex={selected ? 0 : -1}
-            disabled={disabled}
             onClick={() => onSelect(candidate.id)}
             onKeyDown={(event) => selectWithKeyboard(event, index)}
           >
             {candidate.label}
-            {submittedIds.includes(candidate.id) && ' ✓'}
           </Tabs.Item>
         );
       })}

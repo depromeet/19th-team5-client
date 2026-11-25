@@ -2,9 +2,9 @@ import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 import * as navigation from '@/components/common/gnb/gnb.css';
 import { gnbLabels } from '@/constants/gnbLabels';
-import * as styles from './Interview.css';
+import * as styles from './Review.css';
 
-export function InterviewLayout({
+export function ReviewLayout({
   header,
   children,
 }: {

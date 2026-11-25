@@ -1,6 +1,6 @@
 import { globalStyle, style } from '@vanilla-extract/css';
+import * as interview from '@/components/review/Review.css';
 import { color, radius, space, typography } from '@/styles/token';
-import * as interview from '../Interview.css';
 
 export const reviewSheet = style([interview.sheet, {}]);
 globalStyle(`${reviewSheet} ${interview.info}`, { marginTop: space[8] });
@@ -137,10 +137,7 @@ globalStyle(`${questionSummary} > svg`, {
 globalStyle(`${question}[open] > ${questionSummary} > svg`, {
   transform: 'none',
 });
-export const questionAnswer = style([
-  answer,
-  { paddingLeft: space[24], marginTop: space[12] },
-]);
+export const questionAnswer = style([answer, { paddingLeft: space[24] }]);
 export const questionIntent = style({
   ...typography.bodyS,
   color: color.neutral[700],

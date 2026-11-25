@@ -4,8 +4,8 @@ import {
   IconReviewImprovement,
 } from '@/assets/icons';
 import { Tag } from '@/components/common/tag';
+import * as styles from '@/components/review/Review.css';
 import type { ReceivedKeyword } from '@/types/Interview';
-import * as styles from '../../Interview.css';
 import * as resultStyles from '../ReceivedReviewPage.css';
 
 const keywordIcons = {

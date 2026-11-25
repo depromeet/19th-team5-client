@@ -1,16 +1,13 @@
 import { useStore } from 'zustand';
 import { Button } from '@/components/common/button';
 import { Dialog } from '@/components/common/dialog';
+import * as styles from '@/components/review/Review.css';
 import type { FeedbackStore } from '@/store/FeedbackStore';
 import { formatTime } from '@/utils/formatTime';
-import * as styles from '../../Interview.css';
 export function FeedbackExitDialog({
   expired,
   store,
   durationMinutes,
-  completed,
-  total,
-  pending,
   error,
   onAcknowledge,
   onLeave,
@@ -19,9 +16,6 @@ export function FeedbackExitDialog({
   expired: boolean;
   store: FeedbackStore;
   durationMinutes: number;
-  completed: number;
-  total: number;
-  pending: boolean;
   error?: string;
   onAcknowledge: () => void;
   onLeave: () => void;
@@ -32,7 +26,7 @@ export function FeedbackExitDialog({
       className={styles.dialog}
       isOpen
       onCancel={() => {
-        if (!expired && !pending) onContinue?.();
+        if (!expired) onContinue?.();
       }}
     >
       {expired ? (
@@ -49,22 +43,14 @@ export function FeedbackExitDialog({
         </>
       ) : (
         <>
-          <Dialog.Header>피드백은 꼭 남겨야해요</Dialog.Header>
+          <Dialog.Header>평가 작성을 나갈까요?</Dialog.Header>
           <Dialog.Description>
-            모든 면접자에게 피드백을 남겨야 면접이 마무리돼요.
-            <br />
-            지금 나가도 작성 중인 내용은 임시 저장돼요.
+            나가기를 선택하면 작성 중인 내용이 이 브라우저 탭에 임시 저장돼요.
           </Dialog.Description>
           <Dialog.Body className={styles.inset}>
             <div className={styles.row}>
               <span>평가 마감</span>
               <FeedbackExitTime store={store} />
-            </div>
-            <div className={styles.row}>
-              <span>평가 완료</span>
-              <strong>
-                {completed} / {total}명
-              </strong>
             </div>
           </Dialog.Body>
           {error && (
@@ -73,15 +59,10 @@ export function FeedbackExitDialog({
             </p>
           )}
           <Dialog.Footer className={styles.dialogActions}>
-            <Button
-              variant='secondary'
-              size='large'
-              disabled={pending}
-              onClick={onLeave}
-            >
+            <Button variant='secondary' size='large' onClick={onLeave}>
               나가기
             </Button>
-            <Button size='large' disabled={pending} onClick={onContinue}>
+            <Button size='large' onClick={onContinue}>
               계속 작성하기
             </Button>
           </Dialog.Footer>

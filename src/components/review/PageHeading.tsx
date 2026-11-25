@@ -1,6 +1,6 @@
 import { IconILowercaseSerifCircleLine } from '@karrotmarket/react-monochrome-icon';
 import type { ReactNode } from 'react';
-import * as styles from '../Interview.css';
+import * as styles from './Review.css';
 
 export function PageHeading({
   title,

@@ -1,5 +1,6 @@
 import { Checkbox } from '@/components/common/checkbox';
 import { TextArea } from '@/components/common/text-area';
+import * as styles from '@/components/review/Review.css';
 import type {
   FeedbackDraft,
   InterviewFeedback,
@@ -7,7 +8,6 @@ import type {
 } from '@/types/Interview';
 import { commentLimit } from '@/utils/FeedbackComment';
 import { toggleFeedbackKeyword } from '@/utils/FeedbackDraft';
-import * as styles from '../../Interview.css';
 import * as feedbackStyles from '../FeedbackPage.css';
 
 const groups = [

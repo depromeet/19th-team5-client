@@ -24,7 +24,6 @@ export type InterviewFeedback = {
   durationMinutes: number;
   deadline: number;
   drafts: Record<string, FeedbackDraft>;
-  submittedIds: string[];
 };
 export type ReceivedKeyword = {
   label: string;
@@ -43,14 +42,4 @@ export type ReceivedReview = {
   questionGroups: QuestionGroup[];
   scheduleLabel: string;
   levelLabel: string;
-};
-
-export type InterviewDataSource = {
-  getReceivedReview: () => Promise<ReceivedReview>;
-  getFeedback: () => Promise<InterviewFeedback>;
-  saveFeedback: (drafts: Record<string, FeedbackDraft>) => Promise<void>;
-  submitFeedback: (input: {
-    candidateId: string;
-    drafts: Record<string, FeedbackDraft>;
-  }) => Promise<InterviewFeedback>;
 };

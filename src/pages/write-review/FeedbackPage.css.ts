@@ -1,6 +1,6 @@
 import { globalStyle, style } from '@vanilla-extract/css';
+import { stack } from '@/components/review/Review.css';
 import { color, radius, space, typography } from '@/styles/token';
-import { stack } from '../Interview.css';
 
 const mobile = '(max-width: 760px)';
 export const tabs = style({ marginTop: space[32], flexWrap: 'wrap' });

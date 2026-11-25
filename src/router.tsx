@@ -1,24 +1,26 @@
 import { createBrowserRouter } from 'react-router';
+import { ReviewLoadState } from '@/components/review/ReviewLoadState';
 import { HomePage } from '@/pages/HomePage';
-import { InterviewLoadState } from '@/pages/interview/components/InterviewLoadState';
 
 export const router = createBrowserRouter([
   { path: '/', Component: HomePage },
   {
     path: '/write-review',
-    lazy: {
-      Component: async () =>
-        (await import('@/pages/interview/feedback/FeedbackPage')).FeedbackPage,
+    lazy: async () => {
+      const { FeedbackPage, loader } = await import(
+        '@/pages/write-review/FeedbackPage'
+      );
+      return { Component: FeedbackPage, loader };
     },
-    HydrateFallback: InterviewLoadState,
+    HydrateFallback: ReviewLoadState,
   },
   {
     path: '/received-review',
     lazy: {
       Component: async () =>
-        (await import('@/pages/interview/received-review/ReceivedReviewPage'))
+        (await import('@/pages/received-review/ReceivedReviewPage'))
           .ReceivedReviewPage,
     },
-    HydrateFallback: InterviewLoadState,
+    HydrateFallback: ReviewLoadState,
   },
 ]);

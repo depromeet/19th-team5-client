@@ -1,8 +1,4 @@
-import type {
-  FeedbackDraft,
-  InterviewFeedback,
-  KeywordOption,
-} from '@/types/Interview';
+import type { FeedbackDraft, KeywordOption } from '@/types/Interview';
 
 export function emptyFeedback(): FeedbackDraft {
   return { strengths: [], improvements: [], comment: '' };
@@ -39,21 +35,4 @@ export function toggleFeedbackKeyword(
     ),
     option.value,
   ];
-}
-
-export function findPendingCandidate(sheet: InterviewFeedback) {
-  return sheet.candidates.find(({ id }) => !sheet.submittedIds.includes(id));
-}
-
-export function mergeFeedbackDrafts(
-  sheet: InterviewFeedback,
-  edits: Record<string, FeedbackDraft>,
-) {
-  const drafts = { ...sheet.drafts };
-  for (const { id } of sheet.candidates) {
-    if (!sheet.submittedIds.includes(id) && Object.hasOwn(edits, id)) {
-      drafts[id] = edits[id];
-    }
-  }
-  return drafts;
 }

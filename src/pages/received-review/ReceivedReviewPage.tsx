@@ -1,11 +1,9 @@
-import { useQuery } from '@tanstack/react-query';
 import { GNB } from '@/components/common/gnb';
+import { PageHeading } from '@/components/review/PageHeading';
+import * as styles from '@/components/review/Review.css';
+import { ReviewLayout } from '@/components/review/ReviewLayout';
 import { gnbLabels } from '@/constants/gnbLabels';
-import { receivedReviewQuery } from '@/queries/InterviewQueries';
-import { InterviewLoadState } from '../components/InterviewLoadState';
-import { PageHeading } from '../components/PageHeading';
-import * as styles from '../Interview.css';
-import { InterviewLayout } from '../InterviewLayout';
+import { receivedReviewData as review } from '@/mocks/review/ReceivedReviewData';
 import { ResultComments } from './components/ResultComments';
 import { ResultKeywords } from './components/ResultKeywords';
 import { ResultQuestions } from './components/ResultQuestions';
@@ -13,16 +11,8 @@ import { ResultSummary } from './components/ResultSummary';
 import { reviewSheet } from './ReceivedReviewPage.css';
 
 export function ReceivedReviewPage() {
-  const query = useQuery(receivedReviewQuery);
-  if (!query.data)
-    return (
-      <InterviewLayout>
-        <InterviewLoadState retry={query.isError ? query.refetch : undefined} />
-      </InterviewLayout>
-    );
-  const review = query.data;
   return (
-    <InterviewLayout
+    <ReviewLayout
       header={
         <GNB variant='member' labels={gnbLabels.member} {...review.viewer} />
       }
@@ -41,6 +31,6 @@ export function ReceivedReviewPage() {
           levelLabel={review.levelLabel}
         />
       </main>
-    </InterviewLayout>
+    </ReviewLayout>
   );
 }

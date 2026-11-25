@@ -1,8 +1,8 @@
 import { useId } from 'react';
 import { Button } from '@/components/common/button';
+import { PageHeading } from '@/components/review/PageHeading';
+import * as styles from '@/components/review/Review.css';
 import type { InterviewFeedback } from '@/types/Interview';
-import { PageHeading } from '../../components/PageHeading';
-import * as styles from '../../Interview.css';
 import { useFeedbackEditor } from '../hooks/useFeedbackEditor';
 import { FeedbackCandidateTabs } from './FeedbackCandidateTabs';
 import { FeedbackExitDialog } from './FeedbackExitDialog';
@@ -12,21 +12,19 @@ import { FeedbackSummary } from './FeedbackSummary';
 export function FeedbackEditor({ sheet }: { sheet: InterviewFeedback }) {
   const editor = useFeedbackEditor(sheet);
   const panelId = useId();
-  const { candidates, submittedIds } = sheet;
+  const { candidates } = sheet;
   const candidateIndex = candidates.indexOf(editor.candidate);
   const notice = editor.notice;
 
   return (
-    <main className={styles.layout} aria-busy={editor.pending || undefined}>
+    <main className={styles.layout}>
       <article className={styles.sheet} ref={editor.sheetRef}>
         <PageHeading title='오늘의 면접자, 어땠나요?'>
-          점수 대신 키워드로 전해요. 피드백은 해당 면접자만 볼 수 있어요.
+          키워드와 한 줄 평을 작성하고 이 브라우저 탭에 임시 저장할 수 있어요.
         </PageHeading>
         <FeedbackCandidateTabs
           candidates={candidates}
           activeId={editor.candidate.id}
-          submittedIds={submittedIds}
-          disabled={editor.pending}
           panelId={panelId}
           onSelect={editor.select}
         />
@@ -38,7 +36,7 @@ export function FeedbackEditor({ sheet }: { sheet: InterviewFeedback }) {
           <FeedbackFields
             feedback={editor.feedback}
             keywords={sheet.keywords}
-            disabled={editor.locked}
+            disabled={editor.expired}
             commentError={editor.commentError}
             invalidGroups={{
               strengths: editor.attempted && editor.needsStrengths,
@@ -53,37 +51,31 @@ export function FeedbackEditor({ sheet }: { sheet: InterviewFeedback }) {
           candidate={editor.candidate}
           scheduleLabel={sheet.scheduleLabel}
           store={editor.store}
-          completed={submittedIds.length}
-          total={candidates.length}
         />
         <div className={styles.card}>
           <Button
             variant='secondary'
             size='large'
-            disabled={editor.locked}
-            onClick={() => editor.saveOrSubmit('save')}
+            disabled={editor.expired}
+            onClick={() => editor.saveDraft('save')}
           >
             임시 저장
           </Button>
           <Button
             size='large'
-            disabled={editor.submitDisabled}
-            onClick={() => editor.saveOrSubmit('submit')}
+            disabled={editor.checkDisabled}
+            onClick={editor.checkInput}
           >
-            {editor.submitted ? '제출 완료' : '제출하기'}
+            입력 확인
           </Button>
-          {editor.complete ? (
-            <p role='status' className={styles.status}>
-              모든 면접자의 평가를 제출했어요.
-            </p>
-          ) : notice && !editor.showDialog ? (
+          {notice && !editor.showDialog && (
             <p
               role={notice.tone === 'error' ? 'alert' : 'status'}
               className={notice.tone === 'error' ? styles.error : styles.status}
             >
               {notice.text}
             </p>
-          ) : null}
+          )}
         </div>
       </aside>
       {editor.showDialog && (
@@ -91,12 +83,9 @@ export function FeedbackEditor({ sheet }: { sheet: InterviewFeedback }) {
           expired={editor.expired}
           store={editor.store}
           durationMinutes={sheet.durationMinutes}
-          completed={submittedIds.length}
-          total={candidates.length}
-          pending={editor.pending}
           error={notice?.tone === 'error' ? notice.text : undefined}
           onContinue={editor.resetExit}
-          onLeave={() => editor.saveOrSubmit('leave')}
+          onLeave={() => editor.saveDraft('leave')}
           onAcknowledge={editor.acknowledgeExpiry}
         />
       )}
