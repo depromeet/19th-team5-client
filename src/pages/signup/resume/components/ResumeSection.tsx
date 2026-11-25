@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Tag } from '@/components/common/tag';
-import * as s from '../Resume.css';
+import * as s from '../ResumeEditorPage.css';
 
 export function ResumeSection({
   title,

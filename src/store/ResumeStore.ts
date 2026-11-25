@@ -9,7 +9,7 @@ import {
   validAnswer,
   validateAttachments,
   validExperience,
-} from './ResumeDraft';
+} from '../pages/signup/resume/ResumeDraft';
 
 export type ResumeState = {
   draft: ResumeDraft;

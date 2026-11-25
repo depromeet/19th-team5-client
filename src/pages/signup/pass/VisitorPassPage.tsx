@@ -6,7 +6,7 @@ import { initialDraft, isComplete } from '../AvatarDraft';
 import * as signup from '../Signup.css';
 import { useAvatarDraft, useSignupOptions } from '../SignupLayout';
 import { PassPreview } from './components/PassPreview';
-import * as s from './Pass.css';
+import * as s from './VisitorPassPage.css';
 
 function isPassProgress(value: unknown): value is PassProgress {
   if (!value || typeof value !== 'object') return false;

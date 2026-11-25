@@ -2,11 +2,6 @@ import { globalStyle, style } from '@vanilla-extract/css';
 import { color, radius, space, typography } from '@/styles/token';
 
 const narrow = '(max-width: 900px)';
-export const skipDialog = style({
-  maxWidth: 'calc(100% - 32px)',
-  textAlign: 'center',
-  '@media': { '(max-width: 520px)': { padding: space[20] } },
-});
 export const background = style({
   background: color.neutral[50],
   minHeight: 'calc(100svh - 80px)',

@@ -5,7 +5,6 @@ import { TextArea } from '@/components/common/text-area';
 import { TextField } from '@/components/common/text-field';
 import type { SignupOption } from '@/types/Signup';
 import { formatInputChange } from '@/utils/FormatInput';
-import * as s from '../Resume.css';
 import {
   type Answer,
   type Entry,
@@ -19,6 +18,7 @@ import {
   validExperience,
   validExperienceDates,
 } from '../ResumeDraft';
+import * as s from '../ResumeEditorPage.css';
 
 type EntryListProps<T> = {
   entries: Entry<T>[];

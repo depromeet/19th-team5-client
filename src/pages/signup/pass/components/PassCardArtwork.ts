@@ -3,7 +3,7 @@ import {
   getPassLabels,
   type PassCardData,
   passLayouts,
-} from './PassCardDesign';
+} from './PassCardLayout';
 
 const dateFormatter = new Intl.DateTimeFormat('sv-SE', {
   timeZone: 'Asia/Seoul',

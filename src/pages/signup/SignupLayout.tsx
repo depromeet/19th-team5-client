@@ -1,28 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
-import { type Dispatch, type SetStateAction, useState } from 'react';
-import {
-  Outlet,
-  ScrollRestoration,
-  useLocation,
-  useMatch,
-  useOutletContext,
-} from 'react-router';
+import { useOutletContext } from 'react-router';
 import { useStore } from 'zustand';
 import { signupApi } from '@/apis/SignupApi';
 import { Button } from '@/components/common/button';
-import { GNB } from '@/components/common/gnb';
-import { gnbLabels } from '@/constants/gnbLabels';
-import type { SignupOptions } from '@/types/Signup';
-import { type AvatarDraft, initialDraft } from './AvatarDraft';
-import { createResumeStore, type ResumeState } from './resume/ResumeStore';
+import type { ResumeState } from '@/store/ResumeStore';
+import { SignupContent, type SignupContext } from './components/SignupContent';
 import * as styles from './Signup.css';
-
-type DraftState<T> = [T, Dispatch<SetStateAction<T>>];
-type SignupContext = {
-  avatar: DraftState<AvatarDraft>;
-  resume: ReturnType<typeof createResumeStore>;
-  options: SignupOptions;
-};
 
 export function useAvatarDraft() {
   return useOutletContext<SignupContext>().avatar;
@@ -57,40 +40,4 @@ export function SignupLayout() {
     );
 
   return <SignupContent options={query.data} />;
-}
-
-function SignupContent({
-  options: initialOptions,
-}: {
-  options: SignupOptions;
-}) {
-  const { state } = useLocation();
-  const draft = useState(() => initialDraft(state));
-  const [options] = useState(() => initialOptions);
-  const [resume] = useState(() => createResumeStore(options));
-  const editor = useMatch('/signup/resume');
-
-  return (
-    <div className={styles.signup}>
-      {/* 회원 메뉴는 각 목적지 화면이 연결되면 활성화한다. */}
-      <div inert>
-        <GNB
-          variant='member'
-          labels={gnbLabels.member}
-          lobbyTo='/'
-          myPageTo='/my-page'
-          notificationsTo='/notifications'
-          ticketCount={options.navigation.ticketCount}
-          hasUnreadNotifications={options.navigation.hasUnreadNotifications}
-          onBookInterview={() => {}}
-        />
-      </div>
-      <main className={editor ? undefined : styles.main}>
-        <Outlet
-          context={{ avatar: draft, resume, options } satisfies SignupContext}
-        />
-      </main>
-      <ScrollRestoration />
-    </div>
-  );
 }

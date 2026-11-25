@@ -2,9 +2,9 @@ import { Component, lazy, type ReactNode, Suspense } from 'react';
 import { color } from '@/styles/token';
 import type { PassProgress } from '@/types/Signup';
 import type { Avatar } from '../../AvatarDraft';
-import * as s from '../Pass.css';
-import { passLayouts } from '../PassCardDesign';
+import * as s from '../VisitorPassPage.css';
 import { PassCard } from './PassCard';
+import { passLayouts } from './PassCardLayout';
 
 const Lanyard = lazy(() => import('./lanyard/Lanyard.jsx'));
 

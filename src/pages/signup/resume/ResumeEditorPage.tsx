@@ -5,8 +5,8 @@ import { signupApi } from '@/apis/SignupApi';
 import { Avatar } from '@/components/common/avatar';
 import { Button } from '@/components/common/button';
 import { Checkbox } from '@/components/common/checkbox';
-import { Dialog } from '@/components/common/dialog';
 import { Radio } from '@/components/common/radio';
+import { canRegisterResume } from '../../../store/ResumeStore';
 import { isComplete } from '../AvatarDraft';
 import * as signup from '../Signup.css';
 import {
@@ -17,13 +17,13 @@ import {
 import { PortfolioAttachments } from './components/PortfolioAttachments';
 import { AnswerEntries, ExperienceEntries } from './components/ResumeEntries';
 import { ResumeSection } from './components/ResumeSection';
-import * as s from './Resume.css';
+import { ResumeSkipDialog } from './components/ResumeSkipDialog';
 import {
   hasAnswerInput,
   hasExperienceInput,
   resumeLimits,
 } from './ResumeDraft';
-import { canRegisterResume } from './ResumeStore';
+import * as s from './ResumeEditorPage.css';
 
 export function ResumeEditorPage() {
   const [avatar] = useAvatarDraft();
@@ -200,39 +200,14 @@ export function ResumeEditorPage() {
           </div>
         </aside>
       </div>
-      <Dialog
+      <ResumeSkipDialog
         isOpen={isSkipDialogOpen}
-        className={s.skipDialog}
-        closedby='closerequest'
-        onCancel={() => setSkipDialogOpen(false)}
-      >
-        <Dialog.Header>여기까지만 작성할까요?</Dialog.Header>
-        <Dialog.Description>
-          자소서를 채울수록 면접관은 더 심화된 질문을 할 수 있어요.
-          <br />
-          자소서는 마이페이지에서 언제든 등록할 수 있어요.
-        </Dialog.Description>
-        <Dialog.Footer>
-          <Button
-            size='large'
-            display='block'
-            variant='secondary'
-            onClick={() => setSkipDialogOpen(false)}
-          >
-            좀 더 쓸게요
-          </Button>
-          <Button
-            size='large'
-            display='block'
-            onClick={async () => {
-              const pass = await signupApi.completeSignup(avatar);
-              navigate('/signup/pass', { state: pass });
-            }}
-          >
-            완료
-          </Button>
-        </Dialog.Footer>
-      </Dialog>
+        onClose={() => setSkipDialogOpen(false)}
+        onConfirm={async () => {
+          const pass = await signupApi.completeSignup(avatar);
+          navigate('/signup/pass', { state: pass });
+        }}
+      />
     </div>
   );
 }
