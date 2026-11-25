@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { Button } from '@/components/common/button/Button';
 import { TextField } from '@/components/common/text-field/TextField';
+import { formatInputChange } from '@/utils/FormatInput';
 
 const meta = {
   title: 'Components/TextField',
@@ -46,6 +47,32 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
+
+export const FormattedInputs: Story = {
+  name: '날짜 · 시간 · 전화번호 자동 입력',
+  render: () => (
+    <div style={{ display: 'grid', gap: 16 }}>
+      <TextField
+        label='날짜'
+        placeholder='YYYY.MM.DD'
+        inputMode='numeric'
+        onChange={(e) => formatInputChange(e, 'date')}
+      />
+      <TextField
+        label='시간'
+        placeholder='HH:mm'
+        inputMode='numeric'
+        onChange={(e) => formatInputChange(e, 'time')}
+      />
+      <TextField
+        label='전화번호'
+        placeholder='010-0000-0000'
+        type='tel'
+        onChange={(e) => formatInputChange(e, 'phone')}
+      />
+    </div>
+  ),
+};
 
 export const WithHelperText: Story = {
   args: { helperText: '도움말 문구' },

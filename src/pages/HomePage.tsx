@@ -6,7 +6,13 @@ export function HomePage() {
   return (
     <main className={styles.page}>
       <h1 className={styles.title}>19th-team5</h1>
-      <nav className={styles.links} aria-label='면접 평가'>
+      <nav className={styles.links} aria-label='페이지 이동'>
+        <Link
+          className={`${button({ variant: 'primary' })} ${styles.link}`}
+          to='/signup/avatar'
+        >
+          가입 · 아바타 만들기
+        </Link>
         <Link
           className={`${button({ variant: 'primary' })} ${styles.link}`}
           to='/write-review'
