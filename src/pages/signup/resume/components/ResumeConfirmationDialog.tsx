@@ -1,18 +1,18 @@
 import { Button } from '@/components/common/button';
 import { Dialog } from '@/components/common/dialog';
-import * as styles from './ResumeSkipDialog.css';
+import * as styles from './ResumeConfirmationDialog.css';
 
-type ResumeSkipDialogProps = {
+type ResumeConfirmationDialogProps = {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
 };
 
-export function ResumeSkipDialog({
+export function ResumeConfirmationDialog({
   isOpen,
   onClose,
   onConfirm,
-}: ResumeSkipDialogProps) {
+}: ResumeConfirmationDialogProps) {
   return (
     <Dialog
       isOpen={isOpen}

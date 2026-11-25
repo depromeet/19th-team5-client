@@ -115,6 +115,7 @@ export function hasPdfHeader(result: FileReader['result']) {
 
 export type ResumeDraft = {
   careerId: string;
+  hasSelectedCareer: boolean;
   experiences: Entry<Experience>[];
   answers: Entry<Answer>[];
   files: File[];
@@ -125,6 +126,7 @@ export function createResumeDraft({
 }: SignupOptions): ResumeDraft {
   return {
     careerId: defaultCareerId,
+    hasSelectedCareer: false,
     experiences: [newEntry(emptyExperience)],
     answers: questions.length
       ? [newEntry({ questionId: questions[0].id, text: '' })]

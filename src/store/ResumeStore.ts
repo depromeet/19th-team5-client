@@ -3,8 +3,6 @@ import type { ResumeSubmission, SignupOptions } from '@/types/Signup';
 import {
   createResumeDraft,
   type Entry,
-  hasAnswerInput,
-  hasExperienceInput,
   type ResumeDraft,
   validAnswer,
   validateAttachments,
@@ -29,13 +27,15 @@ export type ResumeState = {
 
 function getRegistration({ draft, pendingFiles }: ResumeState) {
   if (pendingFiles) return null;
-  const experiences = draft.experiences.filter(hasExperienceInput);
-  const answers = draft.answers.filter(hasAnswerInput);
+  const experiences = draft.experiences.filter((row) =>
+    validExperience(row.draft),
+  );
+  const answers = draft.answers.filter((row) => validAnswer(row.draft));
   if (
-    !experiences.length ||
-    !answers.length ||
-    !experiences.every((row) => validExperience(row.draft)) ||
-    !answers.every((row) => validAnswer(row.draft))
+    !draft.hasSelectedCareer &&
+    !experiences.length &&
+    !answers.length &&
+    !draft.files.length
   )
     return null;
   return { experiences, answers };
@@ -45,8 +45,11 @@ export function canRegisterResume(state: ResumeState) {
   return getRegistration(state) !== null;
 }
 
-function saveEntry<T>(row: Entry<T>): Entry<T> {
-  return { ...row, saved: row.draft, editing: false };
+function saveRegisteredEntries<T>(entries: Entry<T>[], registered: Entry<T>[]) {
+  const submitted = new Set(registered);
+  return entries.map((row) =>
+    submitted.has(row) ? { ...row, saved: row.draft, editing: false } : row,
+  );
 }
 
 export function createResumeStore(options: SignupOptions) {
@@ -54,7 +57,9 @@ export function createResumeStore(options: SignupOptions) {
     draft: createResumeDraft(options),
     pendingFiles: 0,
     setCareer: (careerId) =>
-      set(({ draft }) => ({ draft: { ...draft, careerId } })),
+      set(({ draft }) => ({
+        draft: { ...draft, careerId, hasSelectedCareer: true },
+      })),
     setExperiences: (experiences) =>
       set(({ draft }) => ({ draft: { ...draft, experiences } })),
     setAnswers: (answers) =>
@@ -100,8 +105,14 @@ export function createResumeStore(options: SignupOptions) {
             return {
               draft: {
                 ...state.draft,
-                experiences: registration.experiences.map(saveEntry),
-                answers: registration.answers.map(saveEntry),
+                experiences: saveRegisteredEntries(
+                  state.draft.experiences,
+                  registration.experiences,
+                ),
+                answers: saveRegisteredEntries(
+                  state.draft.answers,
+                  registration.answers,
+                ),
               },
             };
           });

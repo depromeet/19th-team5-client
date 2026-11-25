@@ -14,9 +14,8 @@ test('경험과 답변을 저장·수정하고 등록하면 선택한 아바타�
 }) => {
   const register = page.getByRole('button', { name: '등록하고 시작하기' });
   await expect(register).toBeDisabled();
-  await page.getByRole('radio', { name: '1–3년' }).focus();
-  await page.keyboard.press('Space');
   await page.getByRole('textbox', { name: '경험 제목' }).fill('교내 공모전');
+  await expect(register).toBeDisabled();
   const start = page.getByRole('textbox', { name: '시작', exact: false });
   await start.pressSequentially('202603');
   await expect(start).toHaveValue('2026.03');
@@ -34,6 +33,7 @@ test('경험과 답변을 저장·수정하고 등록하면 선택한 아바타�
   await expect(page.getByRole('button', { name: '저장' })).toBeDisabled();
   await end.fill('2026.04');
   await page.getByRole('button', { name: '저장' }).click();
+  await expect(register).toBeEnabled();
   await expect(page.getByText(/2개월/)).toBeVisible();
   await page.getByRole('button', { name: '수정' }).click();
   await page.getByRole('textbox', { name: '경험 제목' }).fill('취소할 수정');
@@ -61,7 +61,11 @@ test('경험과 답변을 저장·수정하고 등록하면 선택한 아바타�
     page.getByRole('button', { name: '+ 문항 추가' }),
   ).toBeDisabled();
   await page.getByRole('button', { name: '삭제', exact: true }).last().click();
+  await page.getByRole('radio', { name: '1–3년' }).press('Space');
   await register.click();
+  const dialog = page.getByRole('dialog', { name: '여기까지만 작성할까요?' });
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole('button', { name: '완료' }).click();
   await expect(page).toHaveURL(/\/signup\/pass$/);
   await expect(
     page.getByRole('img', { name: /차분한수달님의 MOING 방문 출입증/ }),
@@ -79,6 +83,7 @@ test('PDF 형식·용량·개수를 검증하고 첨부 삭제 후 건너뛸 수
   page,
 }) => {
   const picker = page.locator('input[type=file]');
+  const register = page.getByRole('button', { name: '등록하고 시작하기' });
   const pdf = (name: string) => ({
     name,
     mimeType: 'application/pdf',
@@ -106,6 +111,7 @@ test('PDF 형식·용량·개수를 검증하고 첨부 삭제 후 건너뛸 수
   await expect(page.getByRole('alert')).toHaveText(
     'PDF는 최대 2개까지 첨부할 수 있어요.',
   );
+  await expect(register).toBeDisabled();
   await picker.setInputFiles([pdf('a.pdf'), pdf('b.pdf')]);
   await expect(page.getByText(/첨부 완료/)).toHaveCount(2);
   await expect(page.getByText('14B · 첨부 완료', { exact: true })).toHaveCount(
@@ -113,9 +119,52 @@ test('PDF 형식·용량·개수를 검증하고 첨부 삭제 후 건너뛸 수
   );
   await page.getByRole('button', { name: 'a.pdf 삭제' }).click();
   await expect(page.getByText(/첨부 완료/)).toHaveCount(1);
+  await expect(register).toBeEnabled();
   await page.getByRole('button', { name: '건너뛰기' }).click();
   await page.getByRole('dialog').getByRole('button', { name: '완료' }).click();
   await expect(page).toHaveURL(/\/signup\/pass$/);
+});
+
+test('기본 경력을 직접 선택하면 지원 정보만으로 등록할 수 있다', async ({
+  page,
+}) => {
+  const career = page.getByRole('radio', { name: '신입', exact: true });
+  const register = page.getByRole('button', { name: '등록하고 시작하기' });
+  await expect(career).toBeChecked();
+  await expect(register).toBeDisabled();
+  await career.press('Space');
+  await expect(register).toBeEnabled();
+  await register.click();
+  const dialog = page.getByRole('dialog', { name: '여기까지만 작성할까요?' });
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole('button', { name: '완료' }).click();
+  await expect(page).toHaveURL(/\/signup\/pass$/);
+});
+
+test('완성한 답변만 등록하고 미완성 경험은 초안으로 보관한다', async ({
+  page,
+}) => {
+  const title = page.getByRole('textbox', { name: '경험 제목' });
+  const register = page.getByRole('button', { name: '등록하고 시작하기' });
+  const dialog = page.getByRole('dialog', { name: '여기까지만 작성할까요?' });
+  await title.fill('작성 중인 경험');
+  await expect(register).toBeDisabled();
+  await page
+    .getByRole('textbox', { name: '문항 1 답변' })
+    .fill('팀과 진행 상황을 공유했습니다.');
+  await expect(register).toBeEnabled();
+  await register.click();
+  await dialog.getByRole('button', { name: '좀 더 쓸게요' }).click();
+  await expect(dialog).toBeHidden();
+  await expect(register).toBeFocused();
+  await register.click();
+  await dialog.getByRole('button', { name: '완료' }).click();
+  await expect(page).toHaveURL(/\/signup\/pass$/);
+  await page.goBack();
+  await expect(title).toHaveValue('작성 중인 경험');
+  await expect(
+    page.getByRole('heading', { name: /문항 1 · 지원 동기와 입사 후 포부/ }),
+  ).toBeVisible();
 });
 
 test('빈 경험을 취소하고 다시 추가한 뒤 건너뛰기 팝업에서 작성을 이어가거나 완료한다', async ({

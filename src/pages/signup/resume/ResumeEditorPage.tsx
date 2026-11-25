@@ -15,9 +15,9 @@ import {
   useSignupOptions,
 } from '../SignupLayout';
 import { PortfolioAttachments } from './components/PortfolioAttachments';
+import { ResumeConfirmationDialog } from './components/ResumeConfirmationDialog';
 import { AnswerEntries, ExperienceEntries } from './components/ResumeEntries';
 import { ResumeSection } from './components/ResumeSection';
-import { ResumeSkipDialog } from './components/ResumeSkipDialog';
 import {
   hasAnswerInput,
   hasExperienceInput,
@@ -37,7 +37,9 @@ export function ResumeEditorPage() {
     (state) => state.prepareRegistration,
   );
   const ready = useResumeStore(canRegisterResume);
-  const [isSkipDialogOpen, setSkipDialogOpen] = useState(false);
+  const [confirmation, setConfirmation] = useState<'register' | 'skip' | null>(
+    null,
+  );
   const navigate = useNavigate();
   if (!isComplete(avatar)) return <Navigate to='/signup/avatar' replace />;
   const experienceCount = resume.experiences.filter((e) => e.saved).length;
@@ -47,19 +49,23 @@ export function ResumeEditorPage() {
     5,
     experienceCount + answerCount + Math.min(1, fileCount),
   );
-  async function register() {
-    if (!isComplete(avatar)) return;
-    const registration = prepareRegistration();
-    if (!registration) return;
-    const pass = await signupApi.completeSignup({
-      ...avatar,
-      resume: registration.submission,
-    });
-    registration.commit();
+  async function confirm() {
+    if (!isComplete(avatar) || !confirmation) return;
+    const registration =
+      confirmation === 'register' ? prepareRegistration() : undefined;
+    if (registration === null) return;
+    const pass = await signupApi.completeSignup(
+      registration ? { ...avatar, resume: registration.submission } : avatar,
+    );
+    registration?.commit();
     navigate('/signup/pass', { state: pass });
   }
   const checks = [
-    ['지원 정보', '완료', true],
+    [
+      '지원 정보',
+      resume.hasSelectedCareer ? '완료' : '미작성',
+      resume.hasSelectedCareer,
+    ],
     ['경험 · 경력', `${experienceCount}개`, experienceCount > 0],
     ['자기소개서', `${answerCount}개`, answerCount > 0],
     ['포트폴리오 · 첨부', `선택 · ${fileCount}개`, fileCount > 0],
@@ -135,6 +141,10 @@ export function ResumeEditorPage() {
                   value={id}
                   checked={resume.careerId === id}
                   onChange={() => setCareer(id)}
+                  onClick={() => {
+                    if (!resume.hasSelectedCareer && resume.careerId === id)
+                      setCareer(id);
+                  }}
                 >
                   {label}
                 </Radio>
@@ -185,7 +195,7 @@ export function ResumeEditorPage() {
               size='large'
               display='block'
               disabled={!ready}
-              onClick={register}
+              onClick={() => setConfirmation('register')}
             >
               등록하고 시작하기
             </Button>
@@ -193,20 +203,17 @@ export function ResumeEditorPage() {
               size='large'
               display='block'
               variant='outline'
-              onClick={() => setSkipDialogOpen(true)}
+              onClick={() => setConfirmation('skip')}
             >
               건너뛰기
             </Button>
           </div>
         </aside>
       </div>
-      <ResumeSkipDialog
-        isOpen={isSkipDialogOpen}
-        onClose={() => setSkipDialogOpen(false)}
-        onConfirm={async () => {
-          const pass = await signupApi.completeSignup(avatar);
-          navigate('/signup/pass', { state: pass });
-        }}
+      <ResumeConfirmationDialog
+        isOpen={confirmation !== null}
+        onClose={() => setConfirmation(null)}
+        onConfirm={confirm}
       />
     </div>
   );
