@@ -35,6 +35,12 @@ pnpm dev                    # http://localhost:5173
 
 공통 컴포넌트 스토리는 `src/stories/common/<컴포넌트명>/`에 둡니다. 예를 들어 `GNB/`에는 `GNB.stories.tsx`와 미리보기 전용 스타일 `gnb.stories.css.ts`를 함께 둡니다.
 
+### 가입 화면
+
+홈의 **가입 · 아바타 만들기** 링크 또는 `/signup/avatar`에서 시작합니다.
+닉네임(공백 포함 최대 6자)과 아바타를 선택하면 `/signup/resume-guide`에서
+선택한 사진과 이름이 반영된 이력서 예시를 볼 수 있습니다. 안내 화면의 두 버튼은 후속 화면 연결 전까지 표시만 합니다.
+
 ### Git hook
 
 | 시점                  | 동작                                |
