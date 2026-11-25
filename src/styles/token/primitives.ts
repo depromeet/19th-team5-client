@@ -59,6 +59,7 @@ export const fontFamily = {
 } as const;
 
 export const fontSize = {
+  12: '12px',
   14: '14px',
   16: '16px',
   18: '18px',
@@ -71,11 +72,13 @@ export const fontSize = {
 
 export const fontWeight = {
   regular: 400,
+  medium: 500,
   semibold: 600,
   bold: 700,
 } as const;
 
 export const lineHeight = {
+  16: '16px',
   20: '20px',
   24: '24px',
   28: '28px',

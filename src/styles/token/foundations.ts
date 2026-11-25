@@ -100,4 +100,11 @@ export const typography = {
     lineHeight: lineHeight[20],
     letterSpacing: '0px',
   },
+  tag: {
+    fontFamily: fontFamily.pretendard,
+    fontSize: fontSize[12],
+    fontWeight: fontWeight.medium,
+    lineHeight: lineHeight[16],
+    letterSpacing: '0px',
+  },
 } as const satisfies Record<string, TextStyle>;

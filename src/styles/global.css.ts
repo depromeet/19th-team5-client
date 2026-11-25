@@ -9,6 +9,12 @@ globalFontFace('Pretendard', [
     fontDisplay: 'swap',
   },
   {
+    src: "url('/fonts/Pretendard-Medium.woff2') format('woff2')",
+    fontWeight: fontWeight.medium,
+    fontStyle: 'normal',
+    fontDisplay: 'swap',
+  },
+  {
     src: "url('/fonts/Pretendard-SemiBold.woff2') format('woff2')",
     fontWeight: fontWeight.semibold,
     fontStyle: 'normal',
