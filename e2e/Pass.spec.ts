@@ -8,6 +8,38 @@ test.beforeEach(async ({ page }) => {
   await expect(page).toHaveURL(/\/signup\/resume-guide$/);
 });
 
+test('3D 텍스처를 기다리는 동안 발급된 방문증을 보여주고 준비되면 전환한다', async ({
+  page,
+}) => {
+  const texture = '**/images/signup/pass-strap.svg';
+  const request = page.waitForRequest(texture);
+  let resumeTexture: (() => void) | undefined;
+  const gate = new Promise<void>((resolve) => {
+    resumeTexture = resolve;
+  });
+  await page.route(texture, async (route) => {
+    await gate;
+    await route.continue();
+  });
+
+  const preview = page.getByRole('img', {
+    name: /검증수달님의 MOING 방문 출입증/,
+  });
+  const card = preview.locator('[data-pass-card="visitor-L"]');
+  const scene = preview.locator('canvas[data-pass3d]');
+  try {
+    await page.getByRole('button', { name: '건너뛰기' }).click();
+    await request;
+    await expect(card).toBeVisible();
+    await expect(card).toHaveJSProperty('naturalWidth', 864);
+    await expect(scene).toHaveCount(0);
+  } finally {
+    resumeTexture?.();
+  }
+  await expect(scene).toBeVisible();
+  await expect(card).toBeHidden();
+});
+
 test('3D 모듈을 받지 못해도 가입 화면에 같은 방문증이 표시된다', async ({
   page,
 }) => {

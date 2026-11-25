@@ -1,110 +1,36 @@
-import { Component, lazy, type ReactNode, Suspense } from 'react';
 import { Navigate, useLocation } from 'react-router';
 import { Button } from '@/components/common/button';
 import { Tag } from '@/components/common/tag';
-import { color } from '@/styles/token';
-import { type Avatar, initialDraft, isComplete } from '../AvatarDraft';
-import { useAvatarDraft } from '../SignupLayout';
+import type { PassProgress } from '@/types/Signup';
+import { initialDraft, isComplete } from '../AvatarDraft';
 import * as signup from '../Signup.css';
-import { PassCard } from './PassCard';
+import { useAvatarDraft, useSignupOptions } from '../SignupLayout';
+import { PassPreview } from './components/PassPreview';
 import * as s from './Pass.css';
-import { passLayouts } from './PassCardDesign';
 
-const Lanyard = lazy(() => import('../lanyard/Lanyard.jsx'));
-const levels = [
-  ['지원자', '지금'],
-  ['서류 합격자', '면접 3회'],
-  ['1차 합격자', '면접 8회'],
-  ['최종 합격자', '면접 15회'],
-  ['면접 마스터', '면접 30회'],
-];
-class PassArtworkBoundary extends Component<
-  { fallback: ReactNode; children: ReactNode },
-  { failed: boolean }
-> {
-  state = { failed: false };
-
-  static getDerivedStateFromError() {
-    return { failed: true };
-  }
-
-  render() {
-    if (this.state.failed)
-      return <div data-pass-fallback='module'>{this.props.fallback}</div>;
-    return this.props.children;
-  }
-}
-
-function PassPreview({
-  avatar,
-  nickname,
-  issuedAt,
-}: {
-  avatar: Avatar;
-  nickname: string;
-  issuedAt: number;
-}) {
-  const layout = passLayouts.L;
-  return (
-    <div className={s.scene}>
-      <div className={s.rings} aria-hidden='true' />
-      <PassCard
-        className={s.cardPreview}
-        data={{
-          kind: 'visitor',
-          size: 'L',
-          name: nickname,
-          portraitUrl: `/images/signup/${avatar}-portrait.png`,
-          issuedAt,
-          interviews: 0,
-          levelLabel: 'Lv.1 지원자',
-        }}
-        renderArtwork={(artwork, staticCard) => {
-          const fallback = (
-            <div
-              className={s.staticPass}
-              style={{ aspectRatio: layout.width / layout.height }}
-            >
-              {staticCard}
-            </div>
-          );
-          if (!artwork) return fallback;
-          return (
-            <PassArtworkBoundary fallback={fallback}>
-              <Suspense fallback={fallback}>
-                <Lanyard
-                  frontImage={artwork.front}
-                  backImage={artwork.back}
-                  fallback={fallback}
-                  strapImage='/images/signup/pass-strap.svg'
-                  strapColor={color.primary[500]}
-                  cardColor={color.primary[900]}
-                  aspectRatio={layout.width / layout.height}
-                  cornerRadius={0.4}
-                  size={0.52}
-                  strapLength={0.35}
-                  strapWidth={0.55}
-                  finish='matte'
-                  damping={0.75}
-                  breeze={0.15}
-                />
-              </Suspense>
-            </PassArtworkBoundary>
-          );
-        }}
-      />
-      <span className={s.ticketLabel}>+ 면접권 2장</span>
-      <span className={s.levelLabel}>Lv.1 지원자</span>
-    </div>
-  );
+function isPassProgress(value: unknown): value is PassProgress {
+  if (!value || typeof value !== 'object') return false;
+  const fields = [
+    'level',
+    'interviewCount',
+    'ticketCount',
+    'noShowCount',
+    'noShowLimit',
+  ] as const;
+  return fields.every((field) => {
+    const number: unknown = Reflect.get(value, field);
+    return (
+      typeof number === 'number' && Number.isInteger(number) && number >= 0
+    );
+  });
 }
 
 export function VisitorPassPage() {
   const [draft] = useAvatarDraft();
+  const { passLevels, initialPassProgress } = useSignupOptions();
   const { state } = useLocation();
   const issued = initialDraft(state);
   if (
-    !issued.avatar ||
     !isComplete(issued) ||
     typeof state?.issuedAt !== 'number' ||
     !Number.isFinite(new Date(state.issuedAt).getTime())
@@ -112,12 +38,24 @@ export function VisitorPassPage() {
     if (!isComplete(draft)) return <Navigate to='/signup/avatar' replace />;
     return <Navigate to='/signup/resume-guide' state={draft} replace />;
   }
+  const progress = isPassProgress(state.progress)
+    ? state.progress
+    : initialPassProgress;
+  const currentLevel = passLevels.find(
+    (entry) => entry.level === progress.level,
+  );
+  const levelLabel = currentLevel
+    ? `Lv.${progress.level} ${currentLevel.label}`
+    : `Lv.${progress.level}`;
+
   return (
     <div className={s.layout}>
       <PassPreview
         avatar={issued.avatar}
         nickname={issued.nickname}
         issuedAt={state.issuedAt}
+        progress={progress}
+        levelLabel={levelLabel}
       />
       <section className={s.details}>
         <Tag tone='green'>가입 완료</Tag>
@@ -134,11 +72,18 @@ export function VisitorPassPage() {
         <div className={s.journey}>
           <h2>합격까지의 여정</h2>
           <ol>
-            {levels.map(([label, threshold], i) => (
-              <li key={label} aria-current={i === 0 ? 'step' : undefined}>
-                <span>Lv.{i + 1}</span>
+            {passLevels.map(({ level, label, minInterviews }) => (
+              <li
+                key={level}
+                aria-current={level === progress.level ? 'step' : undefined}
+              >
+                <span>Lv.{level}</span>
                 {label}
-                {i === 0 ? <Tag>지금</Tag> : <small>{threshold}</small>}
+                {level === progress.level ? (
+                  <Tag>지금</Tag>
+                ) : (
+                  <small>면접 {minInterviews}회</small>
+                )}
               </li>
             ))}
           </ol>
@@ -146,11 +91,13 @@ export function VisitorPassPage() {
         <dl className={s.stats}>
           <div>
             <dt>받은 면접권</dt>
-            <dd>2장</dd>
+            <dd>{progress.ticketCount}장</dd>
           </div>
           <div>
             <dt>노쇼 경고</dt>
-            <dd>0 / 2</dd>
+            <dd>
+              {progress.noShowCount} / {progress.noShowLimit}
+            </dd>
           </div>
         </dl>
         <div className={s.footer}>

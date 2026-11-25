@@ -1,65 +1,41 @@
 import { IconILowercaseSerifCircleLine } from '@karrotmarket/react-monochrome-icon';
-import { type ReactNode, useState } from 'react';
+import { useState } from 'react';
 import { Navigate, useNavigate } from 'react-router';
+import { signupApi } from '@/apis/SignupApi';
 import { Avatar } from '@/components/common/avatar';
 import { Button } from '@/components/common/button';
 import { Checkbox } from '@/components/common/checkbox';
 import { Dialog } from '@/components/common/dialog';
 import { Radio } from '@/components/common/radio';
-import { Tag } from '@/components/common/tag';
 import { isComplete } from '../AvatarDraft';
-import { useAvatarDraft, useResumeStore } from '../SignupLayout';
 import * as signup from '../Signup.css';
-import { PortfolioAttachments } from './PortfolioAttachments';
-import { AnswerEntries, ExperienceEntries } from './ResumeEntries';
+import {
+  useAvatarDraft,
+  useResumeStore,
+  useSignupOptions,
+} from '../SignupLayout';
+import { PortfolioAttachments } from './components/PortfolioAttachments';
+import { AnswerEntries, ExperienceEntries } from './components/ResumeEntries';
+import { ResumeSection } from './components/ResumeSection';
 import * as s from './Resume.css';
 import {
-  careerOptions,
   hasAnswerInput,
   hasExperienceInput,
-  questions,
   resumeLimits,
 } from './ResumeDraft';
 import { canRegisterResume } from './ResumeStore';
 
-function Section({
-  title,
-  count,
-  optional = false,
-  children,
-}: {
-  title: string;
-  count: string;
-  optional?: boolean;
-  children: ReactNode;
-}) {
-  return (
-    <section className={s.section}>
-      <div className={s.sectionTitle}>
-        <h2>
-          {title}{' '}
-          {!optional && (
-            <span aria-hidden='true' className={s.star}>
-              *
-            </span>
-          )}
-        </h2>
-        {optional && <Tag tone='outline'>선택</Tag>}
-        <span className={s.number}>{count}</span>
-      </div>
-      {children}
-    </section>
-  );
-}
-
 export function ResumeEditorPage() {
   const [avatar] = useAvatarDraft();
+  const { careers, questions } = useSignupOptions();
   const resume = useResumeStore((state) => state.draft);
   const pendingFiles = useResumeStore((state) => state.pendingFiles);
   const setCareer = useResumeStore((state) => state.setCareer);
   const setExperiences = useResumeStore((state) => state.setExperiences);
   const setAnswers = useResumeStore((state) => state.setAnswers);
-  const registerResume = useResumeStore((state) => state.register);
+  const prepareRegistration = useResumeStore(
+    (state) => state.prepareRegistration,
+  );
   const ready = useResumeStore(canRegisterResume);
   const [isSkipDialogOpen, setSkipDialogOpen] = useState(false);
   const navigate = useNavigate();
@@ -71,10 +47,16 @@ export function ResumeEditorPage() {
     5,
     experienceCount + answerCount + Math.min(1, fileCount),
   );
-  const complete = () =>
-    navigate('/signup/pass', { state: { ...avatar, issuedAt: Date.now() } });
-  function register() {
-    if (registerResume()) complete();
+  async function register() {
+    if (!isComplete(avatar)) return;
+    const registration = prepareRegistration();
+    if (!registration) return;
+    const pass = await signupApi.completeSignup({
+      ...avatar,
+      resume: registration.submission,
+    });
+    registration.commit();
+    navigate('/signup/pass', { state: pass });
   }
   const checks = [
     ['지원 정보', '완료', true],
@@ -96,7 +78,7 @@ export function ResumeEditorPage() {
             면접관이 이 내용을 보고 2부 질문을 만들어요. 안 채워도 면접은 볼 수
             있어요.
           </p>
-          <Section
+          <ResumeSection
             title='경험 · 경력'
             count={`${resume.experiences.filter(hasExperienceInput).length}개`}
           >
@@ -108,8 +90,8 @@ export function ResumeEditorPage() {
               entries={resume.experiences}
               onChange={setExperiences}
             />
-          </Section>
-          <Section
+          </ResumeSection>
+          <ResumeSection
             title='자기소개서'
             count={`문항 ${resume.answers.filter(hasAnswerInput).length}개`}
           >
@@ -117,15 +99,19 @@ export function ResumeEditorPage() {
               기본 문항 {questions.length}개 중 최대 {resumeLimits.questions}
               개를 골라 답을 적어요.
             </p>
-            <AnswerEntries entries={resume.answers} onChange={setAnswers} />
-          </Section>
-          <Section
+            <AnswerEntries
+              entries={resume.answers}
+              onChange={setAnswers}
+              questions={questions}
+            />
+          </ResumeSection>
+          <ResumeSection
             title='포트폴리오 · 첨부파일'
             count={`${fileCount + pendingFiles} / ${resumeLimits.attachments}`}
             optional
           >
             <PortfolioAttachments />
-          </Section>
+          </ResumeSection>
         </div>
         <aside className={s.sidebar} aria-label='이력서 작성 현황'>
           <div className={s.sideCard}>
@@ -142,15 +128,15 @@ export function ResumeEditorPage() {
                   *
                 </span>
               </legend>
-              {careerOptions.map((career) => (
+              {careers.map(({ id, label }) => (
                 <Radio
-                  key={career}
+                  key={id}
                   name='career'
-                  value={career}
-                  checked={resume.career === career}
-                  onChange={() => setCareer(career)}
+                  value={id}
+                  checked={resume.careerId === id}
+                  onChange={() => setCareer(id)}
                 >
-                  {career}
+                  {label}
                 </Radio>
               ))}
             </fieldset>
@@ -235,7 +221,14 @@ export function ResumeEditorPage() {
           >
             좀 더 쓸게요
           </Button>
-          <Button size='large' display='block' onClick={complete}>
+          <Button
+            size='large'
+            display='block'
+            onClick={async () => {
+              const pass = await signupApi.completeSignup(avatar);
+              navigate('/signup/pass', { state: pass });
+            }}
+          >
             완료
           </Button>
         </Dialog.Footer>

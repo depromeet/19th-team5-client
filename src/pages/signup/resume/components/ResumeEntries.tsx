@@ -3,8 +3,9 @@ import { AddButton } from '@/components/common/add-button';
 import { Button } from '@/components/common/button';
 import { TextArea } from '@/components/common/text-area';
 import { TextField } from '@/components/common/text-field';
+import type { SignupOption } from '@/types/Signup';
 import { formatInputChange } from '@/utils/FormatInput';
-import * as s from './Resume.css';
+import * as s from '../Resume.css';
 import {
   type Answer,
   type Entry,
@@ -13,12 +14,11 @@ import {
   hasExperienceInput,
   monthCount,
   newEntry,
-  questions,
   resumeLimits,
   validAnswer,
   validExperience,
   validExperienceDates,
-} from './ResumeDraft';
+} from '../ResumeDraft';
 
 type EntryListProps<T> = {
   entries: Entry<T>[];
@@ -153,23 +153,28 @@ export function ExperienceEntries(props: EntryListProps<Experience>) {
   );
 }
 
-export function AnswerEntries(props: EntryListProps<Answer>) {
-  const { entries, onChange } = props;
+export function AnswerEntries(
+  props: EntryListProps<Answer> & { questions: readonly SignupOption[] },
+) {
+  const { entries, onChange, questions } = props;
   const nextQuestion = questions.find(
-    (q) => !entries.some((row) => row.draft.question === q),
+    ({ id }) => !entries.some((row) => row.draft.questionId === id),
   );
   return (
     <div className={s.entries}>
       {entries.map((row, index) => {
         const actions = actionsFor(props, row);
-        const questionNumber = questions.indexOf(row.draft.question) + 1;
+        const questionIndex = questions.findIndex(
+          ({ id }) => id === row.draft.questionId,
+        );
+        const questionNumber = questionIndex + 1;
         const valid = validAnswer(row.draft);
         if (!row.editing && row.saved)
           return (
             <article key={row.id} className={s.summary}>
               <div className={s.itemHeading}>
                 <h3>
-                  문항 {questionNumber} · {row.saved.question}
+                  문항 {questionNumber} · {questions[questionIndex]?.label}
                 </h3>
                 <Button variant='text' onClick={actions.edit}>
                   수정
@@ -183,22 +188,21 @@ export function AnswerEntries(props: EntryListProps<Answer>) {
             <div className={s.selectWrap}>
               <select
                 aria-label={`자기소개서 ${index + 1}번째 문항 선택`}
-                value={row.draft.question}
+                value={row.draft.questionId}
                 onChange={(e) => {
-                  const question = questions[e.currentTarget.selectedIndex];
-                  if (question) actions.change({ question });
+                  actions.change({ questionId: e.currentTarget.value });
                 }}
               >
-                {questions.map((q, questionIndex) => (
+                {questions.map(({ id, label }, index) => (
                   <option
-                    key={q}
-                    value={q}
+                    key={id}
+                    value={id}
                     disabled={entries.some(
                       (other) =>
-                        other.id !== row.id && other.draft.question === q,
+                        other.id !== row.id && other.draft.questionId === id,
                     )}
                   >
-                    문항 {questionIndex + 1} · {q}
+                    문항 {index + 1} · {label}
                   </option>
                 ))}
               </select>
@@ -226,12 +230,12 @@ export function AnswerEntries(props: EntryListProps<Answer>) {
       })}
       <AddButton
         className={s.add}
-        disabled={entries.length >= resumeLimits.questions}
+        disabled={!nextQuestion || entries.length >= resumeLimits.questions}
         onClick={() => {
           if (nextQuestion)
             onChange([
               ...entries,
-              newEntry({ question: nextQuestion, text: '' }),
+              newEntry({ questionId: nextQuestion.id, text: '' }),
             ]);
         }}
       >

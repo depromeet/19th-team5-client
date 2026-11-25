@@ -2,7 +2,6 @@ import { color, fontFamily, fontWeight } from '@/styles/token';
 import {
   getPassLabels,
   type PassCardData,
-  passBackgrounds,
   passLayouts,
 } from './PassCardDesign';
 
@@ -20,6 +19,61 @@ async function loadImage(url: string) {
   return image;
 }
 
+const passColors = {
+  visitor: { from: '#101C38', to: '#1C2F63', accent: '#4C6FFF' },
+  employee: { from: '#0A1220', to: '#1B2640', accent: '#C9D3E6' },
+};
+
+function drawBackground(ctx: CanvasRenderingContext2D, data: PassCardData) {
+  const { width, height, gradientEnd, stripe } = passLayouts[data.size];
+  const colors = passColors[data.kind];
+  ctx.save();
+  const base = ctx.createLinearGradient(
+    width * 0.14,
+    height * 0.02,
+    gradientEnd[0],
+    gradientEnd[1],
+  );
+  base.addColorStop(0, colors.from);
+  base.addColorStop(1, colors.to);
+  ctx.fillStyle = base;
+  ctx.fillRect(0, 0, width, height);
+
+  ctx.save();
+  ctx.scale(width, height);
+  const glow = (
+    x: number,
+    y: number,
+    radius: number,
+    tint: string,
+    opacity: number,
+  ) => {
+    const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
+    gradient.addColorStop(0, tint);
+    gradient.addColorStop(1, `${tint}00`);
+    ctx.globalAlpha = opacity;
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 1, 1);
+  };
+  if (data.kind === 'visitor') {
+    glow(0.95, 0, 0.45, colors.accent, 0.45);
+    glow(0, 1, 0.4, '#2B3F8F', 0.4);
+  } else {
+    glow(0.95, 0.05, 0.4, '#8EA3C8', 0.25);
+  }
+  ctx.restore();
+
+  if (stripe) {
+    const [y, stripeWidth, stripeHeight] = stripe;
+    const gradient = ctx.createLinearGradient(0, 0, stripeWidth, 0);
+    gradient.addColorStop(0, colors.accent);
+    gradient.addColorStop(1, `${colors.accent}33`);
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, y, stripeWidth, stripeHeight);
+  }
+  ctx.restore();
+}
+
 export async function makePassArtwork(
   data: PassCardData,
   watermarkSvg: SVGSVGElement,
@@ -28,8 +82,7 @@ export async function makePassArtwork(
   const { width, height, details } = layout;
   const labels = getPassLabels(data);
   const watermarkMarkup = new XMLSerializer().serializeToString(watermarkSvg);
-  const [background, portrait, watermark] = await Promise.all([
-    loadImage(passBackgrounds[data.kind][data.size]),
+  const [portrait, watermark] = await Promise.all([
     loadImage(data.portraitUrl),
     loadImage(
       `data:image/svg+xml;charset=utf-8,${encodeURIComponent(watermarkMarkup)}`,
@@ -51,7 +104,7 @@ export async function makePassArtwork(
   ctx.fillStyle = color.neutral[0];
 
   const drawBase = () => {
-    ctx.drawImage(background, 0, 0, width, height);
+    drawBackground(ctx, data);
     const [tieX, tieY, tieWidth, tieHeight] = layout.tie;
     ctx.drawImage(watermark, tieX, tieY, tieWidth, tieHeight);
   };
@@ -114,7 +167,8 @@ export async function makePassArtwork(
     Math.ceil(ctx.measureText(labels.badge).width) + 24,
     details ? width - nameX - details.x : width - 20,
   );
-  ctx.fillStyle = data.kind === 'visitor' ? '#4C6FFF38' : '#C9D3E629';
+  ctx.fillStyle =
+    passColors[data.kind].accent + (data.kind === 'visitor' ? '38' : '29');
   ctx.beginPath();
   ctx.roundRect(
     details ? nameX : (width - badgeWidth) / 2,

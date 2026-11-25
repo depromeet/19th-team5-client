@@ -5,14 +5,14 @@ import {
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/common/button';
 import { Tag } from '@/components/common/tag';
-import { useResumeStore } from '../SignupLayout';
-import * as s from './Resume.css';
+import { useResumeStore } from '../../SignupLayout';
+import * as s from '../Resume.css';
 import {
   bytesPerKb,
   bytesPerMb,
   hasPdfHeader,
   resumeLimits,
-} from './ResumeDraft';
+} from '../ResumeDraft';
 
 function formatFileSize(bytes: number) {
   if (bytes < bytesPerKb) return `${bytes}B`;

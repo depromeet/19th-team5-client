@@ -1,18 +1,11 @@
-export const careerOptions = ['신입', '1–3년', '3년 이상'] as const;
-export type Career = (typeof careerOptions)[number];
+import type {
+  ResumeAnswer,
+  ResumeExperience,
+  SignupOptions,
+} from '@/types/Signup';
 
-export const questions = [
-  '지원 동기와 입사 후 포부',
-  '문제를 해결한 경험',
-  '팀으로 협업한 경험',
-  '나의 강점을 발휘한 경험',
-  '나의 약점과 이를 보완한 방법',
-  '실패한 경험에서 배운 점',
-  '팀원과 의견 차이를 조율한 경험',
-  '도전적인 목표를 세우고 달성한 경험',
-  '지원 직무를 위해 준비한 과정',
-  '일할 때 가장 중요하게 생각하는 가치',
-] as const;
+export type Experience = ResumeExperience;
+export type Answer = ResumeAnswer;
 export const resumeLimits = {
   textLength: 700,
   questions: 3,
@@ -22,13 +15,6 @@ export const resumeLimits = {
 export const bytesPerKb = 1024;
 export const bytesPerMb = bytesPerKb * 1024;
 
-export type Experience = {
-  title: string;
-  start: string;
-  end: string;
-  role: string;
-  description: string;
-};
 export const emptyExperience: Experience = {
   title: '',
   start: '',
@@ -36,7 +22,6 @@ export const emptyExperience: Experience = {
   role: '',
   description: '',
 };
-export type Answer = { question: (typeof questions)[number]; text: string };
 export type Entry<T> = {
   id: string;
   saved: T | null;
@@ -129,16 +114,21 @@ export function hasPdfHeader(result: FileReader['result']) {
 }
 
 export type ResumeDraft = {
-  career: Career;
+  careerId: string;
   experiences: Entry<Experience>[];
   answers: Entry<Answer>[];
   files: File[];
 };
-export function createResumeDraft(): ResumeDraft {
+export function createResumeDraft({
+  defaultCareerId,
+  questions,
+}: SignupOptions): ResumeDraft {
   return {
-    career: '신입',
+    careerId: defaultCareerId,
     experiences: [newEntry(emptyExperience)],
-    answers: [newEntry({ question: questions[0], text: '' })],
+    answers: questions.length
+      ? [newEntry({ questionId: questions[0].id, text: '' })]
+      : [],
     files: [],
   };
 }

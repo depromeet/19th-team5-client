@@ -1,4 +1,5 @@
 import { createStore } from 'zustand/vanilla';
+import type { ResumeSubmission, SignupOptions } from '@/types/Signup';
 import {
   createResumeDraft,
   type Entry,
@@ -13,14 +14,17 @@ import {
 export type ResumeState = {
   draft: ResumeDraft;
   pendingFiles: number;
-  setCareer: (career: ResumeDraft['career']) => void;
+  setCareer: (careerId: string) => void;
   setExperiences: (experiences: ResumeDraft['experiences']) => void;
   setAnswers: (answers: ResumeDraft['answers']) => void;
   beginAttachments: (files: File[]) => { started: boolean; error: string };
   finishAttachment: (file?: File) => void;
   clearPendingAttachments: () => void;
   removeAttachment: (file: File) => void;
-  register: () => boolean;
+  prepareRegistration: () => {
+    submission: ResumeSubmission;
+    commit: () => void;
+  } | null;
 };
 
 function getRegistration({ draft, pendingFiles }: ResumeState) {
@@ -45,12 +49,12 @@ function saveEntry<T>(row: Entry<T>): Entry<T> {
   return { ...row, saved: row.draft, editing: false };
 }
 
-export function createResumeStore() {
+export function createResumeStore(options: SignupOptions) {
   return createStore<ResumeState>()((set, get) => ({
-    draft: createResumeDraft(),
+    draft: createResumeDraft(options),
     pendingFiles: 0,
-    setCareer: (career) =>
-      set(({ draft }) => ({ draft: { ...draft, career } })),
+    setCareer: (careerId) =>
+      set(({ draft }) => ({ draft: { ...draft, careerId } })),
     setExperiences: (experiences) =>
       set(({ draft }) => ({ draft: { ...draft, experiences } })),
     setAnswers: (answers) =>
@@ -79,18 +83,30 @@ export function createResumeStore() {
       set(({ draft }) => ({
         draft: { ...draft, files: draft.files.filter((item) => item !== file) },
       })),
-    register: () => {
+    prepareRegistration: () => {
       const state = get();
       const registration = getRegistration(state);
-      if (!registration) return false;
-      set({
-        draft: {
-          ...state.draft,
-          experiences: registration.experiences.map(saveEntry),
-          answers: registration.answers.map(saveEntry),
+      if (!registration) return null;
+      return {
+        submission: {
+          careerId: state.draft.careerId,
+          experiences: registration.experiences.map((row) => row.draft),
+          answers: registration.answers.map((row) => row.draft),
+          files: state.draft.files,
         },
-      });
-      return true;
+        commit: () => {
+          set((current) => {
+            if (current.draft !== state.draft) return current;
+            return {
+              draft: {
+                ...state.draft,
+                experiences: registration.experiences.map(saveEntry),
+                answers: registration.answers.map(saveEntry),
+              },
+            };
+          });
+        },
+      };
     },
   }));
 }

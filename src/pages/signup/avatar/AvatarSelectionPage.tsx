@@ -1,6 +1,7 @@
-import { IconArrowClockwiseOvalLine } from '@karrotmarket/react-monochrome-icon';
-import { type FormEvent, useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
+import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router';
+import { signupApi } from '@/apis/SignupApi';
 import { Button } from '@/components/common/button';
 import {
   type Avatar,
@@ -8,46 +9,19 @@ import {
   isComplete,
   nicknameLength,
   nicknameLimit,
-} from './AvatarDraft';
-import { SignupStep, useAvatarDraft } from './SignupLayout';
-import * as styles from './Signup.css';
+} from '../AvatarDraft';
+import { SignupStep } from '../components/SignupStep';
+import * as styles from '../Signup.css';
+import { useAvatarDraft } from '../SignupLayout';
+import { AvatarPreview } from './components/AvatarPreview';
 
 const avatarChoices: Avatar[] = ['boy', 'girl'];
-const randomNicknames = [
-  '차분한수달',
-  '씩씩한토끼',
-  '웃는펭귄',
-  '당찬고래',
-  '반짝여우',
-  '느긋한곰',
-];
-
-function AvatarPreview({ avatar }: { avatar: Avatar }) {
-  const [flipped, setFlipped] = useState(false);
-  return (
-    <>
-      <img
-        className={styles.avatarPreview}
-        data-flipped={flipped}
-        src={`/images/signup/${avatar}.png`}
-        alt={`${avatars[avatar]} 전신 미리보기`}
-      />
-      <Button
-        variant='text'
-        className={styles.rotate}
-        aria-label='아바타 좌우 돌려보기'
-        aria-pressed={flipped}
-        onClick={() => setFlipped(!flipped)}
-      >
-        <IconArrowClockwiseOvalLine size={34} aria-hidden='true' />
-      </Button>
-    </>
-  );
-}
-
 export function AvatarSelectionPage() {
   const [draft, setDraft] = useAvatarDraft();
   const navigate = useNavigate();
+  const nicknameSuggestion = useMutation({
+    mutationFn: signupApi.suggestNickname,
+  });
   const count = nicknameLength(draft.nickname);
   const hasOnlySpaces = count > 0 && !draft.nickname.trim();
   const error =
@@ -65,8 +39,13 @@ export function AvatarSelectionPage() {
   }
 
   function drawNickname() {
-    const choices = randomNicknames.filter((name) => name !== draft.nickname);
-    updateNickname(choices[Math.floor(Math.random() * choices.length)]);
+    nicknameSuggestion.mutate(draft.nickname, {
+      onSuccess: (nickname, previous) => {
+        setDraft((current) =>
+          current.nickname === previous ? { ...current, nickname } : current,
+        );
+      },
+    });
   }
 
   function confirm(event: FormEvent) {
@@ -109,10 +88,19 @@ export function AvatarSelectionPage() {
               {count} / {nicknameLimit}
             </span>
           </div>
-          <Button className={styles.randomButton} onClick={drawNickname}>
+          <Button
+            className={styles.randomButton}
+            onClick={drawNickname}
+            disabled={nicknameSuggestion.isPending}
+          >
             랜덤으로 뽑기
           </Button>
         </div>
+        {nicknameSuggestion.isError && (
+          <p className={styles.helper} role='alert'>
+            닉네임을 불러오지 못했어요. 다시 시도해 주세요.
+          </p>
+        )}
         {count > 0 && (
           <p
             id='nickname-help'

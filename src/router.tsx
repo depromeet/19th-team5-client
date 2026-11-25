@@ -1,9 +1,9 @@
 import { createBrowserRouter, Navigate, useLocation } from 'react-router';
 import { HomePage } from '@/pages/HomePage';
-import { AvatarSelectionPage } from '@/pages/signup/AvatarSelectionPage';
+import { AvatarSelectionPage } from '@/pages/signup/avatar/AvatarSelectionPage';
 import { VisitorPassPage } from '@/pages/signup/pass/VisitorPassPage';
-import { ResumeGuidePage } from '@/pages/signup/ResumeGuidePage';
 import { ResumeEditorPage } from '@/pages/signup/resume/ResumeEditorPage';
+import { ResumeGuidePage } from '@/pages/signup/resume-guide/ResumeGuidePage';
 import { SignupLayout } from '@/pages/signup/SignupLayout';
 
 function SignupIndexRedirect() {

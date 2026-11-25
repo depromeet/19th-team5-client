@@ -82,6 +82,7 @@ const Lanyard = ({
     settingsRef.current = {
       frontImage,
       backImage,
+      hasFallback: Boolean(fallback),
       imageFit: imageFit === 'contain' ? 'contain' : 'cover',
       aspectRatio,
       cardColor,
@@ -132,7 +133,6 @@ const Lanyard = ({
     canvas.className = styles.canvas;
     canvas.dataset.pass3d = '';
     canvas.setAttribute('aria-hidden', 'true');
-    container.appendChild(canvas);
 
     const anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
     const scene = new THREE.Scene();
@@ -364,17 +364,25 @@ const Lanyard = ({
       const imageKey = `${s.frontImage}|${s.backImage}|${s.strapImage}`;
       if (imageKey !== applied.imageKey) {
         const token = ++imageToken;
+        canvas.remove();
         Promise.all([
           loadImage(imageCache, s.frontImage),
           loadImage(imageCache, s.backImage),
           loadImage(imageCache, s.strapImage),
         ]).then(([front, back, strap]) => {
           if (!alive || token !== imageToken) return;
+          if (
+            s.hasFallback &&
+            ((s.frontImage && !front) || (s.backImage && !back))
+          )
+            return;
           images.front = front;
           images.back = back;
           images.strap = strap;
           paintFaces();
           repaintStrap();
+          container.appendChild(canvas);
+          render();
         });
       }
       const faceKey = `${layoutKey}|${s.cardColor}|${s.imageFit}`;
@@ -522,6 +530,7 @@ const Lanyard = ({
     };
 
     const render = () => {
+      if (!canvas.isConnected) return;
       cardGroup.position.copy(sim.body.position);
       cardGroup.quaternion.copy(sim.body.quaternion);
       updateBand();
@@ -557,7 +566,7 @@ const Lanyard = ({
 
     const tick = (now) => {
       raf = 0;
-      if (!alive) return;
+      if (!alive || !canvas.isConnected) return;
       const dt = Math.min(1 / 30, Math.max(1 / 240, (now - last) / 1000));
       last = now;
       time += dt;

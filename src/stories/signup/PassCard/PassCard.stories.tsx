@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import employeePortrait from '@/pages/signup/pass/art/EmployeePreview.webp';
-import { PassCard } from '@/pages/signup/pass/PassCard';
+import { PassCard } from '@/pages/signup/pass/components/PassCard';
 import { space } from '@/styles/token';
+import employeePortrait from './EmployeePreview.webp';
 
 const meta = {
   title: 'Signup/PassCard',

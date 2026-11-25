@@ -1,12 +1,12 @@
 import { type ReactNode, useEffect, useRef, useState } from 'react';
 import { IconTieWatermark } from '@/assets/icons';
-import { makePassArtwork } from './PassArtwork';
-import * as styles from './PassCard.css';
+import { makePassArtwork } from '../PassArtwork';
 import {
   getPassLabels,
   type PassCardData,
   passLayouts,
-} from './PassCardDesign';
+} from '../PassCardDesign';
+import * as styles from './PassCard.css';
 
 type Artwork = Awaited<ReturnType<typeof makePassArtwork>>;
 

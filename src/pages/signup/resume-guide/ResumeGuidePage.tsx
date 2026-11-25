@@ -1,8 +1,11 @@
 import { Navigate, useNavigate } from 'react-router';
+import { signupApi } from '@/apis/SignupApi';
 import { Button } from '@/components/common/button';
-import { type Avatar, isComplete } from './AvatarDraft';
-import { SignupStep, useAvatarDraft } from './SignupLayout';
-import * as styles from './Signup.css';
+import { isComplete } from '../AvatarDraft';
+import { SignupStep } from '../components/SignupStep';
+import * as styles from '../Signup.css';
+import { useAvatarDraft, useSignupOptions } from '../SignupLayout';
+import { ResumePreview } from './components/ResumePreview';
 
 const benefits = [
   {
@@ -22,49 +25,22 @@ const benefits = [
   },
 ];
 
-function ResumePreview({
-  avatar,
-  nickname,
-}: {
-  avatar: Avatar;
-  nickname: string;
-}) {
-  return (
-    <>
-      <div
-        className={styles.resumeSample}
-        role='img'
-        aria-label={`${nickname}님의 이력서 예시`}
-      >
-        <div className={styles.sampleHeader} aria-hidden='true'>
-          <img
-            className={styles.samplePortrait}
-            src={`/images/signup/${avatar}-profile.png`}
-            alt=''
-          />
-          <div>
-            <strong className={styles.sampleName}>{nickname}</strong>
-            <span className={styles.sampleJob}>디자인 · 신입</span>
-          </div>
-        </div>
-      </div>
-      <p className={styles.sampleCaption}>이력서는 면접관에게만 보여요</p>
-    </>
-  );
-}
-
 export function ResumeGuidePage() {
   const [draft] = useAvatarDraft();
+  const { previewJobLabel } = useSignupOptions();
   const navigate = useNavigate();
-  if (!draft.avatar || !isComplete(draft))
-    return <Navigate to='/signup/avatar' replace />;
+  if (!isComplete(draft)) return <Navigate to='/signup/avatar' replace />;
   return (
     <SignupStep
       title='이력서 쓰면 질문이 깊어져요'
       notice='안 써도 기본 인성면접은 볼 수 있어요.'
       previewClassName={styles.resumePreview}
       preview={
-        <ResumePreview avatar={draft.avatar} nickname={draft.nickname} />
+        <ResumePreview
+          avatar={draft.avatar}
+          nickname={draft.nickname}
+          jobLabel={previewJobLabel}
+        />
       }
     >
       <div className={styles.controls}>
@@ -96,11 +72,10 @@ export function ResumeGuidePage() {
             size='large'
             display='block'
             variant='outline'
-            onClick={() =>
-              navigate('/signup/pass', {
-                state: { ...draft, issuedAt: Date.now() },
-              })
-            }
+            onClick={async () => {
+              const pass = await signupApi.completeSignup(draft);
+              navigate('/signup/pass', { state: pass });
+            }}
           >
             건너뛰기
           </Button>

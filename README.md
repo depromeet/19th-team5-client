@@ -48,12 +48,18 @@ pnpm dev                    # http://localhost:5173
 편집 화면에서는 경험과 자기소개서를 등록하거나 **건너뛰기 → 완료**를 선택하면
 `/signup/pass`에서 아바타와 닉네임이 담긴 출입증을 볼 수 있습니다. **좀 더 쓸게요**를 누르면 입력을 이어갑니다.
 브라우저 방문 기록으로 출입증을 다시 열면 발급 당시의 아바타와 닉네임이 표시됩니다.
-가입 화면의 방문증은 L 시안을 사용합니다. 3D 모듈 로드에 실패하거나 WebGL을 사용할 수 없으면 같은 정보와 디자인의 정적 카드를 표시합니다.
+가입 화면의 방문증은 L 시안을 사용합니다. 발급 정보로 그린 정적 카드를 먼저 보여주고, 3D 카드가 준비되면 전환합니다. 3D 모듈 로드에 실패하거나 WebGL을 사용할 수 없으면 정적 카드를 계속 표시합니다.
 Storybook의 `Signup/PassCard`에서 방문증과 사원증의 L/M/S 시안을 확인할 수 있습니다.
 이력서와 첨부 PDF(파일당 20MB 이하, 최대 2개)는 가입 흐름에 연결된 Zustand 스토어가 메모리에서 관리합니다. 입력 제한과 검증은 `src/pages/signup/resume/ResumeDraft.ts`를 참조합니다.
 자기소개서는 기본 질문 10개 중 서로 다른 문항을 최대 3개 골라 작성합니다.
 경험의 시작·종료 연월은 숫자만 입력하면 `YYYY.MM`으로 표시됩니다. 날짜·시각·국내 전화번호에도 같은 입력 유틸(`src/utils/FormatInput.ts`)을 사용할 수 있습니다.
 출입증 화면의 **로비로 입장하기** 버튼은 로비 연결 전까지 표시만 합니다.
+
+### 가입 API 연결
+
+가입 화면은 `src/apis/SignupApi.ts`의 `signupApi`를 사용합니다. 선택지 조회, 랜덤 닉네임, 가입 완료·출입증 발급의 입력과 반환 타입은 `src/types/Signup.ts`에 있고, 현재 개발용 응답은 `src/mocks/SignupMock.ts`에 있습니다.
+
+실제 API 연결 시 `SignupApi.ts`의 `getOptions`, `suggestNickname`, `completeSignup`을 `apiClient`로 구현하고 서버 응답을 화면에서 쓰는 타입에 맞춥니다. 이후 `SignupMock.ts`를 제거할 수 있습니다.
 
 ### Git hook
 

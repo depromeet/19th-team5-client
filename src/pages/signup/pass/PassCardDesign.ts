@@ -1,10 +1,3 @@
-import employeeLarge from './art/EmployeePassL.svg';
-import employeeMedium from './art/EmployeePassM.svg';
-import employeeSmall from './art/EmployeePassS.svg';
-import visitorLarge from './art/VisitorPassL.svg';
-import visitorMedium from './art/VisitorPassM.svg';
-import visitorSmall from './art/VisitorPassS.svg';
-
 export type PassCardSize = 'L' | 'M' | 'S';
 
 type PassCardBase = {
@@ -21,15 +14,12 @@ export type PassCardData = PassCardBase &
     | { kind: 'employee'; likes: number }
   );
 
-export const passBackgrounds = {
-  visitor: { L: visitorLarge, M: visitorMedium, S: visitorSmall },
-  employee: { L: employeeLarge, M: employeeMedium, S: employeeSmall },
-};
-
 export const passLayouts = {
   L: {
     width: 288,
     height: 392,
+    gradientEnd: [285.268, 247.789],
+    stripe: [384, 286, 7.8],
     radius: 23.4,
     slot: [17.3, 44.2, 7.8],
     photo: [20, 56, 98.8, 119.6, 15.6],
@@ -49,6 +39,8 @@ export const passLayouts = {
   M: {
     width: 220,
     height: 300,
+    gradientEnd: [218.253, 189.287],
+    stripe: [296, 220, 6],
     radius: 18,
     slot: [12, 36, 8],
     photo: [16, 44, 76, 92, 12],
@@ -68,6 +60,8 @@ export const passLayouts = {
   S: {
     width: 160,
     height: 216,
+    gradientEnd: [157.39, 137.643],
+    stripe: null,
     radius: 18,
     slot: [12, 28, 8],
     photo: [48, 32, 64, 77.47, 10.1],

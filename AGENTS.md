@@ -11,6 +11,7 @@
   - `src/hooks/` — 공통 훅
   - `src/utils/` — 공통 유틸리티
   - `src/apis/` — axios 인스턴스(`client.ts`)와 API 호출 함수
+  - `src/mocks/` — API 준비 전 사용하는 목 구현과 데이터. 페이지와 스토어는 `src/apis/`를 통해 접근한다.
   - `src/queries/` — TanStack Query 관련 코드. QueryClient(`queryClient.ts`)와 query key·옵션·쿼리 훅
   - `src/styles/` — vanilla-extract 전역 스타일. 디자인 토큰은 `src/styles/token/`(`@/styles/token`)
   - `src/types/` — 공통 타입
