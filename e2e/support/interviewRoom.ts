@@ -9,5 +9,5 @@ export const roomTiming = {
   /** 부가 시작된 뒤 면접자 화면에 질문이 뜨기까지 */
   questionDelay: 5_000,
   /** 각 부의 진행 시간 */
-  part: 90_000,
+  part: 30_000,
 };
