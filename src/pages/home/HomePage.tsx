@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { Button } from '@/components/common';
 import { interviewPaths } from '@/constants/common/paths';
 import type { InterviewRole } from '@/types/interview/interview';
@@ -32,6 +32,7 @@ export function HomePage() {
           </Button>
         ))}
       </div>
+      <Link to='/signup/avatar'>가입 · 아바타 만들기</Link>
     </main>
   );
 }
