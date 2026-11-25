@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate, useLocation } from 'react-router';
 import { HomePage } from '@/pages/HomePage';
+import { InterviewRoomPage } from '@/pages/interview-room/InterviewRoomPage';
 import { AvatarSelectionPage } from '@/pages/signup/avatar/AvatarSelectionPage';
 import { VisitorPassPage } from '@/pages/signup/pass/VisitorPassPage';
 import { ResumeEditorPage } from '@/pages/signup/resume/ResumeEditorPage';
@@ -25,5 +26,9 @@ export const router = createBrowserRouter([
       { path: 'resume', Component: ResumeEditorPage },
       { path: 'pass', Component: VisitorPassPage },
     ],
+  },
+  {
+    path: '/interviews/:interviewId/interview-room',
+    Component: InterviewRoomPage,
   },
 ]);
