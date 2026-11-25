@@ -9,22 +9,34 @@ import {
   Outlet,
   ScrollRestoration,
   useLocation,
+  useMatch,
   useOutletContext,
 } from 'react-router';
+import { useStore } from 'zustand';
 import { GNB } from '@/components/common/gnb';
 import { gnbLabels } from '@/constants/gnbLabels';
-import { type AvatarDraft, initialDraft } from './avatarDraft';
-import * as styles from './signup.css';
+import { type AvatarDraft, initialDraft } from './AvatarDraft';
+import { createResumeStore, type ResumeState } from './resume/ResumeStore';
+import * as styles from './Signup.css';
+
+type DraftState<T> = [T, Dispatch<SetStateAction<T>>];
+type SignupContext = {
+  avatar: DraftState<AvatarDraft>;
+  resume: ReturnType<typeof createResumeStore>;
+};
 
 export function useAvatarDraft() {
-  return useOutletContext<
-    [AvatarDraft, Dispatch<SetStateAction<AvatarDraft>>]
-  >();
+  return useOutletContext<SignupContext>().avatar;
+}
+export function useResumeStore<T>(select: (state: ResumeState) => T) {
+  return useStore(useOutletContext<SignupContext>().resume, select);
 }
 
 export function SignupLayout() {
   const { state } = useLocation();
   const draft = useState(() => initialDraft(state));
+  const [resume] = useState(createResumeStore);
+  const editor = useMatch('/signup/resume');
 
   return (
     <div className={styles.signup}>
@@ -41,8 +53,8 @@ export function SignupLayout() {
           onBookInterview={() => {}}
         />
       </div>
-      <main className={styles.main}>
-        <Outlet context={draft} />
+      <main className={editor ? undefined : styles.main}>
+        <Outlet context={{ avatar: draft, resume } satisfies SignupContext} />
       </main>
       <ScrollRestoration />
     </div>

@@ -34,12 +34,26 @@ pnpm dev                    # http://localhost:5173
 | `pnpm build-storybook` | Storybook 정적 빌드 (`storybook-static/`)   |
 
 공통 컴포넌트 스토리는 `src/stories/common/<컴포넌트명>/`에 둡니다. 예를 들어 `GNB/`에는 `GNB.stories.tsx`와 미리보기 전용 스타일 `gnb.stories.css.ts`를 함께 둡니다.
+스토리 폴더는 PascalCase이고 공용 컴포넌트 소스 폴더는 kebab-case입니다.
+
+가입 기능의 소스, 스타일, 스토리, 테스트와 카드 내부 에셋에는 PascalCase 파일명을 사용합니다. 예를 들어 `ResumeStore.ts`, `Lanyard.css.ts`, `PassCard.stories.tsx`, `Pass.spec.ts`를 사용합니다.
 
 ### 가입 화면
 
 홈의 **가입 · 아바타 만들기** 링크 또는 `/signup/avatar`에서 시작합니다.
+`/signup`으로 접속해도 `/signup/avatar`로 이동합니다.
 닉네임(공백 포함 최대 6자)과 아바타를 선택하면 `/signup/resume-guide`에서
-선택한 사진과 이름이 반영된 이력서 예시를 볼 수 있습니다. 안내 화면의 두 버튼은 후속 화면 연결 전까지 표시만 합니다.
+선택한 사진과 이름이 반영된 이력서 예시를 볼 수 있습니다. **이력서 작성하기**는
+`/signup/resume`로 이동하고, 안내 화면의 **건너뛰기**는 바로 출입증으로 이동합니다.
+편집 화면에서는 경험과 자기소개서를 등록하거나 **건너뛰기 → 완료**를 선택하면
+`/signup/pass`에서 아바타와 닉네임이 담긴 출입증을 볼 수 있습니다. **좀 더 쓸게요**를 누르면 입력을 이어갑니다.
+브라우저 방문 기록으로 출입증을 다시 열면 발급 당시의 아바타와 닉네임이 표시됩니다.
+가입 화면의 방문증은 L 시안을 사용합니다. 3D 모듈 로드에 실패하거나 WebGL을 사용할 수 없으면 같은 정보와 디자인의 정적 카드를 표시합니다.
+Storybook의 `Signup/PassCard`에서 방문증과 사원증의 L/M/S 시안을 확인할 수 있습니다.
+이력서와 첨부 PDF(파일당 20MB 이하, 최대 2개)는 가입 흐름에 연결된 Zustand 스토어가 메모리에서 관리합니다. 입력 제한과 검증은 `src/pages/signup/resume/ResumeDraft.ts`를 참조합니다.
+자기소개서는 기본 질문 10개 중 서로 다른 문항을 최대 3개 골라 작성합니다.
+경험의 시작·종료 연월은 숫자만 입력하면 `YYYY.MM`으로 표시됩니다. 날짜·시각·국내 전화번호에도 같은 입력 유틸(`src/utils/FormatInput.ts`)을 사용할 수 있습니다.
+출입증 화면의 **로비로 입장하기** 버튼은 로비 연결 전까지 표시만 합니다.
 
 ### Git hook
 

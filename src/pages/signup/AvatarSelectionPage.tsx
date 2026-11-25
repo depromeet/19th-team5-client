@@ -8,9 +8,9 @@ import {
   isComplete,
   nicknameLength,
   nicknameLimit,
-} from './avatarDraft';
+} from './AvatarDraft';
 import { SignupStep, useAvatarDraft } from './SignupLayout';
-import * as styles from './signup.css';
+import * as styles from './Signup.css';
 
 const avatarChoices: Avatar[] = ['boy', 'girl'];
 const randomNicknames = [

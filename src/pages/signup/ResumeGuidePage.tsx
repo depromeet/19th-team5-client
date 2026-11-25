@@ -1,8 +1,8 @@
-import { Navigate } from 'react-router';
+import { Navigate, useNavigate } from 'react-router';
 import { Button } from '@/components/common/button';
-import { type Avatar, isComplete } from './avatarDraft';
+import { type Avatar, isComplete } from './AvatarDraft';
 import { SignupStep, useAvatarDraft } from './SignupLayout';
-import * as styles from './signup.css';
+import * as styles from './Signup.css';
 
 const benefits = [
   {
@@ -55,6 +55,7 @@ function ResumePreview({
 
 export function ResumeGuidePage() {
   const [draft] = useAvatarDraft();
+  const navigate = useNavigate();
   if (!draft.avatar || !isComplete(draft))
     return <Navigate to='/signup/avatar' replace />;
   return (
@@ -84,14 +85,22 @@ export function ResumeGuidePage() {
           ))}
         </ul>
         <div className={styles.actions}>
-          <Button size='large' display='block' aria-disabled='true'>
+          <Button
+            size='large'
+            display='block'
+            onClick={() => navigate('/signup/resume', { state: draft })}
+          >
             이력서 작성하기
           </Button>
           <Button
             size='large'
             display='block'
             variant='outline'
-            aria-disabled='true'
+            onClick={() =>
+              navigate('/signup/pass', {
+                state: { ...draft, issuedAt: Date.now() },
+              })
+            }
           >
             건너뛰기
           </Button>

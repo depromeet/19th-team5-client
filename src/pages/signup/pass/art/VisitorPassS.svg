@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="24 16 160 216" width="160" height="216" fill="none">
+  <defs>
+    <linearGradient id="gradient-0" x1="46.4" y1="20.32" x2="181.39" y2="153.643" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#101C38" />
+      <stop offset="1" stop-color="#1C2F63" />
+    </linearGradient>
+    <radialGradient id="gradient-1" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(176 16) scale(72 97.2)">
+      <stop stop-color="#4C6FFF" stop-opacity="0.45" />
+      <stop offset="1" stop-color="#4C6FFF" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="gradient-2" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(24 232) scale(64 86.4)">
+      <stop stop-color="#2B3F8F" stop-opacity="0.4" />
+      <stop offset="1" stop-color="#2B3F8F" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+  <rect x="24" y="16" width="160" height="216" fill="url(#gradient-0)" />
+  <rect x="24" y="16" width="160" height="216" fill="url(#gradient-1)" />
+  <rect x="24" y="16" width="160" height="216" fill="url(#gradient-2)" />
+</svg>

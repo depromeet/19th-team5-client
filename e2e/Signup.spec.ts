@@ -1,5 +1,18 @@
 import { expect, test } from '@playwright/test';
 
+test('가입 시작 주소를 아바타 주소로 교체하고 뒤로 가면 이전 페이지로 돌아간다', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await page.goto('/signup/?from=home#nickname');
+  await expect(page).toHaveURL(/\/signup\/avatar\?from=home#nickname$/);
+  await expect(page.getByRole('textbox', { name: '닉네임' })).toBeVisible();
+  await page.goBack();
+  await expect(
+    page.getByRole('link', { name: '가입 · 아바타 만들기' }),
+  ).toBeVisible();
+});
+
 test('닉네임은 공백 포함 6자까지 허용하고 아바타를 선택해야 다음으로 이동한다', async ({
   page,
 }) => {
@@ -30,13 +43,33 @@ test('닉네임은 공백 포함 6자까지 허용하고 아바타를 선택해�
   await expect(sample).toBeVisible();
   await page.reload();
   await expect(sample).toBeVisible();
+  await page.getByRole('button', { name: '이력서 작성하기' }).click();
+  await expect(page).toHaveURL(/\/signup\/resume$/);
+  await expect(page.getByRole('textbox', { name: '경험 제목' })).toBeVisible();
+  await page.goBack();
+  await page.getByRole('button', { name: '건너뛰기' }).click();
+  await expect(page).toHaveURL(/\/signup\/pass$/);
   await expect(
-    page.getByRole('button', { name: '이력서 작성하기' }),
+    page.getByRole('heading', { name: /출입증 나왔어요/ }),
+  ).toBeVisible();
+  const issuedPass = page.getByRole('img', {
+    name: /차분한 수달님의 MOING 방문 출입증/,
+  });
+  await expect(issuedPass).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: '로비로 입장하기' }),
   ).toBeDisabled();
-  await expect(page.getByRole('button', { name: '건너뛰기' })).toBeDisabled();
+  await page.goBack();
   await page.goBack();
   await expect(nickname).toHaveValue('차분한 수달');
   await expect(page.getByRole('radio', { name: '남자 아바타' })).toBeChecked();
+
+  await nickname.fill('작은여우');
+  await page.goForward();
+  await page.goForward();
+  await expect(issuedPass).toBeVisible();
+  await page.reload();
+  await expect(issuedPass).toBeVisible();
 });
 
 test('가입 정보가 없는 직접 접근을 처리하고 모바일에서 랜덤 이름과 아바타를 변경한다', async ({
