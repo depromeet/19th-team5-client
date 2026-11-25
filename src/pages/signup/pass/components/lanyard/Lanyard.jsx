@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { bindCardPointer } from './CardPointer.js';
 import * as styles from './Lanyard.css';
@@ -77,6 +77,7 @@ const Lanyard = ({
   const containerRef = useRef(null);
   const settingsRef = useRef(null);
   const applyRef = useRef(null);
+  const [canInitialize, setCanInitialize] = useState(false);
 
   useEffect(() => {
     settingsRef.current = {
@@ -108,8 +109,14 @@ const Lanyard = ({
   });
 
   useEffect(() => {
+    // Strict Mode가 마운트를 다시 실행할 때 예약된 WebGL 초기화를 취소한다.
+    const frame = requestAnimationFrame(() => setCanInitialize(true));
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
+  useEffect(() => {
     const container = containerRef.current;
-    if (!container) return undefined;
+    if (!canInitialize || !container) return undefined;
 
     let renderer;
     try {
@@ -254,6 +261,7 @@ const Lanyard = ({
     let visible = true;
     let alive = true;
     let placed = false;
+    let texturesReady = false;
     let imageToken = 0;
     const reducedMotion =
       window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
@@ -364,6 +372,7 @@ const Lanyard = ({
       const imageKey = `${s.frontImage}|${s.backImage}|${s.strapImage}`;
       if (imageKey !== applied.imageKey) {
         const token = ++imageToken;
+        texturesReady = false;
         canvas.remove();
         Promise.all([
           loadImage(imageCache, s.frontImage),
@@ -381,8 +390,8 @@ const Lanyard = ({
           images.strap = strap;
           paintFaces();
           repaintStrap();
-          container.appendChild(canvas);
-          render();
+          texturesReady = true;
+          start();
         });
       }
       const faceKey = `${layoutKey}|${s.cardColor}|${s.imageFit}`;
@@ -530,11 +539,11 @@ const Lanyard = ({
     };
 
     const render = () => {
-      if (!canvas.isConnected) return;
       cardGroup.position.copy(sim.body.position);
       cardGroup.quaternion.copy(sim.body.quaternion);
       updateBand();
       renderer.render(scene, camera);
+      if (!canvas.isConnected) container.appendChild(canvas);
     };
 
     const physics = () => {
@@ -566,7 +575,7 @@ const Lanyard = ({
 
     const tick = (now) => {
       raf = 0;
-      if (!alive || !canvas.isConnected) return;
+      if (!alive || !texturesReady) return;
       const dt = Math.min(1 / 30, Math.max(1 / 240, (now - last) / 1000));
       last = now;
       time += dt;
@@ -590,7 +599,7 @@ const Lanyard = ({
     };
 
     const start = () => {
-      if (raf || !visible || !alive) return;
+      if (raf || !visible || !alive || !texturesReady) return;
       sim.calm = 0;
       last = performance.now();
       raf = requestAnimationFrame(tick);
@@ -614,7 +623,6 @@ const Lanyard = ({
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
       renderer.setSize(view.width, view.height, false);
       apply();
-      render();
     };
 
     const resizeObserver = new ResizeObserver(resize);
@@ -663,7 +671,7 @@ const Lanyard = ({
       renderer.dispose();
       if (canvas.parentNode) canvas.parentNode.removeChild(canvas);
     };
-  }, []);
+  }, [canInitialize]);
 
   return (
     <div

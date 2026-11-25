@@ -36,6 +36,8 @@ test('3D 텍스처를 기다리는 동안 발급된 방문증을 보여주고 �
   } finally {
     resumeTexture?.();
   }
+  // 텍스처 응답 후 소프트웨어 WebGL이 첫 프레임을 그려 캔버스를 붙일 때까지 기다린다.
+  await scene.waitFor({ state: 'attached' });
   await expect(scene).toBeVisible();
   await expect(card).toBeHidden();
 });
