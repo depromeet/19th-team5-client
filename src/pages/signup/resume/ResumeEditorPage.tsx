@@ -134,21 +134,27 @@ export function ResumeEditorPage() {
                   *
                 </span>
               </legend>
-              {careers.map(({ id, label }) => (
-                <Radio
-                  key={id}
-                  name='career'
-                  value={id}
-                  checked={resume.careerId === id}
-                  onChange={() => setCareer(id)}
-                  onClick={() => {
-                    if (!resume.hasSelectedCareer && resume.careerId === id)
-                      setCareer(id);
-                  }}
-                >
-                  {label}
-                </Radio>
-              ))}
+              {careers.map(({ id, label }) => {
+                const checked = resume.careerId === id;
+                const confirmCareer = () => {
+                  if (checked && !resume.hasSelectedCareer) setCareer(id);
+                };
+                return (
+                  <Radio
+                    key={id}
+                    name='career'
+                    value={id}
+                    checked={checked}
+                    onChange={() => setCareer(id)}
+                    onClick={confirmCareer}
+                    onKeyUp={(event) => {
+                      if (event.key === ' ') confirmCareer();
+                    }}
+                  >
+                    {label}
+                  </Radio>
+                );
+              })}
             </fieldset>
           </div>
           <div className={s.sideCard}>
