@@ -10,8 +10,8 @@ import {
   Button,
   Pulse,
 } from '@/components/common';
-import { useDisclosure } from '@/hooks/useDisclosure';
-import { useMicrophoneInput } from '@/hooks/useMicrophoneInput';
+import { useDisclosure } from '@/hooks/common/useDisclosure';
+import { useMicrophoneInput } from '@/hooks/common/useMicrophoneInput';
 import * as shared from './bottomSheet.stories.css';
 import * as styles from './interviewQuestionExample.css';
 import { QuestionNavigation } from './QuestionNavigation';

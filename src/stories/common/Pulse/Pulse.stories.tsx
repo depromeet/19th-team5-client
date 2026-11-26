@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useEffect, useState } from 'react';
 import { Button, Pulse } from '@/components/common';
-import { useMicrophoneInput } from '@/hooks/useMicrophoneInput';
+import { useMicrophoneInput } from '@/hooks/common/useMicrophoneInput';
 import * as styles from './pulse.stories.css';
 
 const meta = {

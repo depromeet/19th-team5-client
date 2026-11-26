@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 import * as navigation from '@/components/common/gnb/gnb.css';
-import { gnbLabels } from '@/constants/gnbLabels';
+import { gnbLabels } from '@/constants/common/gnbLabels';
 import * as styles from './Review.css';
 
 export function ReviewLayout({
