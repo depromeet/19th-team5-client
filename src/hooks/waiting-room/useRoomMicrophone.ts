@@ -49,11 +49,18 @@ function toFailedStatus(cause: unknown): MicStatus {
 /** 장치를 바꾸거나 다시 시도할 때마다 새 객체를 만들어 연결을 다시 맺는다. */
 type MicRequest = { deviceId: string };
 
+type RoomMicrophoneOptions = {
+  /** 음소거와 상관없이 입력을 받는다. 마이크 테스트처럼 목소리 크기를 보여줘야 할 때 쓴다. */
+  isTesting?: boolean;
+};
+
 /**
- * 대기실 마이크. 입장하면 바로 권한을 요청하고, 고른 장치로 입력을 받는다.
- * 하단 독의 켜고 끄기는 트랙을 멈추지 않고 음소거만 바꾼다.
+ * 대기실·면접방 마이크. 입장하면 바로 권한을 요청하고, 고른 장치로 입력을 받는다.
+ * 하단 독의 켜고 끄기는 트랙을 멈추지 않고 음소거만 바꾸며, 처음에는 꺼져(음소거) 있다.
  */
-export function useRoomMicrophone() {
+export function useRoomMicrophone({
+  isTesting = false,
+}: RoomMicrophoneOptions = {}) {
   const [request, setRequest] = useState<MicRequest>({
     deviceId: systemDefaultDeviceId,
   });
@@ -61,7 +68,7 @@ export function useRoomMicrophone() {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [liveSince, setLiveSince] = useState<number | null>(null);
   const [devices, setDevices] = useState<MicDevice[]>([]);
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
   // 권한을 다시 요청하는 동안에도 권한 안내를 유지하려고 마지막 결과를 따로 둔다.
   const [isPermissionDenied, setIsPermissionDenied] = useState(false);
 
@@ -127,9 +134,9 @@ export function useRoomMicrophone() {
 
   useEffect(() => {
     for (const track of stream?.getAudioTracks() ?? []) {
-      track.enabled = !isMuted;
+      track.enabled = isTesting || !isMuted;
     }
-  }, [stream, isMuted]);
+  }, [stream, isMuted, isTesting]);
 
   function retry() {
     setRequest(({ deviceId }) => ({ deviceId }));

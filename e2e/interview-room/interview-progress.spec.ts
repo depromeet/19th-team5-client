@@ -57,11 +57,13 @@ test('하단 독에서 마이크를 끄고 켠다', async ({ page }) => {
   await installFakeMicrophone(page);
   await page.goto(interviewRoom('interviewee'));
 
+  // 마이크는 꺼진 채로 들어온다.
   const mic = page.getByRole('button', { name: '마이크', exact: true });
-  await expect(mic).toHaveAttribute('aria-pressed', 'true');
-  await mic.click();
   await expect(mic).toHaveAttribute('aria-pressed', 'false');
   await expect(page.getByText('마이크 꺼짐')).toBeVisible();
   await mic.click();
+  await expect(mic).toHaveAttribute('aria-pressed', 'true');
   await expect(page.getByText('마이크 켜짐')).toBeVisible();
+  await mic.click();
+  await expect(page.getByText('마이크 꺼짐')).toBeVisible();
 });
