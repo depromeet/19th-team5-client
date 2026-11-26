@@ -1,3 +1,5 @@
+import IconEyeLine from '@karrotmarket/react-monochrome-icon/IconEyeLine';
+import IconEyeSlashLine from '@karrotmarket/react-monochrome-icon/IconEyeSlashLine';
 import {
   type ComponentPropsWithRef,
   type ReactNode,
@@ -44,6 +46,9 @@ export const TextField = ({
   const hasHelper = helperText !== undefined && helperText !== null;
 
   const [uncontrolledLength, setUncontrolledLength] = useState(0);
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const isPassword = type === 'password';
+  const VisibilityIcon = passwordVisible ? IconEyeSlashLine : IconEyeLine;
   const length =
     value === undefined ? uncontrolledLength : String(value).length;
   const isInvalid = error || (maxLength !== undefined && length > maxLength);
@@ -75,7 +80,10 @@ export const TextField = ({
       )}
       <div className={styles.box}>
         <input
-          type={type}
+          type={isPassword && passwordVisible ? 'text' : type}
+          spellCheck={isPassword ? false : undefined}
+          autoCapitalize={isPassword ? 'none' : undefined}
+          autoCorrect={isPassword ? 'off' : undefined}
           className={styles.input}
           {...inputProps}
           id={inputId}
@@ -95,6 +103,21 @@ export const TextField = ({
           <span className={styles.count}>
             {length} / {maxLength}
           </span>
+        )}
+        {isPassword && (
+          <button
+            type='button'
+            className={styles.visibilityButton}
+            aria-label={`${typeof label === 'string' ? label : '비밀번호'} 표시`}
+            aria-pressed={passwordVisible}
+            aria-controls={inputId}
+            title={passwordVisible ? '비밀번호 숨기기' : '비밀번호 보기'}
+            disabled={inputProps.disabled}
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={() => setPasswordVisible((visible) => !visible)}
+          >
+            <VisibilityIcon size={20} aria-hidden='true' />
+          </button>
         )}
       </div>
       {hasHelper && (
