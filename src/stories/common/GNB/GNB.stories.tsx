@@ -91,7 +91,7 @@ function MemberPreview(args: MemberProps) {
       {...args}
       activePage={memberPages[hash] ?? args.activePage}
       onBookInterview={() => {
-        args.onBookInterview();
+        args.onBookInterview?.();
         navigate('#book');
       }}
     />
