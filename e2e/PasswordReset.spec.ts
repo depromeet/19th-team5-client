@@ -21,8 +21,9 @@ async function registerAndLogOut(page: Page) {
 }
 
 async function requestLink(page: Page, email = address) {
-  await page.getByRole('textbox', { name: '이메일' }).fill(email);
-  await page.getByRole('button', { name: '재설정 링크 요청' }).click();
+  const form = page.getByRole('region', { name: '비밀번호 찾기' });
+  await form.getByRole('textbox', { name: '이메일' }).fill(email);
+  await form.getByRole('button', { name: '재설정 링크 요청' }).click();
 }
 
 test('재설정을 새로고침 후 이어서 완료하고 새 비밀번호로 로그인한다', async ({
@@ -59,7 +60,7 @@ test('재설정을 새로고침 후 이어서 완료하고 새 비밀번호로 �
     page.getByRole('heading', { name: '비밀번호를 변경했어요' }),
   ).toBeVisible();
   await page.getByRole('link', { name: '로그인하기' }).click();
-  const login = page.getByRole('main');
+  const login = page.getByRole('region', { name: '출입증 확인할게요' });
   await login.getByRole('textbox', { name: '이메일' }).fill(address);
   const loginPassword = login.getByPlaceholder('비밀번호를 입력해 주세요');
   await loginPassword.fill(oldPassword);
@@ -92,6 +93,9 @@ test('만료된 링크는 재발급한 뒤에만 다시 사용할 수 있다', a
   await page.clock.setFixedTime(now);
   await requestLink(page);
   await page.getByRole('link', { name: '비밀번호 재설정하기' }).click();
+  await expect(
+    page.getByRole('heading', { name: '새 비밀번호 설정' }),
+  ).toBeVisible();
   await page.clock.setFixedTime(new Date(now.getTime() + 16 * 60 * 1000));
   await page.getByPlaceholder('영문, 숫자 포함 8자 이상').fill(newPassword);
   await page

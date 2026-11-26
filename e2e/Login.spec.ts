@@ -66,7 +66,10 @@ test('모바일에서 로그인 화면을 거쳐 가입하고 첫 오류부터 �
   await main.getByRole('link', { name: '회원가입' }).click();
   await expect(page).toHaveURL(/\/signup$/);
 
-  await email.fill('tester@example.com');
+  const signup = page.getByRole('region', { name: '방문 출입증부터 만들어요' });
+  await signup
+    .getByRole('textbox', { name: '이메일' })
+    .fill('tester@example.com');
   const password = main.getByPlaceholder('영문, 숫자 포함 8자 이상');
   const confirmation = main.getByPlaceholder('비밀번호를 다시 입력해 주세요');
   const next = main.getByRole('button', { name: '다음' });
@@ -127,7 +130,7 @@ test('가입한 계정은 출입증 발급과 로그아웃 후 새 탭에서 다
   await tab.getByRole('button', { name: '다음' }).click();
   await expect(tab.getByRole('alert')).toContainText('이미 가입한 이메일');
   await tab.getByRole('alert').getByRole('link', { name: '로그인' }).click();
-  const login = tab.getByRole('main');
+  const login = tab.getByRole('region', { name: '출입증 확인할게요' });
   await login
     .getByRole('textbox', { name: '이메일' })
     .fill(address.toUpperCase());
