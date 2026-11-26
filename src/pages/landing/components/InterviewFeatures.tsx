@@ -7,6 +7,11 @@ import { Tag } from '@/components/common/tag';
 import * as pageStyles from '../HomePage.css';
 import * as styles from './InterviewFeatures.css';
 
+type FeaturePreviewProps = {
+  title: string;
+  children: ReactNode;
+};
+
 const slides = [
   {
     label: '녹음',
@@ -52,13 +57,7 @@ const slides = [
   },
 ];
 
-function FeaturePreview({
-  title,
-  children,
-}: {
-  title: string;
-  children: ReactNode;
-}) {
+function FeaturePreview({ title, children }: FeaturePreviewProps) {
   return (
     <div className={styles.preview}>
       <strong>{title}</strong>

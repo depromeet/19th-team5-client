@@ -4,7 +4,6 @@ import {
 } from '@karrotmarket/react-monochrome-icon';
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
-import { Button } from '@/components/common/button';
 import { button } from '@/components/common/button/button.css';
 import * as navStyles from '@/components/common/gnb/gnb.css';
 import { gnbLabels } from '@/constants/gnbLabels';
@@ -31,21 +30,25 @@ export function LandingHero() {
     <>
       <header className={styles.header} data-scrolled={pastHero}>
         <div className={`${navStyles.content} ${styles.headerInner}`}>
-          <a className={navStyles.logo} href='#top' aria-label={labels.home}>
+          <a className={navStyles.logo} href='/' aria-label={labels.home}>
             {labels.brand}
           </a>
           <nav className={navStyles.menu} aria-label={labels.navigation}>
-            <button type='button' className={styles.navItem} disabled>
+            <Link className={styles.navItem} to='/lobby'>
               {labels.lobby}
-            </button>
+            </Link>
             <a href='#service' className={styles.navItem}>
               {labels.about}
             </a>
-            <button type='button' className={styles.login} disabled>
+            <Link className={styles.login} to='/login'>
               {labels.login}
-            </button>
+            </Link>
           </nav>
-          <Link className={styles.headerCta} to='/signup/avatar'>
+          <Link
+            className={styles.headerCta}
+            to='/signup'
+            aria-label={`${labels.enter} · 가입 · 아바타 만들기`}
+          >
             {labels.enter}
           </Link>
         </div>
@@ -62,19 +65,10 @@ export function LandingHero() {
             도착해요.
           </p>
           <div className={styles.heroActions}>
-            <Button
-              size='large'
-              variant='outline'
-              className={styles.browseButton}
-              disabled
-            >
+            <Link className={styles.browseButton} to='/lobby'>
               둘러보기
-            </Button>
-            <Link
-              className={button({ size: 'large' })}
-              aria-label='면접방 입장하기 · 가입 · 아바타 만들기'
-              to='/signup/avatar'
-            >
+            </Link>
+            <Link className={button({ size: 'large' })} to='/waiting-room'>
               면접방 입장하기
             </Link>
           </div>

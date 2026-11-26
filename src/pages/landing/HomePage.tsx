@@ -28,7 +28,7 @@ export function HomePage() {
         <h2 className={styles.title}>오늘 열린 면접방에 입장해 보세요</h2>
         <Link
           className={button({ variant: 'outline', size: 'large' })}
-          to='/signup/avatar'
+          to='/waiting-room'
         >
           입장하기
         </Link>

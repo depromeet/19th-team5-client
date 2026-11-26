@@ -55,7 +55,6 @@ export const navItem = style([
     padding: 0,
     background: 'transparent',
     selectors: {
-      '&:disabled': { cursor: 'not-allowed' },
       'a&:hover': { color: color.primary[500] },
     },
   },
@@ -125,15 +124,10 @@ export const heroActions = style({
   justifyContent: 'center',
   gap: space[12],
 });
-export const browseButton = style({
-  selectors: {
-    'button&:disabled': {
-      color: color.neutral[900],
-      background: color.neutral[0],
-      boxShadow: `inset 0 0 0 1px ${color.neutral[100]}`,
-    },
-  },
-});
+export const browseButton = style([
+  button({ variant: 'outline', size: 'large' }),
+  { boxShadow: `inset 0 0 0 1px ${color.neutral[100]}` },
+]);
 export const heroNote = style({
   ...typography.bodyS,
   color: color.neutral[500],
