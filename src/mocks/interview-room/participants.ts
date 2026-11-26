@@ -1,9 +1,12 @@
 import type { Interviewee } from '@/types/interview-room/interviewee';
 import type { Interviewer } from '@/types/interview-room/interviewer';
 
+/** 면접자로 들어온 나. 면접관 화면의 면접자 탭에서도 같은 이름으로 보인다. */
+export const myInterviewee: Interviewee = { id: 'A', name: '면접자 A' };
+
 /** 면접관 질문 카드의 면접자 탭. 정원(면접자 2명)만큼 둔다. */
 export const interviewees: readonly Interviewee[] = [
-  { id: 'A', name: '면접자 A' },
+  myInterviewee,
   { id: 'B', name: '면접자 B' },
 ];
 

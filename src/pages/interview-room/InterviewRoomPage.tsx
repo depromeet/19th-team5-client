@@ -32,6 +32,7 @@ import {
   interviewees,
   interviewers,
   myAvatarImageUrl,
+  myInterviewee,
 } from '@/mocks/interview-room/participants';
 import {
   commonQuestions,
@@ -247,9 +248,12 @@ function InterviewInProgress({
   );
 }
 
+/** 면접자 카드에서 내 이름(예: 면접자 A)을 강조한다. */
+const myName = <span className={styles.myName}>{myInterviewee.name}</span>;
+
 /**
- * 면접자 화면 위쪽 카드. 앉기 전에는 할 일을, 부가 시작되면 질문을 기다리는 동안 안내를,
- * 면접관이 고른 질문이 오면 그 질문을 보여준다.
+ * 면접자 화면 위쪽 카드. 앉기 전에는 내가 어떤 이름으로 참여하는지를, 부가 시작되면 질문을 기다리는 동안 안내를,
+ * 면접관이 고른 질문이 오면 내 이름을 앞에 붙여 그 질문을 보여준다.
  */
 function getIntervieweeCard(
   session: MockInterviewSession,
@@ -266,7 +270,7 @@ function getIntervieweeCard(
           </time>
         </>
       ),
-      title: '내 자리로 가서 앉아 주세요',
+      title: <>{myName}로 면접에 참여합니다</>,
     };
   }
 
@@ -277,7 +281,11 @@ function getIntervieweeCard(
       variant: 'question',
       caption: `${order} ${title} · ${question.detail}`,
       byline: `${question.interviewerName} 면접관`,
-      title: question.text,
+      title: (
+        <>
+          {myName}님 {question.text}
+        </>
+      ),
     };
   }
   return {

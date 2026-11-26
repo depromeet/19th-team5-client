@@ -1,5 +1,5 @@
 import { style } from '@vanilla-extract/css';
-import { space } from '@/styles/token';
+import { color, space } from '@/styles/token';
 
 /** HUD 위치는 Figma(1920×1080, 면접방은 GNB 없음) 값을 따른다. */
 
@@ -14,6 +14,9 @@ export const timeStatus = style({
   top: space[24],
   right: space[24],
 });
+
+/** 단계 카드 제목에서 내 이름(예: 면접자 A)을 강조하는 색 */
+export const myName = style({ color: color.primary[500] });
 
 export const stageCard = style({
   position: 'absolute',

@@ -11,7 +11,7 @@ test.beforeEach(async ({ page }) => {
 test('면접자는 Space로 내 자리에 앉고 1부를 시작한다', async ({ page }) => {
   const sitPrompt = page.getByRole('button', { name: 'Space 앉기' });
   await expect(
-    page.getByRole('heading', { name: '내 자리로 가서 앉아 주세요' }),
+    page.getByRole('heading', { name: '면접자 A로 면접에 참여합니다' }),
   ).toBeVisible();
   await expect(sitPrompt).toBeVisible();
 

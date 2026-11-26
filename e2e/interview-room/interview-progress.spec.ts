@@ -18,7 +18,9 @@ test('면접자는 부마다 면접관이 고른 질문을 받고, 3부가 끝�
   ).toBeVisible();
   await page.clock.fastForward(questionDelay);
   await expect(
-    page.getByRole('heading', { name: '간단하게 자기소개 부탁드려요.' }),
+    page.getByRole('heading', {
+      name: '면접자 A님 간단하게 자기소개 부탁드려요.',
+    }),
   ).toBeVisible();
   await expect(page.getByText('1부 공통 질문 · 1 / 3')).toBeVisible();
 
