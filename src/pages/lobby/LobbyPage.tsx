@@ -84,9 +84,7 @@ function PrototypeLobby() {
 
   return (
     <>
-      {/* 역할·단계가 바뀌면 닫았던 카드도 다시 보여준다. */}
       <LobbyView
-        key={`${role}-${phase}`}
         role={role}
         phase={phase}
         remainingSeconds={remainingSeconds}
@@ -121,6 +119,16 @@ function LobbyView({
   const [isNoticeOpen, setIsNoticeOpen] = useState(true);
   const [isUpcomingOpen, setIsUpcomingOpen] = useState(true);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  // 역할·단계가 바뀌면 닫았던 카드도 다시 보여준다. 화면을 다시 마운트하지 않고 카드 상태만 되돌려서,
+  // 3D 로비를 새로 불러오지 않고 걸어 다니던 내 캐릭터도 제자리에 둔다.
+  const view = `${role}-${phase}`;
+  const [cardView, setCardView] = useState(view);
+  if (cardView !== view) {
+    setCardView(view);
+    setIsNoticeOpen(true);
+    setIsUpcomingOpen(true);
+    setIsDetailOpen(false);
+  }
   const tickets = useReservationStore((state) => state.tickets);
 
   const countdown = countdowns[phase];
