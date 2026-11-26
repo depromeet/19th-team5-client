@@ -5,18 +5,22 @@ import { interviewRoom, roomTiming } from '../support/interviewRoom.ts';
 const endDialog = { name: '수고했어요, 면접 끝!' };
 
 async function sit(page: Page) {
-  await expect(page.getByRole('button', { name: 'Space 앉기' })).toBeVisible();
-  await page.keyboard.press('Space');
+  await page.getByRole('button', { name: 'Space 앉기' }).press('Space');
   await expect(
     page.getByRole('heading', { name: '면접관이 질문을 고르고 있어요' }),
   ).toBeVisible();
 }
 
+test.beforeEach(async ({ page }) => {
+  await installFakeMicrophone(page);
+  const now = Date.now();
+  await page.clock.install({ time: now });
+  await page.clock.pauseAt(now + 60_000);
+});
+
 test('면접자는 면접이 끝나면 면접관에게 좋아요를 보내고 로비로 돌아간다', async ({
   page,
 }) => {
-  await installFakeMicrophone(page);
-  await page.clock.install();
   await page.goto(interviewRoom('interviewee'));
   await sit(page);
   await page.clock.fastForward(roomTiming.part * 3);
@@ -38,8 +42,6 @@ test('면접자는 면접이 끝나면 면접관에게 좋아요를 보내고 �
 });
 
 test('면접자는 평가 없이 바로 로비로 돌아갈 수 있다', async ({ page }) => {
-  await installFakeMicrophone(page);
-  await page.clock.install();
   await page.goto(interviewRoom('interviewee'));
   await sit(page);
   await page.clock.fastForward(roomTiming.part * 3);
@@ -52,8 +54,6 @@ test('면접자는 평가 없이 바로 로비로 돌아갈 수 있다', async (
 });
 
 test('면접관은 면접을 마치면 면접자 평가 화면으로 간다', async ({ page }) => {
-  await installFakeMicrophone(page);
-  await page.clock.install();
   await page.goto(interviewRoom('interviewer'));
   await page.clock.fastForward(roomTiming.part * 3);
 

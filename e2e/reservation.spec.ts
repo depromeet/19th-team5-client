@@ -1,6 +1,20 @@
 import { expect, type Page, test } from '@playwright/test';
 import { installFakeMicrophone } from './support/fakeMicrophone.ts';
-import { finishMicTest } from './support/waitingRoom.ts';
+import { chooseAvatar, skipResume, submitSignup } from './support/signup.ts';
+import {
+  finishMicTest,
+  micTestDialog,
+  waitingRoom,
+} from './support/waitingRoom.ts';
+
+const reservationStart = new Date('2026-11-26T12:00:00+09:00');
+
+async function issueVisitorPass(page: Page) {
+  await page.goto('/signup');
+  await submitSignup(page);
+  await chooseAvatar(page);
+  await skipResume(page);
+}
 
 async function selectOpenRoom(page: Page, index = 0) {
   await page.getByRole('button', { name: '면접방 예약', exact: true }).click();
@@ -19,14 +33,25 @@ async function bookCandidate(page: Page, remaining: number) {
   await expect(page).toHaveURL('/reservations/mine');
 }
 
-test('로비 키오스크에서 예약한 일정과 역할이 출입증에 그대로 남는다', async ({
+test('게스트가 로비 키오스크에서 가입을 마치고 예약하면 출입증에 일정과 역할이 남는다', async ({
   page,
 }) => {
+  await installFakeMicrophone(page);
+  await page.clock.setFixedTime(reservationStart);
   await page.goto('/lobby');
-  await expect(
-    page.getByRole('button', { name: 'Space 예약 키오스크 사용하기' }),
-  ).toBeVisible();
-  await page.keyboard.press('Space');
+  await page
+    .getByRole('button', { name: 'Space 예약 키오스크 사용하기' })
+    .press('Space');
+  await expect(page).toHaveURL('/login');
+  await page.getByRole('main').getByRole('link', { name: '회원가입' }).click();
+  await submitSignup(page);
+  await chooseAvatar(page);
+  await skipResume(page);
+  await page.getByRole('link', { name: '대기실 입장하기' }).click();
+  await expect(page).toHaveURL(waitingRoom('interviewee'));
+  await micTestDialog(page)
+    .getByRole('button', { name: '예약 이어하기' })
+    .click();
   await expect(page).toHaveURL('/reservations');
   await page.getByText('오전', { exact: true }).click();
   await expect(
@@ -50,6 +75,8 @@ test('잔액 0장에서도 빈 면접관 자리를 예약하고 예약 시점에
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
+  await page.clock.setFixedTime(reservationStart);
+  await issueVisitorPass(page);
   await page.goto('/reservations');
   await selectOpenRoom(page);
   await bookCandidate(page, 1);
@@ -92,7 +119,8 @@ test('다음 예약 카드를 펼치고 면접관 질문을 1시간 전부터 �
   page,
 }) => {
   await installFakeMicrophone(page);
-  await page.clock.install({ time: new Date('2026-11-26T12:00:00+09:00') });
+  await page.clock.install({ time: reservationStart });
+  await issueVisitorPass(page);
   await page.goto('/reservations');
   // 늦은 방을 먼저 예약해도 로비에는 가장 가까운 예약이 표시된다.
   await selectOpenRoom(page, 1);
@@ -179,6 +207,7 @@ test('개설 요청은 입력값을 반영하고 100자, 월요일 0시, 주 2�
   page,
 }) => {
   await page.clock.install({ time: new Date('2026-11-29T23:58:00+09:00') });
+  await issueVisitorPass(page);
   await page.goto('/reservations/request');
   await expect(
     page.getByRole('complementary').getByText('미선택', { exact: true }),
@@ -219,7 +248,8 @@ test('개설 알림에서 예약한 면접은 시작 15분 전에 같은 방의 
   page,
 }) => {
   await installFakeMicrophone(page);
-  await page.clock.install({ time: new Date('2026-11-26T12:00:00+09:00') });
+  await page.clock.install({ time: reservationStart });
+  await issueVisitorPass(page);
   await page.goto('/notifications');
   await page.getByRole('button', { name: '면접방 보기' }).click();
   const roomId = new URL(page.url()).pathname.split('/').pop();

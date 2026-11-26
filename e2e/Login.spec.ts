@@ -1,4 +1,7 @@
 import { expect, test } from '@playwright/test';
+import { installFakeMicrophone } from './support/fakeMicrophone.ts';
+import { chooseAvatar, skipResume, submitSignup } from './support/signup.ts';
+import { micTestDialog, waitingRoom } from './support/waitingRoom.ts';
 
 test('로그인과 회원가입의 비밀번호를 필드별로 표시하고 다시 가릴 수 있다', async ({
   page,
@@ -92,24 +95,17 @@ test('모바일에서 로그인 화면을 거쳐 가입하고 첫 오류부터 �
   await expect(page.getByRole('textbox', { name: '닉네임' })).toBeVisible();
 });
 
-test('가입한 계정은 출입증 발급과 로그아웃 후 새 탭에서 다시 로그인해 자소서로 이동한다', async ({
+test('출입증을 발급받은 계정은 새 탭에서 다시 로그인하면 대기실로 이동한다', async ({
   page,
   context,
 }) => {
   const address = 'mock-member@example.com';
   const password = 'MockMember123';
   await page.goto('/signup');
-  await page.getByRole('textbox', { name: '이메일' }).fill(address);
-  await page.getByPlaceholder('영문, 숫자 포함 8자 이상').fill(password);
-  await page.getByPlaceholder('비밀번호를 다시 입력해 주세요').fill(password);
-  await page.getByRole('checkbox').check();
-  await page.getByRole('button', { name: '다음' }).click();
-  await expect(page).toHaveURL(/\/signup\/avatar$/);
-  await page.getByRole('textbox', { name: '닉네임' }).fill('모의수달');
-  await page.getByRole('radio', { name: '남자 아바타' }).press('Space');
-  await page.getByRole('button', { name: '이 모습으로 할게요' }).click();
-  await page.getByRole('button', { name: '건너뛰기' }).click();
-  await page.getByRole('button', { name: '로비로 입장하기' }).click();
+  await submitSignup(page, address, password);
+  await chooseAvatar(page, '모의수달');
+  await skipResume(page);
+  await page.goto('/');
   await expect(page.getByRole('status')).toContainText(address);
   await page.reload();
   await expect(page.getByRole('status')).toContainText(address);
@@ -117,6 +113,7 @@ test('가입한 계정은 출입증 발급과 로그아웃 후 새 탭에서 다
   await expect(page.getByRole('link', { name: '로그인' })).toBeVisible();
 
   const tab = await context.newPage();
+  await installFakeMicrophone(tab);
   // 새 탭에서 중복 가입을 시도해도 기존 비밀번호가 바뀌지 않는다.
   await tab.goto('/signup');
   await tab
@@ -141,13 +138,8 @@ test('가입한 계정은 출입증 발급과 로그아웃 후 새 탭에서 다
   );
   await login.getByPlaceholder('비밀번호를 입력해 주세요').fill(password);
   await login.getByPlaceholder('비밀번호를 입력해 주세요').press('Enter');
-  await expect(tab).toHaveURL(/\/signup\/avatar$/);
-  await tab.getByRole('textbox', { name: '닉네임' }).fill('모의수달');
-  await tab.getByRole('radio', { name: '남자 아바타' }).press('Space');
-  await tab.getByRole('button', { name: '이 모습으로 할게요' }).click();
-  await tab.getByRole('button', { name: '이력서 작성하기' }).click();
-  await expect(tab).toHaveURL(/\/signup\/resume$/);
-  await expect(tab.getByRole('textbox', { name: '경험 제목' })).toBeVisible();
+  await expect(tab).toHaveURL(waitingRoom('interviewee'));
+  await expect(micTestDialog(tab)).toBeVisible();
   await tab.goto('/');
   await expect(tab.getByRole('status')).toContainText(address);
 });

@@ -30,7 +30,13 @@ test('작은 화면에서는 긴 섹션의 마지막 카드까지 스크롤할 �
   const viewport = { width: 320, height: 480 };
   await page.setViewportSize(viewport);
   await page.goto('/');
-  await page.locator('header a[href="#service"]').click();
+  const serviceLink = page.locator('header a[href="#service"]');
+  await expect(serviceLink).toBeVisible();
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+  });
+  await serviceLink.click();
+  await expect(page).toHaveURL('/#service');
   const service = page.locator('#service');
   await expect.poll(() => sectionEdge(service, 'top')).toBeCloseTo(0, 0);
   const overflow = (await sectionEdge(service, 'bottom')) - viewport.height;

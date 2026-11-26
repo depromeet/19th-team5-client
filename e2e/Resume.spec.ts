@@ -1,12 +1,16 @@
 import { expect, test } from '@playwright/test';
+import { chooseAvatar, submitSignup } from './support/signup.ts';
+import { waitingRoom } from './support/waitingRoom.ts';
+
+type StoredResume = {
+  draft?: { experiences: { draft: { title: string } }[] };
+  resume?: { experiences: { title: string }[]; answers: { text: string }[] };
+};
 
 test.beforeEach(async ({ page }) => {
-  await page.goto('/signup/avatar');
-  await page.getByRole('textbox', { name: '닉네임' }).fill('차분한수달');
-  await page.getByRole('radio', { name: '여자 아바타' }).focus();
-  await page.keyboard.press('Space');
-  await page.getByRole('button', { name: '이 모습으로 할게요' }).click();
-  await page.getByRole('button', { name: '이력서 작성하기' }).click();
+  await page.goto('/signup');
+  await submitSignup(page);
+  await chooseAvatar(page, '차분한수달', '여자 아바타');
 });
 
 test('경험과 답변을 저장·수정하고 등록하면 선택한 아바타의 출입증을 발급한다', async ({
@@ -71,8 +75,8 @@ test('경험과 답변을 저장·수정하고 등록하면 선택한 아바타�
     page.getByRole('img', { name: /차분한수달님의 MOING 방문 출입증/ }),
   ).toBeVisible();
   await expect(
-    page.getByRole('button', { name: '로비로 입장하기' }),
-  ).toBeDisabled();
+    page.getByRole('link', { name: '대기실 입장하기' }),
+  ).toHaveAttribute('href', waitingRoom('interviewee'));
   await page.reload();
   await expect(
     page.getByRole('heading', { name: /출입증 나왔어요/ }),
@@ -160,11 +164,26 @@ test('완성한 답변만 등록하고 미완성 경험은 초안으로 보관�
   await register.click();
   await dialog.getByRole('button', { name: '완료' }).click();
   await expect(page).toHaveURL(/\/signup\/pass$/);
-  await page.goBack();
-  await expect(title).toHaveValue('작성 중인 경험');
-  await expect(
-    page.getByRole('heading', { name: /문항 1 · 지원 동기와 입사 후 포부/ }),
-  ).toBeVisible();
+  const stored = await page.evaluate(
+    async ({ modulePath, email }) => {
+      const { readSignupProgress } = await import(modulePath);
+      const { draft, resume }: StoredResume = await readSignupProgress(email);
+      return {
+        draftTitle: draft?.experiences[0]?.draft.title,
+        submittedExperiences: resume?.experiences.map(({ title }) => title),
+        submittedAnswers: resume?.answers.map(({ text }) => text),
+      };
+    },
+    {
+      modulePath: '/src/stores/signup/signupStorage.ts',
+      email: 'tester@example.com',
+    },
+  );
+  expect(stored).toEqual({
+    draftTitle: '작성 중인 경험',
+    submittedExperiences: [],
+    submittedAnswers: ['팀과 진행 상황을 공유했습니다.'],
+  });
 });
 
 test('빈 경험을 취소하고 다시 추가한 뒤 건너뛰기 팝업에서 작성을 이어가거나 완료한다', async ({
