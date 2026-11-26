@@ -13,7 +13,12 @@ import {
   type StageCardProps,
   TimeStatus,
 } from '@/components/interview-room';
-import { InteractionPrompt, SpaceShell } from '@/components/space';
+import {
+  InteractionPrompt,
+  ScreenAnchored,
+  type ScreenInset,
+  SpaceShell,
+} from '@/components/space';
 import { interviewPaths, reservationPaths } from '@/constants/common/paths';
 import { partLabels } from '@/constants/interview-room/parts';
 import { shortcuts } from '@/constants/space/shortcuts';
@@ -38,18 +43,35 @@ import {
   useMockInterviewSession,
 } from '@/mocks/interview-room/useMockInterviewSession';
 import { startWriteReviewSession } from '@/mocks/review/WriteReviewSession';
+import { getRoomParticipants } from '@/mocks/waiting-room/participants';
 import { visuallyHidden } from '@/styles/a11y.css';
 import type { InterviewRole } from '@/types/interview/interview';
 import type { InterviewPart } from '@/types/interview-room/interviewRoom';
 import { formatTime, toDurationString } from '@/utils/formatTime';
 import { isInterviewPart } from '@/utils/interview-room/stage';
 import { interviewDuration, reservationPhase } from '@/utils/reservation';
+import {
+  createScreenAnchor,
+  type ScreenAnchor,
+} from '@/utils/space/screenAnchor';
 import * as styles from './interviewRoomPage.css';
 
 type InterviewRoomProps = { interviewId: string; role: InterviewRole };
 type InterviewInProgressProps = InterviewRoomProps & {
   session: MockInterviewSession;
   nearby: InterviewRoomInteractable | null;
+  seatAnchor: ScreenAnchor;
+};
+
+/**
+ * 앉기 안내가 내 자리를 따라 움직일 때 비워 둘 화면 가장자리(px).
+ * 위는 단계 카드(top 139px · 높이 약 100px), 아래는 하단 독(bottom 24px · 높이 약 72px)을 피한다.
+ */
+const seatPromptInset: ScreenInset = {
+  top: 256,
+  right: 24,
+  bottom: 112,
+  left: 24,
 };
 
 export function InterviewRoomPage() {
@@ -98,14 +120,20 @@ function ReservedInterviewRoom({
 function InterviewRoom({ interviewId, role }: InterviewRoomProps) {
   const session = useMockInterviewSession(role);
   const [nearby, setNearby] = useState<InterviewRoomInteractable | null>(null);
+  // 대기실에서 함께 기다린 사람들이 그대로 들어온다. 3D 면접장에서는 역할과 아바타만 쓴다.
+  const [participants] = useState(() => getRoomParticipants(role, true));
+  // 3D 씬이 내 자리 위 화면 좌표를 알려주면, 앉기 안내를 그 위에 띄운다.
+  const [seatAnchor] = useState(createScreenAnchor);
 
   return (
     <SpaceShell
       header={<GNB variant='interview' />}
       scene={
         <InterviewRoomScene
+          participants={participants}
           isSeated={session.stage !== 'seating'}
           onNearbyChange={setNearby}
+          seatAnchor={seatAnchor}
         />
       }
     >
@@ -118,6 +146,7 @@ function InterviewRoom({ interviewId, role }: InterviewRoomProps) {
           role={role}
           session={session}
           nearby={nearby}
+          seatAnchor={seatAnchor}
         />
       )}
     </SpaceShell>
@@ -130,10 +159,12 @@ function InterviewInProgress({
   role,
   session,
   nearby,
+  seatAnchor,
 }: InterviewInProgressProps) {
   const microphone = useRoomMicrophone();
   const part = isInterviewPart(session.stage) ? session.stage : null;
-  const canSit = session.stage === 'seating' && nearby === 'seat';
+  const isSeating = session.stage === 'seating';
+  const canSit = isSeating && nearby === 'seat';
 
   useKeyboardShortcut(shortcuts.interact, session.sit, canSit);
 
@@ -194,13 +225,20 @@ function InterviewInProgress({
             className={styles.stageCard}
             {...getIntervieweeCard(session, part)}
           />
-          {canSit && (
-            <InteractionPrompt
-              className={styles.seatPrompt}
-              shortcut={shortcuts.interact}
-              label='앉기'
-              onClick={session.sit}
-            />
+          {/* 내 자리를 찾을 수 있도록 안내는 늘 내 자리 위에 두고, 가까이 가야 누를 수 있다. */}
+          {isSeating && (
+            <ScreenAnchored
+              anchor={seatAnchor}
+              fallbackClassName={styles.seatPrompt}
+              inset={seatPromptInset}
+            >
+              <InteractionPrompt
+                shortcut={shortcuts.interact}
+                label='앉기'
+                disabled={!canSit}
+                onClick={session.sit}
+              />
+            </ScreenAnchored>
           )}
           <InterviewDock className={styles.dock} {...dockProps} />
         </>

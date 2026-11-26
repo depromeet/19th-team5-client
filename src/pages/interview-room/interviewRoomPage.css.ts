@@ -22,7 +22,10 @@ export const stageCard = style({
   transform: 'translateX(-50%)',
 });
 
-/** 3D 씬이 생기면 내 자리 의자 위로 옮긴다. */
+/**
+ * 앉기 안내의 기본 위치. 3D 씬이 내 자리 위 좌표를 알려주면 그 위 24px로 옮겨 가고,
+ * 씬을 불러오는 중이거나 3D를 쓸 수 없을 때만 이 자리에 있다.
+ */
 export const seatPrompt = style({
   position: 'absolute',
   top: '600px',
