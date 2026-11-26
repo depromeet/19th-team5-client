@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router';
-import { Button, GNB } from '@/components/common';
+import { useNavigate, useSearchParams } from 'react-router';
+import { Button, Dialog, GNB } from '@/components/common';
 import {
   type LobbyInteractable,
   LobbyScene,
@@ -11,7 +11,7 @@ import {
 import { QuestionSheetOverlay } from '@/components/question-sheet';
 import { InteractionPrompt, SpaceShell } from '@/components/space';
 import { gnbLabels } from '@/constants/common/gnbLabels';
-import { interviewPaths } from '@/constants/common/paths';
+import { interviewPaths, reservationPaths } from '@/constants/common/paths';
 import { shortcuts } from '@/constants/space/shortcuts';
 import { useKeyboardShortcut } from '@/hooks/space/useKeyboardShortcut';
 import { interviewMock, mockCountdowns } from '@/mocks/interview/interview';
@@ -19,12 +19,22 @@ import { useMockCountdown } from '@/mocks/interview/useMockCountdown';
 import { usePrototypeParams } from '@/mocks/interview/usePrototypeParams';
 import { lobbyNotices } from '@/mocks/lobby/notices';
 import { candidates } from '@/mocks/question-sheet/candidates';
+import { useReservationStore } from '@/stores/reservation/reservationStore';
 import { visuallyHidden } from '@/styles/a11y.css';
 import type {
   InterviewPhase,
   InterviewRole,
 } from '@/types/interview/interview';
 import * as styles from './lobbyPage.css';
+import { ReservationLobby } from './ReservationLobby';
+
+type LobbyViewProps = {
+  role: InterviewRole;
+  phase: InterviewPhase;
+  remainingSeconds: number;
+  isQuestionSheetOpen: boolean;
+  onOpenQuestionSheet: () => void;
+};
 
 const participationLabels = {
   interviewee: '면접자로 참여',
@@ -56,6 +66,16 @@ const noticeToStartSeconds =
   mockCountdowns.untilOpen + mockCountdowns.untilStart;
 
 export function LobbyPage() {
+  const [params] = useSearchParams();
+  // 역할·단계 URL은 기존 대기실 UT의 가속 시계를 사용한다.
+  return params.has('role') || params.has('phase') ? (
+    <PrototypeLobby />
+  ) : (
+    <ReservationLobby />
+  );
+}
+
+function PrototypeLobby() {
   const { role, phase } = usePrototypeParams();
   // 질문지는 LobbyView 밖에 두어, 작성 중에 대기실 오픈 단계로 넘어가도 닫히지 않게 한다.
   const [isQuestionSheetOpen, setIsQuestionSheetOpen] = useState(false);
@@ -95,17 +115,13 @@ function LobbyView({
   remainingSeconds,
   isQuestionSheetOpen,
   onOpenQuestionSheet,
-}: {
-  role: InterviewRole;
-  phase: InterviewPhase;
-  remainingSeconds: number;
-  isQuestionSheetOpen: boolean;
-  onOpenQuestionSheet: () => void;
-}) {
+}: LobbyViewProps) {
   const navigate = useNavigate();
   const [nearby, setNearby] = useState<LobbyInteractable | null>(null);
   const [isNoticeOpen, setIsNoticeOpen] = useState(true);
   const [isUpcomingOpen, setIsUpcomingOpen] = useState(true);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const tickets = useReservationStore((state) => state.tickets);
 
   const countdown = countdowns[phase];
   const secondsUntilStart =
@@ -117,15 +133,12 @@ function LobbyView({
   const closeNotice = () => setIsNoticeOpen(false);
   const enterWaitingRoom = () =>
     navigate(interviewPaths.waitingRoom(interviewMock.id, { role }));
-  const openKiosk = () => {
-    // TODO(면접 예약): 예약 키오스크 화면이 생기면 연결한다. 프로토타입에서는 동작하지 않는다.
-  };
-  const viewReservation = () => {
-    // TODO(면접 예약): 예약 상세 화면이 생기면 연결한다. 프로토타입에서는 동작하지 않는다.
-  };
+  const openKiosk = () => navigate(reservationPaths.rooms);
+  const viewReservation = () => setIsDetailOpen(true);
 
   // 질문지가 떠 있는 동안에는 공간의 단축키와 상호작용 안내를 쓰지 않는다.
-  const canUseKiosk = nearby === 'kiosk' && !isQuestionSheetOpen;
+  const canUseKiosk =
+    nearby === 'kiosk' && !isQuestionSheetOpen && !isDetailOpen;
   useKeyboardShortcut(shortcuts.interact, openKiosk, canUseKiosk);
 
   // 대기실 오픈 시간이 되면 오픈 단계로 넘어가 "대기실 문 열렸어요" 알림을 보여준다.
@@ -151,9 +164,9 @@ function LobbyView({
           labels={gnbLabels.member}
           lobbyTo={interviewPaths.lobby({ role, phase })}
           myPageTo='#my-page'
-          notificationsTo='#notifications'
+          notificationsTo={reservationPaths.notifications}
           activePage='lobby'
-          ticketCount={2}
+          ticketCount={tickets}
           hasUnreadNotifications
           onBookInterview={openKiosk}
         />
@@ -211,6 +224,17 @@ function LobbyView({
         />
       )}
       <WorldChatBar className={styles.worldChat} />
+      <Dialog isOpen={isDetailOpen} onCancel={() => setIsDetailOpen(false)}>
+        <Dialog.Header>{interviewMock.title}</Dialog.Header>
+        <Dialog.Description>
+          {participationLabels[role]} · 대기실 입장 13:45부터
+        </Dialog.Description>
+        <Dialog.Footer>
+          <Button display='block' onClick={() => setIsDetailOpen(false)}>
+            닫기
+          </Button>
+        </Dialog.Footer>
+      </Dialog>
     </SpaceShell>
   );
 }

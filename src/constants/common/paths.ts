@@ -9,3 +9,11 @@ export const interviewPaths = {
   waitingRoom: (interviewId: string, params: { role: InterviewRole }) =>
     `/interviews/${interviewId}/waiting-room?${new URLSearchParams(params)}`,
 };
+
+export const reservationPaths = {
+  rooms: '/reservations',
+  request: '/reservations/request',
+  room: (id: string) => `/reservations/rooms/${encodeURIComponent(id)}`,
+  mine: '/reservations/mine',
+  notifications: '/notifications',
+} as const;
