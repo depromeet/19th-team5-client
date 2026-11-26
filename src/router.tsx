@@ -2,6 +2,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { createBrowserRouter, Navigate, useLocation } from 'react-router';
 import { ReviewLoadState } from '@/components/review/ReviewLoadState';
 import { HomePage } from '@/pages/home/HomePage';
+import { InterviewRoomPage } from '@/pages/interview-room/InterviewRoomPage';
 import { LobbyPage } from '@/pages/lobby/LobbyPage';
 import { AvatarSelectionPage } from '@/pages/signup/avatar/AvatarSelectionPage';
 import { VisitorPassPage } from '@/pages/signup/pass/VisitorPassPage';
@@ -34,6 +35,10 @@ export const router = createBrowserRouter([
       { path: 'resume', Component: ResumeEditorPage },
       { path: 'pass', Component: VisitorPassPage },
     ],
+  },
+  {
+    path: '/interviews/:interviewId/interview-room',
+    Component: InterviewRoomPage,
   },
   { path: '/lobby', Component: LobbyPage },
   {
