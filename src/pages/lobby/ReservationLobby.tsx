@@ -11,7 +11,11 @@ import { QuestionSheetOverlay } from '@/components/question-sheet';
 import { InterviewPass } from '@/components/reservation/interview-pass/InterviewPass';
 import { InteractionPrompt, SpaceShell } from '@/components/space';
 import { gnbLabels } from '@/constants/common/gnbLabels';
-import { reservationPaths, signupPaths } from '@/constants/common/paths';
+import {
+  interviewPaths,
+  reservationPaths,
+  signupPaths,
+} from '@/constants/common/paths';
 import { shortcuts } from '@/constants/space/shortcuts';
 import { useReservationSchedule } from '@/hooks/reservation/useReservationSchedule';
 import { useKeyboardShortcut } from '@/hooks/space/useKeyboardShortcut';
@@ -20,6 +24,7 @@ import * as bookingStyles from '@/pages/reservation/reservation.css';
 import { useAuthStore } from '@/stores/AuthStore';
 import { useReservationStore } from '@/stores/reservation/reservationStore';
 import { visuallyHidden } from '@/styles/a11y.css';
+import { getInterviewResultArrivedAt } from '@/utils/interview-room/resultNotice';
 import {
   canPrepareQuestions,
   formatRoomTime,
@@ -52,6 +57,15 @@ export function ReservationLobby() {
   const readNotices = useReservationStore((state) => state.readNotices);
   const [nearby, setNearby] = useState<LobbyInteractable | null>(null);
   const notice = notices.find((item) => !readNoticeIds.includes(item.id));
+  // 프로토타입 면접을 마치고 바로 들어왔을 때만 결과 도착 카드를 띄운다. 예약 알림보다 먼저 보여준다.
+  const resultArrivedAt = getInterviewResultArrivedAt(location.state);
+  const dismissResult = () =>
+    navigate('/lobby', { replace: true, state: null });
+  const openResult = () => {
+    // 결과 화면에서 뒤로 와도 카드가 다시 뜨지 않게 먼저 state를 지운다.
+    dismissResult();
+    navigate(interviewPaths.receivedReview);
+  };
   const openRooms = () => navigate(reservationPaths.rooms);
   const canUseKiosk = nearby === 'kiosk' && !booking && !sheet;
   const closePass = () => navigate('/lobby', { replace: true, state: null });
@@ -92,24 +106,35 @@ export function ReservationLobby() {
             onClick={openRooms}
           />
         )}
-        {notice && (
+        {resultArrivedAt !== undefined ? (
           <NoticeCard
             className={styles.notice}
-            time={notice.label}
-            title={notice.title}
-            description={notice.detail}
-            onClose={() => void readNotices([notice.id])}
-            actions={
-              <Button
-                onClick={() => {
-                  void readNotices([notice.id]);
-                  navigate(notice.to);
-                }}
-              >
-                {notice.action}
-              </Button>
-            }
+            time={formatRoomTime(resultArrivedAt)}
+            title='면접 결과가 도착했어요'
+            description='면접관이 남긴 키워드와 한 줄 평을 확인해요.'
+            onClose={dismissResult}
+            actions={<Button onClick={openResult}>확인</Button>}
           />
+        ) : (
+          notice && (
+            <NoticeCard
+              className={styles.notice}
+              time={notice.label}
+              title={notice.title}
+              description={notice.detail}
+              onClose={() => void readNotices([notice.id])}
+              actions={
+                <Button
+                  onClick={() => {
+                    void readNotices([notice.id]);
+                    navigate(notice.to);
+                  }}
+                >
+                  {notice.action}
+                </Button>
+              }
+            />
+          )
         )}
         {next ? (
           <BookedInterviewCard

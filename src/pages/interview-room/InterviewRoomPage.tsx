@@ -49,6 +49,7 @@ import { visuallyHidden } from '@/styles/a11y.css';
 import type { InterviewRole } from '@/types/interview/interview';
 import type { InterviewPart } from '@/types/interview-room/interviewRoom';
 import { formatTime, toDurationString } from '@/utils/formatTime';
+import { createInterviewResultNoticeState } from '@/utils/interview-room/resultNotice';
 import { isInterviewPart } from '@/utils/interview-room/stage';
 import { interviewDuration, reservationPhase } from '@/utils/reservation';
 import {
@@ -58,6 +59,10 @@ import {
 import * as styles from './interviewRoomPage.css';
 
 type InterviewRoomProps = { interviewId: string; role: InterviewRole };
+type InterviewRoomViewProps = InterviewRoomProps & {
+  /** 프로토타입 면접인지. 면접자가 끝내고 로비로 가면 면접 결과 도착 카드를 띄운다. */
+  isPrototype?: boolean;
+};
 type InterviewInProgressProps = InterviewRoomProps & {
   session: MockInterviewSession;
   nearby: InterviewRoomInteractable | null;
@@ -89,7 +94,14 @@ function PrototypeInterviewRoom({
 }: Pick<InterviewRoomProps, 'interviewId'>) {
   const { role } = usePrototypeParams();
   // 역할을 바꾸면 면접을 처음부터 다시 진행한다.
-  return <InterviewRoom key={role} interviewId={interviewId} role={role} />;
+  return (
+    <InterviewRoom
+      key={role}
+      interviewId={interviewId}
+      role={role}
+      isPrototype
+    />
+  );
 }
 
 function ReservedInterviewRoom({
@@ -118,7 +130,11 @@ function ReservedInterviewRoom({
  * 면접자는 자리에 앉아 질문을 받고, 면접관은 질문 카드를 보며 면접자마다 메모를 남긴다.
  * 대기실에서 시작 3초 카운트다운이 끝나면 이 화면으로 들어온다.
  */
-function InterviewRoom({ interviewId, role }: InterviewRoomProps) {
+function InterviewRoom({
+  interviewId,
+  role,
+  isPrototype = false,
+}: InterviewRoomViewProps) {
   const session = useMockInterviewSession(role);
   const [nearby, setNearby] = useState<InterviewRoomInteractable | null>(null);
   // 대기실에서 함께 기다린 사람들이 그대로 들어온다. 3D 면접장에서는 역할과 아바타만 쓴다.
@@ -140,7 +156,7 @@ function InterviewRoom({ interviewId, role }: InterviewRoomProps) {
     >
       <h1 className={visuallyHidden}>면접방</h1>
       {session.stage === 'finished' ? (
-        <InterviewEnd role={role} />
+        <InterviewEnd role={role} isPrototype={isPrototype} />
       ) : (
         <InterviewInProgress
           interviewId={interviewId}
@@ -302,12 +318,24 @@ function getIntervieweeCard(
  * 면접이 끝나면 역할에 맞는 종료 다이얼로그를 띄운다.
  * 면접관은 면접자 평가 화면으로, 면접자는 면접관 평가(선택)를 거쳐 로비로 간다.
  * 면접방으로 뒤로 돌아오지 않도록 기록을 바꾼다.
+ * 프로토타입 면접은 결과가 바로 도착한 것으로 보고, 로비에 면접 결과 도착 카드를 띄운다.
  */
-function InterviewEnd({ role }: { role: InterviewRole }) {
+function InterviewEnd({
+  role,
+  isPrototype,
+}: {
+  role: InterviewRole;
+  isPrototype: boolean;
+}) {
   const navigate = useNavigate();
   const [isReviewingInterviewers, setIsReviewingInterviewers] = useState(false);
   const backToLobby = () =>
-    navigate(interviewPaths.lobbyHome, { replace: true });
+    navigate(interviewPaths.lobbyHome, {
+      replace: true,
+      state: isPrototype
+        ? createInterviewResultNoticeState(Date.now())
+        : undefined,
+    });
 
   if (role === 'interviewer') {
     return (
