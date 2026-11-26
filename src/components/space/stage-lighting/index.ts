@@ -1,0 +1,1 @@
+export { StageLighting } from './StageLighting';
