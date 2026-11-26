@@ -15,8 +15,6 @@
   - `src/styles/` — vanilla-extract 전역 스타일. 디자인 토큰은 `src/styles/token/`(`@/styles/token`)
   - `src/types/` — 공통 타입
 - `public/models/` — 3D 에셋(glb). git으로 관리한다.
-  - 모델 경로·스케일은 `src/constants/space/`, Blender 좌표(scene_data.json) 변환은 `src/utils/space/coordinates.ts`에 둔다.
-  - three.js를 쓰는 3D 컴포넌트(`src/components/space/`의 캔버스·공간·캐릭터)는 barrel(`index.ts`)에서 내보내지 않는다. 지연 로드하는 씬 모듈에서만 폴더 경로로 가져와 three가 메인 번들에 섞이지 않게 한다.
 - `e2e/` — Playwright E2E 테스트
 - 참고 구현 — 아직 없음. 기능 구현이 쌓이면 이 항목에 기준이 되는 경로를 적는다.
 - 하위 디렉토리에서 작업할 때는 해당 경로의 AGENTS.md도 확인한다.
