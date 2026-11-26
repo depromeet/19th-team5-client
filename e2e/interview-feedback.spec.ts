@@ -44,21 +44,21 @@ test('받은 평가는 직접 열어 조회할 수 있고 작성 시간을 시�
   await expect(page.getByRole('timer')).toBeVisible();
 });
 
-test('좁은 화면에서 입력 확인 시 첫 누락 항목으로 이동한다', async ({
-  page,
-}) => {
+test('좁은 화면에서 제출 시 첫 누락 항목으로 이동한다', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/write-review');
-  const check = page.getByRole('button', { name: '입력 확인' });
+  const submit = page.getByRole('button', { name: '제출하기' });
   await page.getByText('구체적인 사례', { exact: true }).click();
-  await check.click();
+  await submit.click();
   await expect(
     page.getByRole('checkbox', { name: '답변이 길어요' }),
   ).toBeFocused();
   await expect(page.getByRole('alert')).toBeInViewport();
   await page.getByText('없어요', { exact: true }).click();
-  await check.click();
-  await expect(page.getByText(/입력 내용을 확인했어요/)).toBeVisible();
+  await submit.click();
+  await expect(
+    page.getByRole('dialog', { name: '면접자 A 평가를 제출했어요' }),
+  ).toBeVisible();
   await expect(page.getByRole('tab', { name: '면접자 A' })).toHaveAttribute(
     'aria-selected',
     'true',
@@ -93,9 +93,9 @@ test('필수 키워드와 한 줄 평을 로컬에서 검사하고 임시 저장
   page,
 }) => {
   await page.goto('/write-review');
-  const check = page.getByRole('button', { name: '입력 확인' });
+  const submit = page.getByRole('button', { name: '제출하기' });
   const comment = page.getByLabel('한 줄 평 (선택)');
-  await check.click();
+  await submit.click();
   await expect(page.getByText('1개 이상 선택해주세요.')).toHaveCount(2);
   await page.getByText('구체적인 사례', { exact: true }).click();
   await page.getByText('근거가 부족해요', { exact: true }).click();
@@ -105,22 +105,27 @@ test('필수 키워드와 한 줄 평을 로컬에서 검사하고 임시 저장
   await expect(
     page.getByText('한 줄 평은 100자 이내로 작성해주세요.'),
   ).toBeVisible();
-  await expect(check).toBeDisabled();
+  await expect(submit).toBeDisabled();
   for (const word of ['시발', '바보멍청이똥개']) {
     await comment.fill(word);
     await expect(comment).toHaveAttribute('aria-invalid', 'true');
-    await expect(check).toBeDisabled();
+    await expect(submit).toBeDisabled();
   }
   const savedDraft = '구체적으로 설명해 주셔서 좋았어요.';
   await comment.fill(savedDraft);
-  await check.click();
-  await expect(page.getByText(/입력 내용을 확인했어요/)).toBeVisible();
-  await expect(comment).toBeEditable();
-  await expect(page.getByRole('tab', { name: '면접자 A' })).toHaveAttribute(
+  await submit.click();
+  const submitted = page.getByRole('dialog', {
+    name: '면접자 A 평가를 제출했어요',
+  });
+  await expect(submitted).toContainText('아직 면접자 B 평가가 남았어요');
+  // 계속 작성하면 아직 제출하지 않은 면접자로 옮긴다.
+  await submitted.getByRole('button', { name: '계속 작성하기' }).click();
+  await expect(submitted).toBeHidden();
+  await expect(page.getByRole('tab', { name: '면접자 B' })).toHaveAttribute(
     'aria-selected',
     'true',
   );
-  await expect(page.getByRole('button', { name: /제출/ })).toHaveCount(0);
+  await expect(comment).toBeEditable();
   await page.getByRole('button', { name: '임시 저장' }).click();
   await expect(page.getByText('임시 저장했어요.')).toBeVisible();
   await page.reload();
@@ -169,8 +174,31 @@ test('새로고침과 이탈 팝업이 마감 시간을 연장하지 않는다',
   await expired.getByRole('button', { name: '확인' }).click();
   await expect(expired).not.toBeVisible();
   await expect(page).toHaveURL('/write-review');
-  await expect(page.getByRole('button', { name: '입력 확인' })).toBeDisabled();
+  await expect(page.getByRole('button', { name: '제출하기' })).toBeDisabled();
   await expect(page.getByLabel('한 줄 평 (선택)')).toBeDisabled();
   await page.reload();
   await expect(expired).toBeVisible();
+});
+
+test('모든 면접자를 제출하면 이탈 확인 없이 로비로 돌아간다', async ({
+  page,
+}) => {
+  await page.goto('/write-review');
+  for (const label of ['면접자 A', '면접자 B']) {
+    await page.getByRole('tab', { name: label }).click();
+    await page.getByText('구체적인 사례', { exact: true }).click();
+    await page.getByText('없어요', { exact: true }).click();
+    await page.getByRole('button', { name: '제출하기' }).click();
+    const submitted = page.getByRole('dialog', {
+      name: `${label} 평가를 제출했어요`,
+    });
+    await expect(submitted).toBeVisible();
+    if (label === '면접자 A') {
+      await submitted.getByRole('button', { name: '계속 작성하기' }).click();
+      continue;
+    }
+    await expect(submitted).toContainText('모든 면접자의 평가를 제출했어요');
+    await submitted.getByRole('button', { name: '로비로 돌아가기' }).click();
+  }
+  await expect(page).toHaveURL('/lobby');
 });

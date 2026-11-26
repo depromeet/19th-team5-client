@@ -63,3 +63,16 @@ export function saveWriteReviewDrafts(
   }
   persistSession({ deadline, feedback: drafts });
 }
+
+/**
+ * 면접이 끝나 평가 화면으로 넘어갈 때 부른다. 같은 탭에서 면접을 다시 해도
+ * 지난 면접의 마감 시각과 작성 내용이 아닌 새 평가표로 시작한다.
+ */
+export function startWriteReviewSession() {
+  fallbackDeadline = undefined;
+  try {
+    sessionStorage.removeItem(storageKey);
+  } catch {
+    // 저장소가 차단돼도 평가 화면은 새 마감 시각으로 열린다.
+  }
+}
