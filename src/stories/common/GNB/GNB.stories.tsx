@@ -3,7 +3,7 @@ import type { ComponentProps } from 'react';
 import { MemoryRouter, useLocation, useNavigate } from 'react-router';
 import { fn } from 'storybook/test';
 import { GNB } from '@/components/common';
-import { gnbLabels } from '@/constants/gnbLabels';
+import { gnbLabels } from '@/constants/common/gnbLabels';
 import { space, typography } from '@/styles/token';
 import { comparison, stickyHeader } from './gnb.stories.css';
 
@@ -57,7 +57,7 @@ const meta = {
     docs: {
       description: {
         component:
-          '상위 화면에서 `@/constants/gnbLabels`를 가져와 상태에 맞는 `gnbLabels.member`, `gnbLabels.guest`, `gnbLabels.waiting`을 `labels`로 전달합니다. 문구 하나만 바꿀 때는 `labels={{ ...gnbLabels.guest, enter: "면접 시작하기" }}`처럼 기본 문구를 펼쳐 사용합니다. 개별 상태 예시는 `className`으로 스크롤 시 상단에 고정합니다.',
+          '상위 화면에서 `@/constants/common/gnbLabels`를 가져와 상태에 맞는 `gnbLabels.member`, `gnbLabels.guest`, `gnbLabels.waiting`을 `labels`로 전달합니다. 문구 하나만 바꿀 때는 `labels={{ ...gnbLabels.guest, enter: "면접 시작하기" }}`처럼 기본 문구를 펼쳐 사용합니다. 개별 상태 예시는 `className`으로 스크롤 시 상단에 고정합니다.',
       },
     },
   },
@@ -91,7 +91,7 @@ function MemberPreview(args: MemberProps) {
       {...args}
       activePage={memberPages[hash] ?? args.activePage}
       onBookInterview={() => {
-        args.onBookInterview();
+        args.onBookInterview?.();
         navigate('#book');
       }}
     />

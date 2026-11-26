@@ -24,13 +24,13 @@ type MemberProps = {
     ticketUnit: string;
     bookInterview: string;
   };
-  lobbyTo: To;
-  myPageTo: To;
-  notificationsTo: To;
+  lobbyTo?: To;
+  myPageTo?: To;
+  notificationsTo?: To;
   activePage?: MemberPage | null;
   ticketCount: number;
   hasUnreadNotifications?: boolean;
-  onBookInterview: () => void;
+  onBookInterview?: () => void;
 };
 
 type GuestProps = {
@@ -81,7 +81,7 @@ function MemberNavigation({
   hasUnreadNotifications,
   onBookInterview,
 }: Omit<MemberProps, 'variant'>) {
-  const links: { page: MemberPage; label: string; to: To }[] = [
+  const links: { page: MemberPage; label: string; to?: To }[] = [
     { page: 'lobby', label: labels.lobby, to: lobbyTo },
     { page: 'myPage', label: labels.myPage, to: myPageTo },
     { page: 'notifications', label: labels.notifications, to: notificationsTo },
@@ -91,20 +91,38 @@ function MemberNavigation({
       <nav className={styles.menu} aria-label={labels.navigation}>
         {links.map(({ page, label, to }) => {
           const unread = page === 'notifications' && hasUnreadNotifications;
-          return (
-            <Link
-              key={page}
-              to={to}
-              className={styles.memberLink}
-              aria-current={page === activePage ? 'page' : undefined}
-              aria-label={
-                unread ? `${label}, ${labels.notificationsUnread}` : undefined
-              }
-            >
+          const content = (
+            <>
               {label}
               {unread && (
                 <span className={styles.unreadDot} aria-hidden='true' />
               )}
+            </>
+          );
+          const linkProps = {
+            className: styles.memberLink,
+            'aria-label': unread
+              ? `${label}, ${labels.notificationsUnread}`
+              : undefined,
+          };
+          return to === undefined ? (
+            <button
+              key={page}
+              type='button'
+              disabled
+              aria-current={page === activePage ? 'location' : undefined}
+              {...linkProps}
+            >
+              {content}
+            </button>
+          ) : (
+            <Link
+              key={page}
+              to={to}
+              aria-current={page === activePage ? 'page' : undefined}
+              {...linkProps}
+            >
+              {content}
             </Link>
           );
         })}
@@ -114,7 +132,11 @@ function MemberNavigation({
           label={labels.tickets}
           amount={`${ticketCount}${labels.ticketUnit}`}
         />
-        <Button className={styles.filledButton} onClick={onBookInterview}>
+        <Button
+          className={styles.filledButton}
+          disabled={!onBookInterview}
+          onClick={onBookInterview}
+        >
           {labels.bookInterview}
         </Button>
       </div>

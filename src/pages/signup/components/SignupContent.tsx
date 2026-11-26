@@ -1,7 +1,7 @@
 import { type Dispatch, type SetStateAction, useState } from 'react';
 import { Outlet, ScrollRestoration, useLocation, useMatch } from 'react-router';
 import { GNB } from '@/components/common/gnb';
-import { gnbLabels } from '@/constants/gnbLabels';
+import { gnbLabels } from '@/constants/common/gnbLabels';
 import { createResumeStore } from '@/stores/ResumeStore';
 import type { SignupOptions } from '@/types/Signup';
 import { type AvatarDraft, initialDraft } from '../AvatarDraft';
