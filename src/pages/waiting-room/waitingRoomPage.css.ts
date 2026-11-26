@@ -24,9 +24,25 @@ export const npcPrompt = style({
   transform: 'translateX(-50%)',
 });
 
+/** 면접 시작 직전 카운트다운. 씬 전체를 어둡게 덮고 가운데에 숫자를 띄운다. */
+export const startCountdown = style({
+  position: 'absolute',
+  inset: 0,
+  display: 'grid',
+  placeItems: 'center',
+  background: 'rgb(18 23 28 / 40%)',
+});
+
 export const dock = style({
   position: 'absolute',
   bottom: space[32],
   left: '50%',
   transform: 'translateX(-50%)',
+});
+
+/** Figma: 우측 68px · 하단 48px */
+export const documentPeek = style({
+  position: 'absolute',
+  right: '68px',
+  bottom: space[48],
 });

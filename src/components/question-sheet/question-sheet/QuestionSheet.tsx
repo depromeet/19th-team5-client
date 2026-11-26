@@ -1,5 +1,6 @@
 import { useId, useState } from 'react';
 import { Button, Dialog, Radio, Timer } from '@/components/common';
+import { ResumePanel } from '@/components/interview';
 import {
   isBlankQuestion,
   isFinishedQuestion,
@@ -9,7 +10,6 @@ import { visuallyHidden } from '@/styles/a11y.css';
 import type { Candidate } from '@/types/question-sheet/candidate';
 import { QuestionPanel } from './QuestionPanel';
 import * as styles from './questionSheet.css';
-import { ResumePanel } from './ResumePanel';
 
 export type QuestionSheetProps = {
   interviewId: string;
@@ -26,7 +26,7 @@ export type QuestionSheetProps = {
 };
 
 /**
- * 면접관의 2부 질문지. 로비와 대기실에서 QuestionSheetOverlay로 띄운다.
+ * 면접관의 2부 질문지. 로비에서 QuestionSheetOverlay로 띄운다. 대기실에서는 WrittenQuestionsOverlay로 읽기만 한다.
  * 질문은 입력할 때마다 저장되고, 나갈 때 조건을 못 채운 질문만 확인 후 지운다.
  */
 export function QuestionSheet({

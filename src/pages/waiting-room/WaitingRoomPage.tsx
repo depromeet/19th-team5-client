@@ -1,15 +1,23 @@
+import {
+  IconDocumentFill,
+  IconDocumentMagnifyingglassFill,
+} from '@karrotmarket/react-monochrome-icon';
 import { useReducer, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router';
-import { GNB } from '@/components/common';
-import { QuestionSheetOverlay } from '@/components/question-sheet';
+import { CountDown, GNB } from '@/components/common';
+import { WrittenQuestionsOverlay } from '@/components/question-sheet';
 import { InteractionPrompt, SpaceShell } from '@/components/space';
 import {
   ConnectionLostDialog,
+  DocumentPeek,
   MicDock,
   MicPermissionDialog,
   MicTestDialog,
+  MyResumeOverlay,
   NpcPracticeSheet,
   ParticipantsPanel,
+  QuestionPreview,
+  ResumePreview,
   RoomStatus,
   type WaitingRoomInteractable,
   WaitingRoomScene,
@@ -25,8 +33,10 @@ import { interviewMock, mockCountdowns } from '@/mocks/interview/interview';
 import { useMockCountdown } from '@/mocks/interview/useMockCountdown';
 import { usePrototypeParams } from '@/mocks/interview/usePrototypeParams';
 import { candidates } from '@/mocks/question-sheet/candidates';
+import { myAttachmentCount, myResume } from '@/mocks/waiting-room/myResume';
 import { npc, npcQuestions } from '@/mocks/waiting-room/npc';
 import { getRoomParticipants } from '@/mocks/waiting-room/participants';
+import { useQuestionSheetStore } from '@/stores/question-sheet/questionSheetStore';
 import { useReservationStore } from '@/stores/reservation/reservationStore';
 import { visuallyHidden } from '@/styles/a11y.css';
 import type { InterviewRole } from '@/types/interview/interview';
@@ -41,6 +51,9 @@ type WaitingRoomProps = {
   untilStart: number;
   lobbyPath: string;
 };
+
+/** 면접 시작 몇 초 전부터 카운트다운을 띄울지. 0초가 되면 면접방으로 들어간다. */
+const startCountdownSeconds = 3;
 
 type WaitingRoomEntryProps = Pick<WaitingRoomProps, 'interviewId'>;
 
@@ -99,9 +112,12 @@ function ReservedWaitingRoom({ interviewId }: WaitingRoomEntryProps) {
   );
 }
 
+/** 플로팅 카드에서 미리 보여줄 질문 수 */
+const previewQuestionCount = 3;
+
 /**
- * 면접자·면접관이 함께 쓰는 대기실. 공통으로 마이크 테스트, 참가자, 남은 시간, 연결 끊김을 다루고
- * 면접자는 김대리와 연습, 면접관은 2부 질문지를 연다.
+ * 면접자·면접관이 함께 쓰는 대기실. 공통으로 마이크 테스트, 참가자, 남은 시간, 연결 끊김,
+ * 김대리와의 연습을 다루고, 면접관은 작성한 질문지를, 면접자는 내 자소서를 읽기 전용으로 본다.
  */
 function WaitingRoom({
   interviewId,
@@ -117,29 +133,43 @@ function WaitingRoom({
   const [, recheckConnection] = useReducer((count: number) => count + 1, 0);
   const [isMicReady, setIsMicReady] = useState(false);
   const [nearby, setNearby] = useState<WaitingRoomInteractable | null>(null);
-  const [panel, setPanel] = useState<'npc' | 'questions' | null>(null);
+  const [panel, setPanel] = useState<'npc' | 'document' | null>(null);
+  // 카운트다운은 한 번 시작하면 남은 시간이 다시 늘어도 멈추지 않는다.
+  const [countdownFrom, setCountdownFrom] = useState<number | null>(null);
+  if (countdownFrom === null && untilStart <= startCountdownSeconds) {
+    setCountdownFrom(Math.max(1, untilStart));
+  }
+  const isStarting = countdownFrom !== null;
 
   const isInterviewer = role === 'interviewer';
   const participants = getRoomParticipants(role, isMicReady);
   const isMicOn = microphone.status === 'live' && !microphone.isMuted;
   // 다이얼로그·시트가 하나도 없을 때만 단축키와 상호작용 안내를 쓴다.
-  const isRoomFocused = isMicReady && panel === null && isOnline;
-  const canTalkToNpc = !isInterviewer && nearby === 'npc';
+  const isRoomFocused = isMicReady && panel === null && isOnline && !isStarting;
+  const canTalkToNpc = nearby === 'npc';
+  const questionSheet = useQuestionSheetStore(
+    (state) => state.sheets[interviewId],
+  );
+  // 면접자 순서대로 이어 붙여 미리보기에 쓴다.
+  const writtenQuestions = candidates.flatMap(({ id }) =>
+    (questionSheet?.[id] ?? []).filter(({ text }) => text.trim()),
+  );
 
   const openNpc = () => setPanel('npc');
-  const openQuestionSheet = () => setPanel('questions');
+  const openDocument = () => setPanel('document');
   const closePanel = () => setPanel(null);
   const leaveRoom = () => navigate(lobbyPath);
+  // 프로토타입은 서버 응답 없이 대기실에 들어온 역할 그대로 면접방에 들어간다.
+  // 대기실로 뒤로 가지 않도록 기록을 바꾼다.
+  const enterInterviewRoom = () =>
+    navigate(interviewPaths.interviewRoom(interviewId, { role }), {
+      replace: true,
+    });
 
   useKeyboardShortcut(
     shortcuts.interact,
     openNpc,
     isRoomFocused && canTalkToNpc,
-  );
-  useKeyboardShortcut(
-    shortcuts.questionSheet,
-    openQuestionSheet,
-    isRoomFocused && isInterviewer,
   );
 
   return (
@@ -149,11 +179,20 @@ function WaitingRoom({
         scene={<WaitingRoomScene onNearbyChange={setNearby} />}
       >
         <h1 className={visuallyHidden}>면접 대기실</h1>
-        <ParticipantsPanel
-          className={styles.participants}
-          participants={participants}
-          capacity={roomCapacity}
-        />
+        {isStarting ? (
+          <div className={styles.startCountdown}>
+            <CountDown
+              seconds={countdownFrom}
+              onComplete={enterInterviewRoom}
+            />
+          </div>
+        ) : (
+          <ParticipantsPanel
+            className={styles.participants}
+            participants={participants}
+            capacity={roomCapacity}
+          />
+        )}
         <RoomStatus
           className={styles.status}
           title={title}
@@ -167,44 +206,85 @@ function WaitingRoom({
             onClick={openNpc}
           />
         )}
-        <MicDock
-          className={styles.dock}
-          isMicOn={isMicOn}
-          onToggleMic={
-            microphone.status === 'live'
-              ? microphone.toggleMute
-              : microphone.retry
-          }
-          onOpenQuestionSheet={isInterviewer ? openQuestionSheet : undefined}
-        />
+        {!isStarting && (
+          <MicDock
+            className={styles.dock}
+            isMicOn={isMicOn}
+            onToggleMic={
+              microphone.status === 'live'
+                ? microphone.toggleMute
+                : microphone.retry
+            }
+          />
+        )}
+        {!isStarting &&
+          (isInterviewer ? (
+            <DocumentPeek
+              className={styles.documentPeek}
+              icon={
+                <IconDocumentMagnifyingglassFill size={28} aria-hidden='true' />
+              }
+              label='작성한 질문지'
+              title={`2부 질문 ${writtenQuestions.length}개`}
+              description='대기실에서는 볼 수만 있어요'
+              preview={
+                <QuestionPreview
+                  questions={writtenQuestions.slice(0, previewQuestionCount)}
+                  emptyText='아직 작성한 질문이 없어요'
+                />
+              }
+              onOpenDetail={openDocument}
+            />
+          ) : (
+            <DocumentPeek
+              className={styles.documentPeek}
+              icon={<IconDocumentFill size={28} aria-hidden='true' />}
+              label='내 자소서'
+              title={`자기소개서 ${myResume.resume.length}문항`}
+              description={`이력·포트폴리오 ${myAttachmentCount}개 · 면접관에게 공유됨`}
+              preview={
+                myResume.resume[0] && (
+                  <ResumePreview
+                    question={`Q1. ${myResume.resume[0].question}`}
+                    answer={myResume.resume[0].answer}
+                  />
+                )
+              }
+              onOpenDetail={openDocument}
+            />
+          ))}
       </SpaceShell>
 
+      {/* 카운트다운이 시작되면 다이얼로그·시트를 모두 닫아 숫자가 가려지지 않게 한다. */}
       <MicTestDialog
-        isOpen={!isMicReady && !microphone.isPermissionDenied}
+        isOpen={!isStarting && !isMicReady && !microphone.isPermissionDenied}
         microphone={microphone}
         onComplete={() => setIsMicReady(true)}
       />
       <MicPermissionDialog
-        isOpen={!isMicReady && microphone.isPermissionDenied}
+        isOpen={!isStarting && !isMicReady && microphone.isPermissionDenied}
         isChecking={microphone.status === 'requesting'}
         onRetry={microphone.retry}
       />
+      <NpcPracticeSheet
+        isOpen={!isStarting && panel === 'npc'}
+        npc={npc}
+        questions={npcQuestions}
+        onClose={closePanel}
+      />
       {isInterviewer ? (
-        <QuestionSheetOverlay
-          isOpen={panel === 'questions'}
+        <WrittenQuestionsOverlay
+          isOpen={!isStarting && panel === 'document'}
           interviewId={interviewId}
           candidates={candidates}
-          timerLabel='시작까지'
           remainingSeconds={untilStart}
-          exitLabel='저장하고 대기실로'
-          finishDescription='면접 시작 전까지 언제든 다시 고칠 수 있어요'
           onClose={closePanel}
         />
       ) : (
-        <NpcPracticeSheet
-          isOpen={panel === 'npc'}
-          npc={npc}
-          questions={npcQuestions}
+        <MyResumeOverlay
+          isOpen={!isStarting && panel === 'document'}
+          resume={myResume}
+          remainingSeconds={untilStart}
           onClose={closePanel}
         />
       )}

@@ -14,7 +14,7 @@ type QuestionSheetOverlayProps = Omit<
 };
 
 /**
- * 면접관이 로비와 대기실에서 여는 2부 질문지. 페이지를 옮기지 않고 공간 위에 띄워
+ * 면접관이 로비에서 여는 2부 질문지. 페이지를 옮기지 않고 공간 위에 띄워
  * 3D 씬과 대기실 연결을 유지한다. 앞서 써 둔 질문을 그대로 불러온다.
  */
 export function QuestionSheetOverlay({

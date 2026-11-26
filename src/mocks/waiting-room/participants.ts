@@ -2,7 +2,7 @@ import { interviewMock } from '@/mocks/interview/interview';
 import type { InterviewRole } from '@/types/interview/interview';
 import type { Participant } from '@/types/waiting-room/participant';
 
-const myNickname = '차분한 수달';
+export const myNickname = '차분한 수달';
 
 const otherParticipants: readonly Omit<Participant, 'isMe'>[] = [
   { id: 'whale', nickname: '조용한 고래', role: 'interviewee', isReady: true },

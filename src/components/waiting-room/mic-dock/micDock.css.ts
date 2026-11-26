@@ -44,14 +44,3 @@ export const micButton = style({
     'button&[aria-pressed="false"]': { color: color.neutral[500] },
   },
 });
-
-export const sheetButton = style({
-  selectors: {
-    'button&': {
-      gap: space[8],
-      height: space[48],
-      paddingInline: space[12],
-      borderRadius: radius[12],
-    },
-  },
-});

@@ -4,7 +4,6 @@
  */
 export const shortcuts = {
   interact: { code: 'Space', label: 'Space' },
-  questionSheet: { code: 'KeyQ', label: 'Q' },
 } as const;
 
 export type Shortcut = (typeof shortcuts)[keyof typeof shortcuts];
