@@ -3,7 +3,11 @@ import { Tag } from '@/components/common';
 import { roleLabels } from '@/constants/interview/roleLabels';
 import type { InterviewRole } from '@/types/interview/interview';
 import type { InterviewRoom } from '@/types/reservation';
-import { formatRoomDate, formatRoomTime, minute } from '@/utils/reservation';
+import {
+  formatRoomDate,
+  formatRoomTime,
+  waitingRoomLeadTime,
+} from '@/utils/reservation';
 import * as styles from './interviewPass.css';
 
 type InterviewPassProps = { room: InterviewRoom; role: InterviewRole };
@@ -22,7 +26,8 @@ export function InterviewPass({ room, role }: InterviewPassProps) {
       <span>{room.title} · 30분</span>
       <div className={styles.passEntry}>
         <span>
-          대기실 입장 · {formatRoomTime(room.startsAt - 15 * minute)}부터
+          대기실 입장 · {formatRoomTime(room.startsAt - waitingRoomLeadTime)}
+          부터
         </span>
         <span className={styles.barcode} aria-hidden />
       </div>

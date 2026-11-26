@@ -2,7 +2,7 @@ import { Outlet, useLocation, useNavigate } from 'react-router';
 import { GNB } from '@/components/common';
 import { gnbLabels } from '@/constants/common/gnbLabels';
 import { reservationPaths } from '@/constants/common/paths';
-import { useReservationNotices } from '@/hooks/reservation/useReservationNotices';
+import { useReservationSchedule } from '@/hooks/reservation/useReservationSchedule';
 import { useReservationStore } from '@/stores/reservation/reservationStore';
 import * as styles from './reservation.css';
 
@@ -10,7 +10,7 @@ export function ReservationLayout() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const tickets = useReservationStore((state) => state.tickets);
-  const notices = useReservationNotices();
+  const { notices } = useReservationSchedule();
   const readIds = useReservationStore((state) => state.readNoticeIds);
   return (
     <div className={styles.page}>

@@ -4,10 +4,16 @@ import { Button, Dialog, Tag } from '@/components/common';
 import { InterviewPass } from '@/components/reservation/interview-pass/InterviewPass';
 import { reservationPaths } from '@/constants/common/paths';
 import { roleLabels } from '@/constants/interview/roleLabels';
+import { useNow } from '@/hooks/common/useNow';
 import { useReservationStore } from '@/stores/reservation/reservationStore';
 import type { InterviewRole } from '@/types/interview/interview';
 import type { InterviewRoom } from '@/types/reservation';
-import { formatRoomDate, formatRoomTime, minute } from '@/utils/reservation';
+import {
+  canPrepareQuestions,
+  formatRoomDate,
+  formatRoomTime,
+  minute,
+} from '@/utils/reservation';
 import * as styles from './reservation.css';
 
 type RoleDialog = 'confirm' | 'no-tickets' | 'unavailable' | null;
@@ -28,11 +34,19 @@ export function RoleSelectionPage() {
     state.reservations.find((item) => item.roomId === roomId),
   );
   const navigate = useNavigate();
+  const now = useNow(reservation?.role === 'interviewer');
   if (room && reservation)
     return (
       <>
         <h1 className={styles.heading}>내 예약</h1>
         <InterviewPass room={room} role={reservation.role} />
+        {canPrepareQuestions(reservation.role, room.startsAt, now) && (
+          <Button
+            onClick={() => navigate(reservationPaths.questionSheet(room.id))}
+          >
+            질문지 작성
+          </Button>
+        )}
         <Button onClick={() => navigate(reservationPaths.mine)}>
           예약 목록 보기
         </Button>
@@ -63,6 +77,7 @@ function RoleSelection({ room }: RoleSelectionProps) {
   );
   const [dialog, setDialog] = useState<RoleDialog>(null);
   const candidate = role === 'interviewee';
+  const interviewerSeats = room.seats.interviewer;
   const confirm = () => {
     const result = reserve(room.id, role);
     if (result === 'reserved') {
@@ -168,7 +183,9 @@ function RoleSelection({ room }: RoleSelectionProps) {
         </Dialog.Header>
         <Dialog.Description>
           {dialog === 'no-tickets'
-            ? '면접자로 예약하려면 면접권 1장이 필요해요.'
+            ? interviewerSeats > 0
+              ? `면접관 자리가 ${interviewerSeats}개 남았어요. 참여를 완료하면 면접권 1장을 받아요.`
+              : '이 방의 면접관 자리는 마감됐어요. 다른 방의 남은 자리를 확인해 주세요.'
             : dialog === 'unavailable'
               ? '다른 열린 면접방을 확인해 주세요.'
               : candidate
@@ -201,18 +218,28 @@ function RoleSelection({ room }: RoleSelectionProps) {
           </Dialog.Body>
         )}
         <Dialog.Footer>
-          <Button
-            display='block'
-            variant='secondary'
-            onClick={() => setDialog(null)}
-          >
-            뒤로
-          </Button>
+          {dialog === 'no-tickets' ? (
+            <Button
+              display='block'
+              variant={interviewerSeats > 0 ? 'secondary' : 'primary'}
+              onClick={() => navigate(reservationPaths.rooms)}
+            >
+              다른 방 보기
+            </Button>
+          ) : (
+            <Button
+              display='block'
+              variant='secondary'
+              onClick={() => setDialog(null)}
+            >
+              뒤로
+            </Button>
+          )}
           {dialog === 'confirm' ? (
             <Button display='block' onClick={confirm}>
               {candidate ? '면접자로 예약하기' : '면접관으로 예약하기'}
             </Button>
-          ) : dialog === 'no-tickets' && room.seats.interviewer > 0 ? (
+          ) : dialog === 'no-tickets' && interviewerSeats > 0 ? (
             <Button
               display='block'
               onClick={() => {
@@ -222,14 +249,14 @@ function RoleSelection({ room }: RoleSelectionProps) {
             >
               면접관 자리 선택
             </Button>
-          ) : (
+          ) : dialog === 'unavailable' ? (
             <Button
               display='block'
               onClick={() => navigate(reservationPaths.rooms)}
             >
               열린 면접방 보기
             </Button>
-          )}
+          ) : null}
         </Dialog.Footer>
       </Dialog>
     </>

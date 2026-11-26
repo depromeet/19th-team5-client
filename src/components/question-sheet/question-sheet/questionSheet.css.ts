@@ -1,6 +1,8 @@
 import { style } from '@vanilla-extract/css';
 import { color, space, typography } from '@/styles/token';
 
+const mobile = '(max-width: 700px)';
+
 export const sheet = style({
   display: 'flex',
   flexDirection: 'column',
@@ -10,6 +12,9 @@ export const sheet = style({
   height: '100%',
   minHeight: '640px',
   marginInline: 'auto',
+  '@media': {
+    [mobile]: { height: 'auto', minHeight: '100%', gap: space[16] },
+  },
 });
 
 export const header = style({
@@ -57,6 +62,13 @@ export const columns = style({
   flex: 1,
   minHeight: 0,
   gap: space[24],
+  '@media': {
+    [mobile]: {
+      gridTemplateColumns: 'minmax(0, 1fr)',
+      gridTemplateRows: 'min(40dvh, 360px) auto',
+      gap: space[16],
+    },
+  },
 });
 
 /** Figma의 다이얼로그는 제목과 보조 문구를 가운데 정렬한다. */

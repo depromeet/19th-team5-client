@@ -7,36 +7,51 @@ import {
   NoticeCard,
   WorldChatBar,
 } from '@/components/lobby';
+import { QuestionSheetOverlay } from '@/components/question-sheet';
 import { InterviewPass } from '@/components/reservation/interview-pass/InterviewPass';
 import { InteractionPrompt, SpaceShell } from '@/components/space';
 import { gnbLabels } from '@/constants/common/gnbLabels';
 import { reservationPaths } from '@/constants/common/paths';
 import { shortcuts } from '@/constants/space/shortcuts';
-import { useReservationNotices } from '@/hooks/reservation/useReservationNotices';
+import { useReservationSchedule } from '@/hooks/reservation/useReservationSchedule';
 import { useKeyboardShortcut } from '@/hooks/space/useKeyboardShortcut';
+import { candidates } from '@/mocks/question-sheet/candidates';
 import * as bookingStyles from '@/pages/reservation/reservation.css';
 import { useReservationStore } from '@/stores/reservation/reservationStore';
 import { visuallyHidden } from '@/styles/a11y.css';
-import { formatRoomTime, minute } from '@/utils/reservation';
+import {
+  canPrepareQuestions,
+  formatRoomTime,
+  preparationLeadTime,
+} from '@/utils/reservation';
+import { secondsBetween } from '@/utils/time';
+import { BookedInterviewCard } from './BookedInterviewCard';
 import * as styles from './lobbyPage.css';
 
 export function ReservationLobby() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { now, upcoming, notices } = useReservationSchedule();
   const tickets = useReservationStore((state) => state.tickets);
-  const room = useReservationStore((state) =>
-    state.rooms.find((item) => item.id === location.state?.confirmedRoomId),
+  const rooms = useReservationStore((state) => state.rooms);
+  const reservations = useReservationStore((state) => state.reservations);
+  const room = rooms.find(
+    (item) => item.id === location.state?.confirmedRoomId,
   );
-  const booking = useReservationStore((state) =>
-    state.reservations.find((item) => item.roomId === room?.id),
+  const booking = reservations.find((item) => item.roomId === room?.id);
+  const next = upcoming[0];
+  const sheetRoomId = new URLSearchParams(location.search).get('questionSheet');
+  const sheet = upcoming.find(
+    (item) =>
+      item.room.id === sheetRoomId &&
+      canPrepareQuestions(item.role, item.room.startsAt, now),
   );
-  const notices = useReservationNotices();
   const readNoticeIds = useReservationStore((state) => state.readNoticeIds);
   const readNotices = useReservationStore((state) => state.readNotices);
   const [nearby, setNearby] = useState<LobbyInteractable | null>(null);
   const notice = notices.find((item) => !readNoticeIds.includes(item.id));
   const openRooms = () => navigate(reservationPaths.rooms);
-  const canUseKiosk = nearby === 'kiosk' && !booking;
+  const canUseKiosk = nearby === 'kiosk' && !booking && !sheet;
   const closePass = () => navigate('/lobby', { replace: true, state: null });
   useKeyboardShortcut(shortcuts.interact, openRooms, canUseKiosk);
   return (
@@ -83,15 +98,37 @@ export function ReservationLobby() {
             }
           />
         )}
-        <Button
-          className={styles.upcoming}
-          variant='secondary'
-          onClick={() => navigate(reservationPaths.mine)}
-        >
-          내 예약 보기
-        </Button>
+        {next ? (
+          <BookedInterviewCard
+            key={next.room.id}
+            room={next.room}
+            role={next.role}
+            now={now}
+          />
+        ) : (
+          <Button
+            className={styles.upcoming}
+            variant='secondary'
+            onClick={() => navigate(reservationPaths.mine)}
+          >
+            내 예약 보기
+          </Button>
+        )}
         <WorldChatBar className={styles.worldChat} />
       </SpaceShell>
+      {sheet && (
+        <QuestionSheetOverlay
+          isOpen
+          key={sheet.room.id}
+          interviewId={sheet.room.id}
+          candidates={candidates}
+          timerLabel='시작까지'
+          remainingSeconds={secondsBetween(now, sheet.room.startsAt)}
+          exitLabel='저장하고 로비로'
+          finishDescription='면접 시작 전까지 언제든 다시 고칠 수 있어요'
+          onClose={() => navigate('/lobby', { replace: true })}
+        />
+      )}
       {room && booking && (
         <Dialog isOpen className={bookingStyles.dialog} onCancel={closePass}>
           <Dialog.Header>면접 예약이 완료됐어요</Dialog.Header>
@@ -103,7 +140,8 @@ export function ReservationLobby() {
             <div className={bookingStyles.info}>
               <strong>남은 면접권 {tickets}장</strong>
               <span>
-                취소·변경 · {formatRoomTime(room.startsAt - 60 * minute)} 전까지
+                취소·변경 ·{' '}
+                {formatRoomTime(room.startsAt - preparationLeadTime)} 전까지
               </span>
             </div>
           </Dialog.Body>

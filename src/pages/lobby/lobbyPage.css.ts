@@ -33,6 +33,13 @@ export const worldChat = style({
   position: 'absolute',
   left: sideInset,
   bottom: space[32],
+  '@media': {
+    '(max-width: 700px)': {
+      left: space[16],
+      bottom: space[12],
+      maxWidth: `calc(100% - 2 * ${space[16]})`,
+    },
+  },
 });
 
 /** 3D 씬이 생기면 키오스크 앞 캐릭터 머리 위로 옮긴다. */

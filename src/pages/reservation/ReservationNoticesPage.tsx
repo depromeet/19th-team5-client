@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate, useOutletContext } from 'react-router';
 import { Button, Tag } from '@/components/common';
-import type { RoomNotice } from '@/hooks/reservation/useReservationNotices';
+import type { RoomNotice } from '@/hooks/reservation/useReservationSchedule';
 import { useReservationStore } from '@/stores/reservation/reservationStore';
 import * as styles from './reservation.css';
 

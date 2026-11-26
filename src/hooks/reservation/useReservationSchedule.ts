@@ -2,7 +2,12 @@ import { useMemo } from 'react';
 import { interviewPaths, reservationPaths } from '@/constants/common/paths';
 import { useNow } from '@/hooks/common/useNow';
 import { useReservationStore } from '@/stores/reservation/reservationStore';
-import { formatRoomDate, formatRoomTime, minute } from '@/utils/reservation';
+import {
+  formatRoomDate,
+  formatRoomTime,
+  reservationPhase,
+  upcomingBookings,
+} from '@/utils/reservation';
 
 export type RoomNotice = {
   id: string;
@@ -13,21 +18,21 @@ export type RoomNotice = {
   to: string;
 };
 
-export function useReservationNotices() {
+export function useReservationSchedule() {
   const rooms = useReservationStore((state) => state.rooms);
   const reservations = useReservationStore((state) => state.reservations);
   const requests = useReservationStore((state) => state.requests);
   const now = useNow();
   return useMemo(() => {
+    const upcoming = upcomingBookings(rooms, reservations, now);
     const notices: RoomNotice[] = [];
-    for (const room of rooms) {
-      const reservation = reservations.find((item) => item.roomId === room.id);
-      if (!reservation || room.startsAt <= now) continue;
-      const untilStart = room.startsAt - now;
-      const open = untilStart <= 15 * minute;
-      const locked = untilStart <= 60 * minute;
+    for (const { room, role } of upcoming) {
+      const phase = reservationPhase(room.startsAt, now);
+      const open = phase === 'open';
+      const locked = phase === 'locked';
+      const prepareQuestions = locked && role === 'interviewer';
       notices.push({
-        id: `${room.id}-${open ? 'open' : locked ? 'locked' : 'reserved'}`,
+        id: `${room.id}-${phase}`,
         label: open ? '대기실 오픈' : locked ? '예약 잠금' : '예약 확정',
         title: open
           ? `${room.title}, 대기실이 열렸어요.`
@@ -35,10 +40,16 @@ export function useReservationNotices() {
             ? '면접 시작까지 1시간 이내예요.'
             : `${room.title} 예약을 확인해요.`,
         detail: `${formatRoomDate(room.startsAt)} ${formatRoomTime(room.startsAt)}`,
-        action: open ? '대기실 입장' : '예약 확인',
+        action: open
+          ? '대기실 입장'
+          : prepareQuestions
+            ? '질문지 작성'
+            : '예약 확인',
         to: open
-          ? interviewPaths.waitingRoom(room.id, { role: reservation.role })
-          : reservationPaths.room(room.id),
+          ? interviewPaths.waitingRoom(room.id, { role })
+          : prepareQuestions
+            ? reservationPaths.questionSheet(room.id)
+            : reservationPaths.room(room.id),
       });
     }
     for (const openedRoom of rooms) {
@@ -60,6 +71,6 @@ export function useReservationNotices() {
         to: reservationPaths.room(openedRoom.id),
       });
     }
-    return notices;
+    return { now, upcoming, notices };
   }, [rooms, reservations, requests, now]);
 }

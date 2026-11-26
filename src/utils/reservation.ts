@@ -1,6 +1,14 @@
-import type { InterviewRoom, RoomRequestDraft } from '@/types/reservation';
+import type { InterviewRole } from '@/types/interview/interview';
+import type {
+  InterviewRoom,
+  Reservation,
+  RoomRequestDraft,
+} from '@/types/reservation';
 
 export const minute = 60_000;
+export const preparationLeadTime = 60 * minute;
+export const waitingRoomLeadTime = 15 * minute;
+export const seatsPerRole = 2;
 const day = 24 * 60 * minute;
 const seoulOffset = 9 * 60 * minute;
 export const weeklyRequestLimit = 2;
@@ -27,6 +35,38 @@ export function formatRoomDate(timestamp: number) {
 
 export function formatRoomTime(timestamp: number) {
   return timeFormat.format(timestamp);
+}
+
+export function reservationPhase(startsAt: number, now: number) {
+  const remaining = startsAt - now;
+  if (remaining <= 0) return 'started';
+  if (remaining <= waitingRoomLeadTime) return 'open';
+  if (remaining <= preparationLeadTime) return 'locked';
+  return 'reserved';
+}
+
+export function canPrepareQuestions(
+  role: InterviewRole,
+  startsAt: number,
+  now: number,
+) {
+  const phase = reservationPhase(startsAt, now);
+  return role === 'interviewer' && (phase === 'locked' || phase === 'open');
+}
+
+export function upcomingBookings(
+  rooms: InterviewRoom[],
+  reservations: Reservation[],
+  now: number,
+) {
+  return rooms
+    .flatMap((room) => {
+      const booking = reservations.find((item) => item.roomId === room.id);
+      return booking && room.startsAt > now
+        ? [{ room, role: booking.role }]
+        : [];
+    })
+    .sort((a, b) => a.room.startsAt - b.room.startsAt);
 }
 
 export function hourLabel(hour: number) {

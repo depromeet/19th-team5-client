@@ -30,7 +30,7 @@ import { getRoomParticipants } from '@/mocks/waiting-room/participants';
 import { useReservationStore } from '@/stores/reservation/reservationStore';
 import { visuallyHidden } from '@/styles/a11y.css';
 import type { InterviewRole } from '@/types/interview/interview';
-import { formatRoomTime, minute } from '@/utils/reservation';
+import { formatRoomTime, waitingRoomLeadTime } from '@/utils/reservation';
 import { secondsBetween } from '@/utils/time';
 import * as styles from './waitingRoomPage.css';
 
@@ -83,7 +83,7 @@ function ReservedWaitingRoom({ interviewId }: WaitingRoomEntryProps) {
   if (
     !room ||
     !reservation ||
-    enteredAt < room.startsAt - 15 * minute ||
+    enteredAt < room.startsAt - waitingRoomLeadTime ||
     enteredAt >= room.startsAt
   ) {
     return <Navigate to={reservationPaths.room(interviewId)} replace />;

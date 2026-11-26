@@ -14,6 +14,8 @@ export const reservationPaths = {
   rooms: '/reservations',
   request: '/reservations/request',
   room: (id: string) => `/reservations/rooms/${encodeURIComponent(id)}`,
+  questionSheet: (roomId: string) =>
+    `/lobby?${new URLSearchParams({ questionSheet: roomId })}`,
   mine: '/reservations/mine',
   notifications: '/notifications',
 } as const;

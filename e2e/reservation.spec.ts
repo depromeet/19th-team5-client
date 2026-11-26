@@ -1,5 +1,6 @@
 import { expect, type Page, test } from '@playwright/test';
 import { installFakeMicrophone } from './support/fakeMicrophone.ts';
+import { finishMicTest } from './support/waitingRoom.ts';
 
 async function selectOpenRoom(page: Page, index = 0) {
   await page.getByRole('button', { name: '면접방 예약', exact: true }).click();
@@ -56,6 +57,13 @@ test('잔액 0장에서도 빈 면접관 자리를 예약하고 예약 시점에
   await bookCandidate(page, 0);
   await selectOpenRoom(page, 1);
   await page.getByRole('button', { name: '면접권 1장으로 예약하기' }).click();
+  const shortage = page.getByRole('dialog', { name: '면접권이 부족해요' });
+  await expect(shortage).toContainText('면접관 자리가 1개 남았어요');
+  await shortage.getByRole('button', { name: '다른 방 보기' }).click();
+  await expect(page).toHaveURL('/reservations');
+  await expect(page.getByRole('banner')).toContainText('0장');
+  await selectOpenRoom(page, 1);
+  await page.getByRole('button', { name: '면접권 1장으로 예약하기' }).click();
   await page
     .getByRole('dialog', { name: '면접권이 부족해요' })
     .getByRole('button', { name: '면접관 자리 선택' })
@@ -74,8 +82,91 @@ test('잔액 0장에서도 빈 면접관 자리를 예약하고 예약 시점에
   ).toBeDisabled();
   await page.getByRole('button', { name: '면접권 1장으로 예약하기' }).click();
   await expect(
-    page.getByRole('dialog').getByRole('button', { name: '열린 면접방 보기' }),
-  ).toBeVisible();
+    shortage.getByRole('button', { name: '면접관 자리 선택' }),
+  ).toHaveCount(0);
+  await shortage.getByRole('button', { name: '다른 방 보기' }).click();
+  await expect(page).toHaveURL('/reservations');
+});
+
+test('다음 예약 카드를 펼치고 면접관 질문을 1시간 전부터 같은 대기실에 이어 쓴다', async ({
+  page,
+}) => {
+  await installFakeMicrophone(page);
+  await page.clock.install({ time: new Date('2026-11-26T12:00:00+09:00') });
+  await page.goto('/reservations');
+  // 늦은 방을 먼저 예약해도 로비에는 가장 가까운 예약이 표시된다.
+  await selectOpenRoom(page, 1);
+  const candidateRoomId = new URL(page.url()).pathname.split('/').pop();
+  await bookCandidate(page, 1);
+  await selectOpenRoom(page);
+  const roomPath = new URL(page.url()).pathname;
+  const roomId = roomPath.split('/').pop();
+  await page.getByRole('button', { name: '면접관', exact: true }).click();
+  await page.getByRole('button', { name: '면접관 자리 예약하기' }).click();
+  await page.getByRole('button', { name: '면접관으로 예약하기' }).click();
+  await page
+    .getByRole('dialog', { name: '면접 예약이 완료됐어요' })
+    .getByRole('button', { name: '로비로 가기' })
+    .click();
+  const card = page.getByRole('complementary', {
+    name: /18:00 · 인성면접 A룸/,
+  });
+  await expect(card).toContainText('면접관으로 참여 · 면접자 1 · 면접관 2');
+  await expect(card.locator('time')).toHaveText(/^29:\d{2}:\d{2}$/);
+  await expect(card.getByRole('button', { name: '질문지 작성' })).toHaveCount(
+    0,
+  );
+  await card.getByRole('button', { name: '예약된 면접 카드 닫기' }).click();
+  await expect(card).toBeHidden();
+  await page.getByRole('button', { name: '예약된 면접 펼치기' }).click();
+  await card.getByRole('button', { name: '예약 보기' }).click();
+  await expect(page).toHaveURL(roomPath);
+  await expect(page.getByRole('button', { name: '질문지 작성' })).toHaveCount(
+    0,
+  );
+  await page.clock.fastForward(29 * 60 * 60_000);
+  await expect(page.getByRole('button', { name: '질문지 작성' })).toBeVisible();
+  await page.goto('/notifications');
+  await page.getByRole('button', { name: '질문지 작성' }).click();
+  const sheet = page.getByRole('dialog', { name: '면접 준비해볼까요?' });
+  await sheet.getByRole('button', { name: '질문 만들기', exact: true }).click();
+  await sheet
+    .getByRole('textbox', { name: '질문', exact: true })
+    .fill('지원한 직무를 선택한 이유는 무엇인가요?');
+  await page.clock.fastForward(45 * 60_000);
+  await expect(sheet).toBeVisible();
+  await sheet.getByRole('button', { name: '저장하고 로비로' }).click();
+  await page.reload();
+  await expect(card).toContainText('면접 시작까지');
+  await card.getByRole('button', { name: '질문지 작성' }).click();
+  const saved = sheet.getByRole('button', {
+    name: '지원한 직무를 선택한 이유는 무엇인가요?',
+  });
+  await expect(saved).toBeVisible();
+  await sheet.getByRole('button', { name: '저장하고 로비로' }).click();
+  await card.getByRole('button', { name: '대기실 입장' }).click();
+  await expect(page).toHaveURL(
+    `/interviews/${roomId}/waiting-room?role=interviewer`,
+  );
+  await finishMicTest(page);
+  await page.keyboard.press('q');
+  await expect(saved).toBeVisible();
+  await page.goto('/lobby');
+  await page.clock.fastForward(15 * 60_000);
+  const laterCard = page.getByRole('complementary', {
+    name: /20:00 · 인성면접 B룸/,
+  });
+  await expect(laterCard).toContainText('면접자로 참여');
+  await page.clock.fastForward(60 * 60_000);
+  await expect(
+    laterCard.getByRole('button', { name: '질문지 작성' }),
+  ).toHaveCount(0);
+  await page.goto(`/lobby?questionSheet=${candidateRoomId}`);
+  await expect(laterCard).toBeVisible();
+  await expect(sheet).toHaveCount(0);
+  await page.goto(`/lobby?questionSheet=${roomId}`);
+  await expect(laterCard).toBeVisible();
+  await expect(sheet).toHaveCount(0);
 });
 
 test('개설 요청은 입력값을 반영하고 100자, 월요일 0시, 주 2회 경계를 지킨다', async ({
