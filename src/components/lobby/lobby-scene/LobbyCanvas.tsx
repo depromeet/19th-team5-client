@@ -28,10 +28,11 @@ import {
 import type { ScreenAnchor } from '@/utils/space/screenAnchor';
 
 const stage = lobbyStage;
+const { entrance } = stage;
 const { screen, visitorSpot } = stage.kiosk;
 
-/** 나는 가운데 키오스크 앞에서 키오스크를 보고 시작한다. */
-const myStart = standingPlacement(visitorSpot, yawToward(visitorSpot, screen));
+/** 나는 로비 입구에서 리셉션 데스크의 키오스크 쪽(북쪽)을 보고 시작한다. */
+const myStart = standingPlacement(entrance, yawToward(entrance, screen));
 
 /**
  * 내 캐릭터를 따라가는 카메라 각도. 입구가 있는 남쪽 위에서 리셉션 데스크가 있는 북쪽을 본다.
@@ -99,8 +100,8 @@ export function LobbyCanvas(props: LobbyCanvasProps) {
 }
 
 /**
- * 3D 로비 장면. 나는 리셉션 데스크의 예약 키오스크 앞에서 시작해 방향키로 로비를 걸어 다니고,
- * 키오스크 앞에 가까이 가면 면접을 예약할 수 있다.
+ * 3D 로비 장면. 나는 로비 입구에서 시작해 방향키로 로비를 걸어 다니고,
+ * 리셉션 데스크의 예약 키오스크 앞에 가까이 가면 면접을 예약할 수 있다.
  */
 function LobbyWorld({
   role,

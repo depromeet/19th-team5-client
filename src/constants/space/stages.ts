@@ -19,6 +19,11 @@ export const lobbyStage = {
     cell: 0.1,
   },
   /**
+   * 남쪽 정문(x 12~16)으로 들어와 처음 서는 자리. 로비 가운데이고,
+   * 디자이너가 방 스폰(links[].spawn)을 둔 것처럼 문에서 1.2m 안쪽이다.
+   */
+  entrance: { x: 14, y: 1.2 },
+  /**
    * 리셉션 데스크의 예약 키오스크. 화면 3대가 1.67m 간격으로 나란히 있다.
    * 가운데 화면(screen)과 그 앞에 서서 쓰는 자리(resv의 가운데)
    */
@@ -27,6 +32,7 @@ export const lobbyStage = {
     visitorSpot: { x: 12.9, y: 16.25 },
   },
 } as const satisfies Omit<StageLayout, 'seats'> & {
+  entrance: BlenderPoint;
   kiosk: { screen: BlenderPoint; visitorSpot: BlenderPoint };
 };
 

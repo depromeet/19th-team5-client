@@ -30,13 +30,9 @@ type LobbySceneProps = {
   kioskAnchor: ScreenAnchor;
 };
 
-const unavailable = <ScenePlaceholder label='3D 로비를 표시할 수 없어요' />;
-
 /**
- * 3D 로비. 나는 예약 키오스크 앞에서 시작하므로 들어오자마자 'kiosk'를 알리고,
- * 그 뒤에는 방향키로 걸어 다니는 동안 키오스크와의 거리로 다시 알린다.
- * 장면을 불러오는 동안, WebGL을 쓸 수 없거나 GPU 가속이 없을 때는 placeholder를 보여준다.
- * 그때는 움직일 수 없으니 키오스크 앞에 서 있는 것으로 두고, HUD는 그대로 동작한다.
+ * 3D 로비. 나는 로비 입구에서 시작해, 방향키로 걸어 다니는 동안 키오스크와의 거리로 'kiosk'를 알린다.
+ * 장면을 불러오는 동안에는 placeholder를 보여주고, 입구에 서 있으니 키오스크는 아직 멀다.
  */
 export function LobbyScene({
   role,
@@ -45,13 +41,8 @@ export function LobbyScene({
   onNearbyChange,
   kioskAnchor,
 }: LobbySceneProps) {
-  const notifyNearby = useEffectEvent(onNearbyChange);
   const [canRender] = useState(canRenderSpaceScene);
-
-  useEffect(() => {
-    notifyNearby('kiosk');
-    return () => notifyNearby(null);
-  }, []);
+  const unavailable = <UnavailableLobby onNearbyChange={onNearbyChange} />;
 
   if (!canRender) return unavailable;
 
@@ -70,4 +61,21 @@ export function LobbyScene({
       </Suspense>
     </SceneBoundary>
   );
+}
+
+/**
+ * WebGL을 쓸 수 없거나 GPU 가속이 없을 때, 또는 GLB를 불러오지 못했을 때의 로비.
+ * 걸어갈 수 없으니 키오스크 앞에 서 있는 것으로 두어, HUD의 안내로 바로 예약할 수 있게 한다.
+ */
+function UnavailableLobby({
+  onNearbyChange,
+}: Pick<LobbySceneProps, 'onNearbyChange'>) {
+  const notifyNearby = useEffectEvent(onNearbyChange);
+
+  useEffect(() => {
+    notifyNearby('kiosk');
+    return () => notifyNearby(null);
+  }, []);
+
+  return <ScenePlaceholder label='3D 로비를 표시할 수 없어요' />;
 }
