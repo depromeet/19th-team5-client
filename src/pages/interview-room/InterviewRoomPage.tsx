@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import { GNB } from '@/components/common';
 import {
   InterviewDock,
   InterviewEndDialog,
+  InterviewerReviewDialog,
   InterviewerSheet,
   type InterviewRoomInteractable,
   InterviewRoomScene,
@@ -13,6 +14,7 @@ import {
   TimeStatus,
 } from '@/components/interview-room';
 import { InteractionPrompt, SpaceShell } from '@/components/space';
+import { interviewPaths } from '@/constants/common/paths';
 import { partLabels } from '@/constants/interview-room/parts';
 import { shortcuts } from '@/constants/space/shortcuts';
 import { useKeyboardShortcut } from '@/hooks/space/useKeyboardShortcut';
@@ -22,6 +24,7 @@ import { usePrototypeParams } from '@/mocks/interview/usePrototypeParams';
 import { pastMemos } from '@/mocks/interview-room/memos';
 import {
   interviewees,
+  interviewers,
   myAvatarImageUrl,
 } from '@/mocks/interview-room/participants';
 import {
@@ -33,6 +36,7 @@ import {
   type MockInterviewSession,
   useMockInterviewSession,
 } from '@/mocks/interview-room/useMockInterviewSession';
+import { startWriteReviewSession } from '@/mocks/review/WriteReviewSession';
 import { visuallyHidden } from '@/styles/a11y.css';
 import type { InterviewRole } from '@/types/interview/interview';
 import type { InterviewPart } from '@/types/interview-room/interviewRoom';
@@ -52,7 +56,7 @@ type InterviewRoomProps = { interviewId: string; role: InterviewRole };
 /**
  * 면접자·면접관이 함께 쓰는 면접방. 3D 면접장 위에 진행 단계, 남은 시간, 하단 독을 올린다.
  * 면접자는 자리에 앉아 질문을 받고, 면접관은 질문 카드를 보며 면접자마다 메모를 남긴다.
- * TODO(대기실 연동): 대기실(#22)이 합쳐지면 대기 시간이 끝날 때 3초 카운트다운 뒤 이 화면으로 들어온다.
+ * 대기실에서 시작 3초 카운트다운이 끝나면 이 화면으로 들어온다.
  */
 function InterviewRoom({ interviewId, role }: InterviewRoomProps) {
   const session = useMockInterviewSession(role);
@@ -216,28 +220,42 @@ function getIntervieweeCard(
   };
 }
 
-/** 면접이 끝나면 역할에 맞는 종료 다이얼로그를 띄운다. */
+/**
+ * 면접이 끝나면 역할에 맞는 종료 다이얼로그를 띄운다.
+ * 면접관은 면접자 평가 화면으로, 면접자는 면접관 평가(선택)를 거쳐 로비로 간다.
+ * 면접방으로 뒤로 돌아오지 않도록 기록을 바꾼다.
+ */
 function InterviewEnd({ role }: { role: InterviewRole }) {
-  const backToLobby = () => {
-    // TODO(대기실 연동): 로비(#22)가 합쳐지면 로비로 이동한다. 지금 브랜치에는 로비가 없다.
-  };
-  const evaluate = () => {
-    // TODO(평가): 평가 화면이 생기면 연결한다. 프로토타입에서는 동작하지 않는다.
-  };
+  const navigate = useNavigate();
+  const [isReviewingInterviewers, setIsReviewingInterviewers] = useState(false);
+  const backToLobby = () =>
+    navigate(interviewPaths.lobbyHome, { replace: true });
 
-  return role === 'interviewer' ? (
-    <InterviewEndDialog
-      myRole='interviewer'
-      avatarImageUrl={myAvatarImageUrl}
-      evaluationSeconds={mockSchedule.evaluationSeconds}
-      onWriteEvaluation={evaluate}
+  if (role === 'interviewer') {
+    return (
+      <InterviewEndDialog
+        myRole='interviewer'
+        avatarImageUrl={myAvatarImageUrl}
+        evaluationSeconds={mockSchedule.evaluationSeconds}
+        onWriteEvaluation={() => {
+          startWriteReviewSession();
+          navigate(interviewPaths.writeReview, { replace: true });
+        }}
+      />
+    );
+  }
+
+  return isReviewingInterviewers ? (
+    <InterviewerReviewDialog
+      interviewers={interviewers}
+      onBackToLobby={backToLobby}
     />
   ) : (
     <InterviewEndDialog
       myRole='interviewee'
       avatarImageUrl={myAvatarImageUrl}
       onBackToLobby={backToLobby}
-      onEvaluateInterviewers={evaluate}
+      onEvaluateInterviewers={() => setIsReviewingInterviewers(true)}
     />
   );
 }
