@@ -13,6 +13,7 @@ import * as styles from '../Signup.css';
 export type SignupContext = {
   avatar: [AvatarDraft, Dispatch<SetStateAction<AvatarDraft>>];
   resume: ReturnType<typeof createResumeStore>;
+  syncResumeDraft: () => Promise<void>;
   options: SignupOptions;
   pass?: IssuedPass;
 };
@@ -29,7 +30,11 @@ export function SignupContent({
   const draft = useState(progress.avatar ?? emptyAvatarDraft);
   const [resume] = useState(() => createResumeStore(options, progress.draft));
   const editor = useMatch(signupPaths.resume);
-  const saveError = useSignupDraftPersistence(email, draft[0], resume);
+  const { saveError, syncResumeDraft } = useSignupDraftPersistence(
+    email,
+    draft[0],
+    resume,
+  );
 
   return (
     <div className={styles.signup}>
@@ -57,6 +62,7 @@ export function SignupContent({
             {
               avatar: draft,
               resume,
+              syncResumeDraft,
               options,
               pass: progress.pass,
             } satisfies SignupContext

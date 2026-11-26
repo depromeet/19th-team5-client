@@ -1,4 +1,5 @@
 import { IconILowercaseSerifCircleLine } from '@karrotmarket/react-monochrome-icon';
+import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Navigate, useLocation } from 'react-router';
 import { Avatar } from '@/components/common/avatar';
@@ -14,15 +15,20 @@ import {
   useAvatarDraft,
   useResumeStore,
   useSignupOptions,
+  useSyncResumeDraft,
 } from '../SignupLayout';
 import { PortfolioAttachments } from './components/PortfolioAttachments';
 import { ResumeConfirmationDialog } from './components/ResumeConfirmationDialog';
 import { AnswerEntries, ExperienceEntries } from './components/ResumeEntries';
 import { ResumeSection } from './components/ResumeSection';
 import {
+  getResumeLimitError,
+  getSubmittableEntry,
   hasAnswerInput,
   hasExperienceInput,
   resumeLimits,
+  validAnswer,
+  validExperience,
 } from './ResumeDraft';
 import * as s from './ResumeEditorPage.css';
 
@@ -42,28 +48,48 @@ export function ResumeEditorPage() {
     null,
   );
   const completion = useSignupCompletion();
+  const syncResumeDraft = useSyncResumeDraft();
+  const registrationSync = useMutation({ mutationFn: syncResumeDraft });
+  const pending = registrationSync.isPending || completion.isPending;
   const { state } = useLocation();
   if (!isComplete(avatar))
     return <Navigate to={signupPaths.avatar} state={state} replace />;
-  const experienceCount = resume.experiences.filter((e) => e.saved).length;
-  const answerCount = resume.answers.filter((a) => a.saved).length;
+  const experienceCount = resume.experiences.filter((entry) =>
+    getSubmittableEntry(entry, validExperience),
+  ).length;
+  const answers = resume.answers.flatMap(
+    (entry) => getSubmittableEntry(entry, validAnswer) ?? [],
+  );
+  const answerCount = answers.length;
+  const limitError = getResumeLimitError(resume, answers);
   const fileCount = resume.files.length;
   const score = Math.min(
     5,
     experienceCount + answerCount + Math.min(1, fileCount),
   );
   function confirm() {
-    if (!isComplete(avatar) || !confirmation || completion.isPending) return;
-    const registration =
-      confirmation === 'register' ? prepareRegistration() : undefined;
-    if (registration === null) return;
-    completion.complete(
-      registration ? { ...avatar, resume: registration.submission } : avatar,
-      registration?.commit,
-    );
+    if (!isComplete(avatar) || !confirmation || pending) return;
+    if (confirmation === 'skip') {
+      completion.complete(avatar);
+      return;
+    }
+    registrationSync.mutate(undefined, {
+      onSuccess: () => {
+        const registration = prepareRegistration();
+        if (!registration) {
+          setConfirmation(null);
+          return;
+        }
+        completion.complete(
+          { ...avatar, resume: registration.submission },
+          registration.commit,
+        );
+      },
+    });
   }
   function closeConfirmation() {
-    if (completion.isPending) return;
+    if (pending) return;
+    registrationSync.reset();
     completion.reset();
     setConfirmation(null);
   }
@@ -204,6 +230,11 @@ export function ResumeEditorPage() {
                 </li>
               ))}
             </ul>
+            {limitError && (
+              <p className={s.error} role='alert'>
+                {limitError}
+              </p>
+            )}
             <Button
               size='large'
               display='block'
@@ -225,8 +256,8 @@ export function ResumeEditorPage() {
       </div>
       <ResumeConfirmationDialog
         isOpen={confirmation !== null}
-        pending={completion.isPending}
-        failed={completion.isError}
+        pending={pending}
+        failed={registrationSync.isError || completion.isError}
         onClose={closeConfirmation}
         onConfirm={confirm}
       />

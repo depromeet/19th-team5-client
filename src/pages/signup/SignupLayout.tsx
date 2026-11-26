@@ -22,6 +22,10 @@ export function useResumeStore<T>(select: (state: ResumeState) => T) {
   return useStore(useOutletContext<SignupContext>().resume, select);
 }
 
+export function useSyncResumeDraft() {
+  return useOutletContext<SignupContext>().syncResumeDraft;
+}
+
 export function useSignupOptions() {
   return useOutletContext<SignupContext>().options;
 }
