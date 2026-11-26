@@ -4,7 +4,7 @@ import {
 } from '@karrotmarket/react-monochrome-icon';
 import { type ReactNode, useId } from 'react';
 import { Button, FloatingCard } from '@/components/common';
-import { formatTime, toDurationString } from '@/utils/formatTime';
+import { formatCountdown, toDurationString } from '@/utils/formatTime';
 import * as cardStyles from '../lobbyCard.css';
 import * as styles from './upcomingInterviewCard.css';
 
@@ -68,7 +68,7 @@ export function UpcomingInterviewCard({
                 className={styles.countdownValue}
                 dateTime={toDurationString(remainingSeconds)}
               >
-                {formatTime(remainingSeconds)}
+                {formatCountdown(remainingSeconds)}
               </time>
             </p>
             <div className={styles.track} aria-hidden='true'>

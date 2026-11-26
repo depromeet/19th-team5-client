@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router';
 import { authApi } from '@/apis/AuthApi';
 import { Button } from '@/components/common';
-import { interviewPaths } from '@/constants/common/paths';
+import { interviewPaths, reservationPaths } from '@/constants/common/paths';
 import { useAuthStore } from '@/stores/AuthStore';
 import type { InterviewRole } from '@/types/interview/interview';
 import * as styles from './homePage.css';
@@ -47,6 +47,7 @@ export function HomePage() {
         ))}
       </div>
       <Link to='/signup/avatar'>가입 · 아바타 만들기</Link>
+      <Link to={reservationPaths.rooms}>면접방 예약</Link>
       <Link to='/write-review'>평가 작성</Link>
       <Link to='/received-review'>받은 리뷰</Link>
     </main>

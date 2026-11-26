@@ -1,6 +1,7 @@
 import { QueryClientProvider } from '@tanstack/react-query';
 import { createBrowserRouter } from 'react-router';
 import { ReviewLoadState } from '@/components/review/ReviewLoadState';
+import { reservationPaths } from '@/constants/common/paths';
 import {
   ForgotPasswordPage,
   requestResetAction,
@@ -15,6 +16,11 @@ import { HomePage as PrototypeHomePage } from '@/pages/home/HomePage';
 import { InterviewRoomPage } from '@/pages/interview-room/InterviewRoomPage';
 import { HomePage } from '@/pages/landing/HomePage';
 import { LobbyPage } from '@/pages/lobby/LobbyPage';
+import { MyReservationsPage } from '@/pages/reservation/MyReservationsPage';
+import { ReservationLayout } from '@/pages/reservation/ReservationLayout';
+import { ReservationNoticesPage } from '@/pages/reservation/ReservationNoticesPage';
+import { ReservationPage } from '@/pages/reservation/ReservationPage';
+import { RoleSelectionPage } from '@/pages/reservation/RoleSelectionPage';
 import { AvatarSelectionPage } from '@/pages/signup/avatar/AvatarSelectionPage';
 import { VisitorPassPage } from '@/pages/signup/pass/VisitorPassPage';
 import { ResumeEditorPage } from '@/pages/signup/resume/ResumeEditorPage';
@@ -61,6 +67,19 @@ export const router = createBrowserRouter([
     Component: InterviewRoomPage,
   },
   { path: '/lobby', Component: LobbyPage },
+  {
+    Component: ReservationLayout,
+    children: [
+      { path: reservationPaths.rooms, Component: ReservationPage },
+      { path: reservationPaths.request, element: <ReservationPage request /> },
+      { path: '/reservations/rooms/:roomId', Component: RoleSelectionPage },
+      { path: reservationPaths.mine, Component: MyReservationsPage },
+      {
+        path: reservationPaths.notifications,
+        Component: ReservationNoticesPage,
+      },
+    ],
+  },
   {
     path: '/interviews/:interviewId/waiting-room',
     Component: WaitingRoomPage,

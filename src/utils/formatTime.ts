@@ -16,6 +16,13 @@ export function formatTime(totalSeconds: number) {
   return `${pad(minutes)}:${pad(seconds)}`;
 }
 
+/** 예약처럼 한 시간 이상 남을 수 있는 카운트다운은 h:mm:ss로 표시한다. */
+export function formatCountdown(totalSeconds: number) {
+  const hours = Math.floor(totalSeconds / 3600);
+  if (hours < 1) return formatTime(totalSeconds);
+  return `${hours}:${formatTime(totalSeconds % 3600)}`;
+}
+
 /**
  * 초를 `<time dateTime>`에 쓰는 ISO 8601 duration 문자열로 만든다.
  * @example toDurationString(75) // 'PT1M15S'

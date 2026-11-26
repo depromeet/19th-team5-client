@@ -1,5 +1,5 @@
 import { useReducer, useState } from 'react';
-import { useNavigate, useParams } from 'react-router';
+import { Navigate, useNavigate, useParams } from 'react-router';
 import { GNB } from '@/components/common';
 import { QuestionSheetOverlay } from '@/components/question-sheet';
 import { InteractionPrompt, SpaceShell } from '@/components/space';
@@ -15,9 +15,10 @@ import {
   WaitingRoomScene,
 } from '@/components/waiting-room';
 import { gnbLabels } from '@/constants/common/gnbLabels';
-import { interviewPaths } from '@/constants/common/paths';
+import { interviewPaths, reservationPaths } from '@/constants/common/paths';
 import { shortcuts } from '@/constants/space/shortcuts';
 import { useNetworkStatus } from '@/hooks/common/useNetworkStatus';
+import { useNow } from '@/hooks/common/useNow';
 import { useKeyboardShortcut } from '@/hooks/space/useKeyboardShortcut';
 import { useRoomMicrophone } from '@/hooks/waiting-room/useRoomMicrophone';
 import { interviewMock, mockCountdowns } from '@/mocks/interview/interview';
@@ -26,18 +27,76 @@ import { usePrototypeParams } from '@/mocks/interview/usePrototypeParams';
 import { candidates } from '@/mocks/question-sheet/candidates';
 import { npc, npcQuestions } from '@/mocks/waiting-room/npc';
 import { getRoomParticipants } from '@/mocks/waiting-room/participants';
+import { useReservationStore } from '@/stores/reservation/reservationStore';
 import { visuallyHidden } from '@/styles/a11y.css';
 import type { InterviewRole } from '@/types/interview/interview';
+import { formatRoomTime, waitingRoomLeadTime } from '@/utils/reservation';
+import { secondsBetween } from '@/utils/time';
 import * as styles from './waitingRoomPage.css';
+
+type WaitingRoomProps = {
+  interviewId: string;
+  role: InterviewRole;
+  title: string;
+  untilStart: number;
+  lobbyPath: string;
+};
+
+type WaitingRoomEntryProps = Pick<WaitingRoomProps, 'interviewId'>;
 
 const roomCapacity =
   interviewMock.headcount.interviewee + interviewMock.headcount.interviewer;
 
 export function WaitingRoomPage() {
   const { interviewId = interviewMock.id } = useParams();
+  return interviewId.startsWith('room-') ? (
+    <ReservedWaitingRoom key={interviewId} interviewId={interviewId} />
+  ) : (
+    <PrototypeWaitingRoom interviewId={interviewId} />
+  );
+}
+
+function PrototypeWaitingRoom({ interviewId }: WaitingRoomEntryProps) {
   const { role } = usePrototypeParams();
-  // 역할이 바뀌면 마이크 테스트부터 다시 시작한다.
-  return <WaitingRoom key={role} interviewId={interviewId} role={role} />;
+  const untilStart = useMockCountdown('until-start', mockCountdowns.untilStart);
+  return (
+    <WaitingRoom
+      key={`${interviewId}-${role}`}
+      interviewId={interviewId}
+      role={role}
+      title={interviewMock.roomTitle}
+      untilStart={untilStart}
+      lobbyPath={interviewPaths.lobby({ role, phase: 'open' })}
+    />
+  );
+}
+
+function ReservedWaitingRoom({ interviewId }: WaitingRoomEntryProps) {
+  const room = useReservationStore((state) =>
+    state.rooms.find((item) => item.id === interviewId),
+  );
+  const reservation = useReservationStore((state) =>
+    state.reservations.find((item) => item.roomId === interviewId),
+  );
+  const now = useNow();
+  const [enteredAt] = useState(Date.now);
+  if (
+    !room ||
+    !reservation ||
+    enteredAt < room.startsAt - waitingRoomLeadTime ||
+    enteredAt >= room.startsAt
+  ) {
+    return <Navigate to={reservationPaths.room(interviewId)} replace />;
+  }
+  return (
+    <WaitingRoom
+      interviewId={interviewId}
+      role={reservation.role}
+      title={`${formatRoomTime(room.startsAt)} ${room.title}`}
+      untilStart={secondsBetween(now, room.startsAt)}
+      lobbyPath='/lobby'
+    />
+  );
 }
 
 /**
@@ -47,16 +106,15 @@ export function WaitingRoomPage() {
 function WaitingRoom({
   interviewId,
   role,
-}: {
-  interviewId: string;
-  role: InterviewRole;
-}) {
+  title,
+  untilStart,
+  lobbyPath,
+}: WaitingRoomProps) {
   const navigate = useNavigate();
   const microphone = useRoomMicrophone();
   const isOnline = useNetworkStatus();
   // 다시 연결하기: 실시간 연결이 없는 프로토타입에서는 연결 상태를 다시 읽기만 한다.
   const [, recheckConnection] = useReducer((count: number) => count + 1, 0);
-  const untilStart = useMockCountdown('until-start', mockCountdowns.untilStart);
   const [isMicReady, setIsMicReady] = useState(false);
   const [nearby, setNearby] = useState<WaitingRoomInteractable | null>(null);
   const [panel, setPanel] = useState<'npc' | 'questions' | null>(null);
@@ -71,8 +129,7 @@ function WaitingRoom({
   const openNpc = () => setPanel('npc');
   const openQuestionSheet = () => setPanel('questions');
   const closePanel = () => setPanel(null);
-  const leaveRoom = () =>
-    navigate(interviewPaths.lobby({ role, phase: 'open' }));
+  const leaveRoom = () => navigate(lobbyPath);
 
   useKeyboardShortcut(
     shortcuts.interact,
@@ -99,7 +156,7 @@ function WaitingRoom({
         />
         <RoomStatus
           className={styles.status}
-          title={interviewMock.roomTitle}
+          title={title}
           remainingSeconds={untilStart}
         />
         {isRoomFocused && canTalkToNpc && (

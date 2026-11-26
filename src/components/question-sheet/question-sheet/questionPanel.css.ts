@@ -12,6 +12,9 @@ export const panel = style({
   border: `1px solid ${color.neutral[200]}`,
   borderRadius: radius[16],
   background: color.neutral[0],
+  '@media': {
+    '(max-width: 700px)': { padding: space[16] },
+  },
 });
 
 export const header = style({
