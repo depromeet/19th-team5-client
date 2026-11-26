@@ -11,12 +11,13 @@ import { QuestionSheetOverlay } from '@/components/question-sheet';
 import { InterviewPass } from '@/components/reservation/interview-pass/InterviewPass';
 import { InteractionPrompt, SpaceShell } from '@/components/space';
 import { gnbLabels } from '@/constants/common/gnbLabels';
-import { reservationPaths } from '@/constants/common/paths';
+import { reservationPaths, signupPaths } from '@/constants/common/paths';
 import { shortcuts } from '@/constants/space/shortcuts';
 import { useReservationSchedule } from '@/hooks/reservation/useReservationSchedule';
 import { useKeyboardShortcut } from '@/hooks/space/useKeyboardShortcut';
 import { candidates } from '@/mocks/question-sheet/candidates';
 import * as bookingStyles from '@/pages/reservation/reservation.css';
+import { useAuthStore } from '@/stores/AuthStore';
 import { useReservationStore } from '@/stores/reservation/reservationStore';
 import { visuallyHidden } from '@/styles/a11y.css';
 import {
@@ -31,6 +32,7 @@ import * as styles from './lobbyPage.css';
 export function ReservationLobby() {
   const navigate = useNavigate();
   const location = useLocation();
+  const email = useAuthStore((state) => state.email);
   const { now, upcoming, notices } = useReservationSchedule();
   const tickets = useReservationStore((state) => state.tickets);
   const rooms = useReservationStore((state) => state.rooms);
@@ -58,15 +60,26 @@ export function ReservationLobby() {
     <>
       <SpaceShell
         header={
-          <GNB
-            variant='member'
-            labels={gnbLabels.member}
-            lobbyTo='/lobby'
-            notificationsTo={reservationPaths.notifications}
-            ticketCount={tickets}
-            hasUnreadNotifications={Boolean(notice)}
-            onBookInterview={openRooms}
-          />
+          email ? (
+            <GNB
+              variant='member'
+              labels={gnbLabels.member}
+              lobbyTo='/lobby'
+              notificationsTo={reservationPaths.notifications}
+              ticketCount={tickets}
+              hasUnreadNotifications={Boolean(notice)}
+              onBookInterview={openRooms}
+            />
+          ) : (
+            <GNB
+              variant='guest'
+              labels={gnbLabels.guest}
+              lobbyTo='/lobby'
+              aboutTo='/#service'
+              onLogin={() => navigate('/login')}
+              onEnter={() => navigate(signupPaths.account)}
+            />
+          )
         }
         scene={<LobbyScene onNearbyChange={setNearby} />}
       >
@@ -85,11 +98,11 @@ export function ReservationLobby() {
             time={notice.label}
             title={notice.title}
             description={notice.detail}
-            onClose={() => readNotices([notice.id])}
+            onClose={() => void readNotices([notice.id])}
             actions={
               <Button
                 onClick={() => {
-                  readNotices([notice.id]);
+                  void readNotices([notice.id]);
                   navigate(notice.to);
                 }}
               >
@@ -106,13 +119,15 @@ export function ReservationLobby() {
             now={now}
           />
         ) : (
-          <Button
-            className={styles.upcoming}
-            variant='secondary'
-            onClick={() => navigate(reservationPaths.mine)}
-          >
-            내 예약 보기
-          </Button>
+          email && (
+            <Button
+              className={styles.upcoming}
+              variant='secondary'
+              onClick={() => navigate(reservationPaths.mine)}
+            >
+              내 예약 보기
+            </Button>
+          )
         )}
         <WorldChatBar className={styles.worldChat} />
       </SpaceShell>

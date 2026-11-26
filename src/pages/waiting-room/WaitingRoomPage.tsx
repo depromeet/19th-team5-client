@@ -27,6 +27,7 @@ import { interviewPaths, reservationPaths } from '@/constants/common/paths';
 import { shortcuts } from '@/constants/space/shortcuts';
 import { useNetworkStatus } from '@/hooks/common/useNetworkStatus';
 import { useNow } from '@/hooks/common/useNow';
+import { useBookedRoom } from '@/hooks/reservation/useBookedRoom';
 import { useKeyboardShortcut } from '@/hooks/space/useKeyboardShortcut';
 import { useRoomMicrophone } from '@/hooks/waiting-room/useRoomMicrophone';
 import { interviewMock, mockCountdowns } from '@/mocks/interview/interview';
@@ -37,11 +38,13 @@ import { myAttachmentCount, myResume } from '@/mocks/waiting-room/myResume';
 import { npc, npcQuestions } from '@/mocks/waiting-room/npc';
 import { getRoomParticipants } from '@/mocks/waiting-room/participants';
 import { useQuestionSheetStore } from '@/stores/question-sheet/questionSheetStore';
-import { useReservationStore } from '@/stores/reservation/reservationStore';
 import { visuallyHidden } from '@/styles/a11y.css';
 import type { InterviewRole } from '@/types/interview/interview';
-import { formatRoomTime, waitingRoomLeadTime } from '@/utils/reservation';
-import { secondsBetween } from '@/utils/time';
+import {
+  formatRoomTime,
+  interviewDuration,
+  waitingRoomLeadTime,
+} from '@/utils/reservation';
 import * as styles from './waitingRoomPage.css';
 
 type WaitingRoomProps = {
@@ -85,28 +88,32 @@ function PrototypeWaitingRoom({ interviewId }: WaitingRoomEntryProps) {
 }
 
 function ReservedWaitingRoom({ interviewId }: WaitingRoomEntryProps) {
-  const room = useReservationStore((state) =>
-    state.rooms.find((item) => item.id === interviewId),
-  );
-  const reservation = useReservationStore((state) =>
-    state.reservations.find((item) => item.roomId === interviewId),
-  );
+  const { room, reservation } = useBookedRoom(interviewId);
   const now = useNow();
-  const [enteredAt] = useState(Date.now);
   if (
     !room ||
     !reservation ||
-    enteredAt < room.startsAt - waitingRoomLeadTime ||
-    enteredAt >= room.startsAt
+    now < room.startsAt - waitingRoomLeadTime ||
+    now >= room.startsAt + interviewDuration
   ) {
     return <Navigate to={reservationPaths.room(interviewId)} replace />;
+  }
+  if (now >= room.startsAt) {
+    return (
+      <Navigate
+        to={interviewPaths.interviewRoom(interviewId, {
+          role: reservation.role,
+        })}
+        replace
+      />
+    );
   }
   return (
     <WaitingRoom
       interviewId={interviewId}
       role={reservation.role}
       title={`${formatRoomTime(room.startsAt)} ${room.title}`}
-      untilStart={secondsBetween(now, room.startsAt)}
+      untilStart={Math.ceil((room.startsAt - now) / 1000)}
       lobbyPath='/lobby'
     />
   );

@@ -1,28 +1,35 @@
 import { type Dispatch, type SetStateAction, useState } from 'react';
-import { Outlet, ScrollRestoration, useLocation, useMatch } from 'react-router';
+import { Outlet, ScrollRestoration, useMatch } from 'react-router';
 import { GNB } from '@/components/common/gnb';
 import { gnbLabels } from '@/constants/common/gnbLabels';
+import { signupPaths } from '@/constants/common/paths';
+import { useSignupDraftPersistence } from '@/hooks/signup/useSignupDraftPersistence';
 import { createResumeStore } from '@/stores/ResumeStore';
-import type { SignupOptions } from '@/types/Signup';
-import { type AvatarDraft, initialDraft } from '../AvatarDraft';
+import type { SignupProgress } from '@/stores/signup/signupStorage';
+import type { IssuedPass, SignupOptions } from '@/types/Signup';
+import { type AvatarDraft, emptyAvatarDraft } from '../AvatarDraft';
 import * as styles from '../Signup.css';
 
 export type SignupContext = {
   avatar: [AvatarDraft, Dispatch<SetStateAction<AvatarDraft>>];
   resume: ReturnType<typeof createResumeStore>;
   options: SignupOptions;
+  pass?: IssuedPass;
 };
 
 export function SignupContent({
-  options: initialOptions,
+  email,
+  options,
+  progress,
 }: {
+  email: string;
   options: SignupOptions;
+  progress: SignupProgress;
 }) {
-  const { state } = useLocation();
-  const draft = useState(() => initialDraft(state));
-  const [options] = useState(() => initialOptions);
-  const [resume] = useState(() => createResumeStore(options));
-  const editor = useMatch('/signup/resume');
+  const draft = useState(progress.avatar ?? emptyAvatarDraft);
+  const [resume] = useState(() => createResumeStore(options, progress.draft));
+  const editor = useMatch(signupPaths.resume);
+  const saveError = useSignupDraftPersistence(email, draft[0], resume);
 
   return (
     <div className={styles.signup}>
@@ -40,8 +47,20 @@ export function SignupContent({
         />
       </div>
       <main className={editor ? undefined : styles.main}>
+        {saveError && (
+          <p className={styles.helper} role='alert'>
+            이 브라우저에 작성 내용을 저장하지 못했어요.
+          </p>
+        )}
         <Outlet
-          context={{ avatar: draft, resume, options } satisfies SignupContext}
+          context={
+            {
+              avatar: draft,
+              resume,
+              options,
+              pass: progress.pass,
+            } satisfies SignupContext
+          }
         />
       </main>
       <ScrollRestoration />

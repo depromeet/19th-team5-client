@@ -8,7 +8,7 @@ import { AuthLayout } from './AuthLayout';
 import { useAuthForm } from './useAuthForm';
 
 export function LoginPage() {
-  const { onSubmit, pending, error } = useAuthForm(authApi.login);
+  const { onSubmit, pending, error } = useAuthForm(authApi.login, 'login');
   return (
     <AuthLayout
       brand={

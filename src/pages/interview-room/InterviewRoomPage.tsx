@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router';
+import { Navigate, useNavigate, useParams } from 'react-router';
 import { GNB } from '@/components/common';
 import {
   InterviewDock,
@@ -14,9 +14,10 @@ import {
   TimeStatus,
 } from '@/components/interview-room';
 import { InteractionPrompt, SpaceShell } from '@/components/space';
-import { interviewPaths } from '@/constants/common/paths';
+import { interviewPaths, reservationPaths } from '@/constants/common/paths';
 import { partLabels } from '@/constants/interview-room/parts';
 import { shortcuts } from '@/constants/space/shortcuts';
+import { useBookedRoom } from '@/hooks/reservation/useBookedRoom';
 import { useKeyboardShortcut } from '@/hooks/space/useKeyboardShortcut';
 import { useRoomMicrophone } from '@/hooks/waiting-room/useRoomMicrophone';
 import { interviewMock } from '@/mocks/interview/interview';
@@ -42,16 +43,52 @@ import type { InterviewRole } from '@/types/interview/interview';
 import type { InterviewPart } from '@/types/interview-room/interviewRoom';
 import { formatTime, toDurationString } from '@/utils/formatTime';
 import { isInterviewPart } from '@/utils/interview-room/stage';
+import { interviewDuration, reservationPhase } from '@/utils/reservation';
 import * as styles from './interviewRoomPage.css';
+
+type InterviewRoomProps = { interviewId: string; role: InterviewRole };
+type InterviewInProgressProps = InterviewRoomProps & {
+  session: MockInterviewSession;
+  nearby: InterviewRoomInteractable | null;
+};
 
 export function InterviewRoomPage() {
   const { interviewId = interviewMock.id } = useParams();
+  return interviewId.startsWith('room-') ? (
+    <ReservedInterviewRoom key={interviewId} interviewId={interviewId} />
+  ) : (
+    <PrototypeInterviewRoom interviewId={interviewId} />
+  );
+}
+
+function PrototypeInterviewRoom({
+  interviewId,
+}: Pick<InterviewRoomProps, 'interviewId'>) {
   const { role } = usePrototypeParams();
   // 역할을 바꾸면 면접을 처음부터 다시 진행한다.
   return <InterviewRoom key={role} interviewId={interviewId} role={role} />;
 }
 
-type InterviewRoomProps = { interviewId: string; role: InterviewRole };
+function ReservedInterviewRoom({
+  interviewId,
+}: Pick<InterviewRoomProps, 'interviewId'>) {
+  const { room, reservation } = useBookedRoom(interviewId);
+  const [enteredAt] = useState(Date.now);
+  if (room && reservation && enteredAt < room.startsAt + interviewDuration) {
+    const { role } = reservation;
+    const phase = reservationPhase(room.startsAt, enteredAt);
+    if (phase === 'started')
+      return <InterviewRoom interviewId={interviewId} role={role} />;
+    if (phase === 'open')
+      return (
+        <Navigate
+          to={interviewPaths.waitingRoom(interviewId, { role })}
+          replace
+        />
+      );
+  }
+  return <Navigate to={reservationPaths.room(interviewId)} replace />;
+}
 
 /**
  * 면접자·면접관이 함께 쓰는 면접방. 3D 면접장 위에 진행 단계, 남은 시간, 하단 독을 올린다.
@@ -86,11 +123,6 @@ function InterviewRoom({ interviewId, role }: InterviewRoomProps) {
     </SpaceShell>
   );
 }
-
-type InterviewInProgressProps = InterviewRoomProps & {
-  session: MockInterviewSession;
-  nearby: InterviewRoomInteractable | null;
-};
 
 /** 면접이 끝나기 전까지의 HUD. 면접이 끝나면 사라지면서 마이크도 놓아준다. */
 function InterviewInProgress({

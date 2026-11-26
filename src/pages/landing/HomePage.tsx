@@ -1,7 +1,7 @@
 import { Link, ScrollRestoration } from 'react-router';
 import { button } from '@/components/common/button/button.css';
-import { interviewPaths } from '@/constants/common/paths';
-import { interviewMock } from '@/mocks/interview/interview';
+import { demoWaitingRoomPath } from '@/mocks/interview/interview';
+import { useAuthStore } from '@/stores/AuthStore';
 import { InterviewFeatures } from './components/InterviewFeatures';
 import { InterviewSteps } from './components/InterviewSteps';
 import { LandingFaq } from './components/LandingFaq';
@@ -13,11 +13,10 @@ import { RolePasses } from './components/RolePasses';
 import { ServiceOverview } from './components/ServiceOverview';
 import * as styles from './HomePage.css';
 
-const waitingRoomTo = interviewPaths.waitingRoom(interviewMock.id, {
-  role: 'interviewee',
-});
-
 export function HomePage() {
+  const waitingRoomTo = useAuthStore((state) =>
+    state.email ? demoWaitingRoomPath : '/login',
+  );
   return (
     <main className={styles.page}>
       <title>MOING | 아바타 모의면접</title>

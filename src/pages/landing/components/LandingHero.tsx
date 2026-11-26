@@ -83,9 +83,6 @@ export function LandingHero({ waitingRoomTo }: { waitingRoomTo: string }) {
               면접방 입장하기
             </Link>
           </div>
-          <Link className={styles.navItem} to='/signup/avatar'>
-            가입 · 아바타 만들기
-          </Link>
           {email === null ? (
             <p className={styles.heroNote}>
               로그인 없이 로비부터 둘러볼 수 있어요.

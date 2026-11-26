@@ -9,12 +9,20 @@ export const interviewPaths = {
   waitingRoom: (interviewId: string, params: { role: InterviewRole }) =>
     `/interviews/${interviewId}/waiting-room?${new URLSearchParams(params)}`,
   interviewRoom: (interviewId: string, params: { role: InterviewRole }) =>
-    `/interviews/${interviewId}/interview-room?${new URLSearchParams(params)}`,
+    `/interviews/${encodeURIComponent(interviewId)}/interview-room?${new URLSearchParams(params)}`,
   /** 면접이 끝난 뒤 돌아가는 로비 */
   lobbyHome: '/lobby',
   /** 면접관이 면접자를 평가하는 화면 */
   writeReview: '/write-review',
 };
+
+export const signupPaths = {
+  account: '/signup',
+  avatar: '/signup/avatar',
+  resumeGuide: '/signup/resume-guide',
+  resume: '/signup/resume',
+  pass: '/signup/pass',
+} as const;
 
 export const reservationPaths = {
   rooms: '/reservations',

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Button, Radio, Tag } from '@/components/common';
 import { reservationPaths } from '@/constants/common/paths';
+import { useNow } from '@/hooks/common/useNow';
 import { useReservationStore } from '@/stores/reservation/reservationStore';
 import { formatRoomDate, formatRoomTime, seatLabel } from '@/utils/reservation';
 import * as styles from '../reservation.css';
@@ -15,8 +16,9 @@ export function RoomList() {
   const [filter, setFilter] = useState<RoomFilter>('전체');
   const rooms = useReservationStore((state) => state.rooms);
   const reservations = useReservationStore((state) => state.reservations);
+  const now = useNow();
   const visible = rooms.filter((room) => {
-    if (room.startsAt <= Date.now()) return false;
+    if (room.startsAt <= now) return false;
     switch (filter) {
       case '관리자 방':
         return room.source === 'admin';

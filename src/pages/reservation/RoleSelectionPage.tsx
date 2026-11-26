@@ -1,60 +1,88 @@
 import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router';
+import { useNavigate, useParams, useSearchParams } from 'react-router';
 import { Button, Dialog, Tag } from '@/components/common';
-import { InterviewPass } from '@/components/reservation/interview-pass/InterviewPass';
 import { reservationPaths } from '@/constants/common/paths';
 import { roleLabels } from '@/constants/interview/roleLabels';
 import { useNow } from '@/hooks/common/useNow';
+import { useBookedRoom } from '@/hooks/reservation/useBookedRoom';
 import { useReservationStore } from '@/stores/reservation/reservationStore';
 import type { InterviewRole } from '@/types/interview/interview';
 import type { InterviewRoom } from '@/types/reservation';
 import {
-  canPrepareQuestions,
+  canManageReservation,
   formatRoomDate,
   formatRoomTime,
-  minute,
+  interviewDuration,
 } from '@/utils/reservation';
+import { ReservedRoomDetails } from './components/ReservedRoomDetails';
 import * as styles from './reservation.css';
 
-type RoleDialog = 'confirm' | 'no-tickets' | 'unavailable' | null;
-type RoleSelectionProps = { room: InterviewRoom };
+type RoleDialog =
+  | 'confirm'
+  | 'no-tickets'
+  | 'unavailable'
+  | 'locked'
+  | 'error'
+  | null;
+type RoleSelectionProps = { room: InterviewRoom; bookedRole?: InterviewRole };
 
 const portraits = {
   interviewee: '/images/signup/boy-profile.png',
   interviewer: '/images/kim-daeri-profile.png',
 };
 const roles: InterviewRole[] = ['interviewee', 'interviewer'];
+const roleDirections = { interviewee: '면접자로', interviewer: '면접관으로' };
+const reserveLabels = {
+  interviewee: '면접권 1장으로 예약하기',
+  interviewer: '면접관 자리 예약하기',
+};
+const failureCopy = {
+  locked: {
+    title: '역할 변경 시간이 지났어요',
+    description: '면접 시작 1시간 전부터 예약 역할을 바꿀 수 없어요.',
+  },
+  error: {
+    title: '예약 정보를 저장하지 못했어요',
+    description: '다시 시도해 주세요.',
+  },
+  unavailable: {
+    title: '이 자리는 예약할 수 없어요',
+    description: '다른 열린 면접방을 확인해 주세요.',
+  },
+};
 
 export function RoleSelectionPage() {
   const { roomId } = useParams();
-  const room = useReservationStore((state) =>
-    state.rooms.find((item) => item.id === roomId),
-  );
-  const reservation = useReservationStore((state) =>
-    state.reservations.find((item) => item.roomId === roomId),
-  );
+  const { room, reservation } = useBookedRoom(roomId);
   const navigate = useNavigate();
-  const now = useNow(reservation?.role === 'interviewer');
-  if (room && reservation)
+  const [params] = useSearchParams();
+  const now = useNow();
+  if (room && reservation) {
+    const canChange =
+      params.has('changeRole') &&
+      canManageReservation(room.startsAt, now) &&
+      roles.some((role) => role !== reservation.role && room.seats[role] > 0);
+    if (canChange) {
+      return (
+        <RoleSelection
+          key={room.id + reservation.role}
+          room={room}
+          bookedRole={reservation.role}
+        />
+      );
+    }
     return (
-      <>
-        <h1 className={styles.heading}>내 예약</h1>
-        <InterviewPass room={room} role={reservation.role} />
-        {canPrepareQuestions(reservation.role, room.startsAt, now) && (
-          <Button
-            onClick={() => navigate(reservationPaths.questionSheet(room.id))}
-          >
-            질문지 작성
-          </Button>
-        )}
-        <Button onClick={() => navigate(reservationPaths.mine)}>
-          예약 목록 보기
-        </Button>
-      </>
+      <ReservedRoomDetails
+        key={room.id}
+        room={room}
+        role={reservation.role}
+        now={now}
+      />
     );
+  }
   if (
     !room ||
-    room.startsAt <= Date.now() ||
+    room.startsAt <= now ||
     !roles.some((role) => room.seats[role] > 0)
   )
     return (
@@ -68,18 +96,58 @@ export function RoleSelectionPage() {
   return <RoleSelection key={room.id} room={room} />;
 }
 
-function RoleSelection({ room }: RoleSelectionProps) {
+function RoleSelection({ room, bookedRole }: RoleSelectionProps) {
   const navigate = useNavigate();
   const tickets = useReservationStore((state) => state.tickets);
   const reserve = useReservationStore((state) => state.reserve);
   const [role, setRole] = useState<InterviewRole>(
-    room.seats.interviewee ? 'interviewee' : 'interviewer',
+    bookedRole === 'interviewee' || !room.seats.interviewee
+      ? 'interviewer'
+      : 'interviewee',
   );
   const [dialog, setDialog] = useState<RoleDialog>(null);
+  const [pending, setPending] = useState(false);
   const candidate = role === 'interviewee';
-  const interviewerSeats = room.seats.interviewer;
-  const confirm = () => {
-    const result = reserve(room.id, role);
+  const interviewerSeats =
+    bookedRole === 'interviewer' ? 0 : room.seats.interviewer;
+  const confirmLabel = `${roleDirections[role]} ${bookedRole ? '변경하기' : '예약하기'}`;
+  const confirmCopy = candidate
+    ? {
+        title: '면접권 1장을 사용할까요?',
+        description: `보유한 면접권 ${tickets}장 중 1장을 사용해요.`,
+      }
+    : {
+        title: '이번엔 내가 면접관이에요',
+        description: bookedRole
+          ? '기존 예약에 사용한 면접권 1장을 돌려드려요.'
+          : '면접을 끝까지 진행하면 면접권 1장을 받아요.',
+      };
+  let copy = confirmCopy;
+  if (dialog === 'no-tickets') {
+    copy = {
+      title: '면접권이 부족해요',
+      description:
+        interviewerSeats > 0
+          ? `면접관 자리가 ${interviewerSeats}개 남았어요. 참여를 완료하면 면접권 1장을 받아요.`
+          : bookedRole
+            ? '면접권을 확보한 뒤 역할을 변경할 수 있어요.'
+            : '이 방의 면접관 자리는 마감됐어요. 다른 방의 남은 자리를 확인해 주세요.',
+    };
+  } else if (dialog && dialog !== 'confirm') {
+    copy = failureCopy[dialog];
+  }
+  const confirm = async () => {
+    if (pending) return;
+    setPending(true);
+    const result = await reserve(room.id, role, Boolean(bookedRole));
+    setPending(false);
+    if (
+      bookedRole &&
+      (result === 'reserved' || result === 'already-reserved')
+    ) {
+      navigate(reservationPaths.room(room.id), { replace: true });
+      return;
+    }
     if (result === 'reserved') {
       navigate('/lobby', {
         replace: true,
@@ -91,14 +159,19 @@ function RoleSelection({ room }: RoleSelectionProps) {
       setDialog(result);
     }
   };
+  const closeDialog = () => {
+    if (!pending) setDialog(null);
+  };
   return (
     <>
       <header>
-        <h1 className={styles.heading}>이번엔 어느 자리에 앉아볼까요?</h1>
+        <h1 className={styles.heading}>
+          {bookedRole ? '예약 역할 바꾸기' : '이번엔 어느 자리에 앉아볼까요?'}
+        </h1>
         <p className={styles.subtitle}>
           {room.title} · {formatRoomDate(room.startsAt)}{' '}
           {formatRoomTime(room.startsAt)}–
-          {formatRoomTime(room.startsAt + 30 * minute)} · 2:2 면접
+          {formatRoomTime(room.startsAt + interviewDuration)} · 2:2 면접
         </p>
       </header>
       <div className={styles.columns}>
@@ -110,7 +183,7 @@ function RoleSelection({ room }: RoleSelectionProps) {
               type='button'
               aria-label={roleLabels[item]}
               aria-pressed={role === item}
-              disabled={!room.seats[item]}
+              disabled={item === bookedRole || !room.seats[item]}
               onClick={() => setRole(item)}
             >
               <span className={styles.roleCopy}>
@@ -118,11 +191,13 @@ function RoleSelection({ room }: RoleSelectionProps) {
                   <span className={styles.roleTitle}>
                     <strong className={styles.time}>{roleLabels[item]}</strong>
                     <Tag tone='gray'>
-                      {room.seats[item] === 0
-                        ? '자리 마감'
-                        : item === 'interviewee'
-                          ? '면접권 −1장'
-                          : '참여 완료 후 면접권 +1장'}
+                      {item === bookedRole
+                        ? '현재 예약'
+                        : room.seats[item] === 0
+                          ? '자리 마감'
+                          : item === 'interviewee'
+                            ? '면접권 −1장'
+                            : '참여 완료 후 면접권 +1장'}
                     </Tag>
                   </span>
                   {item === 'interviewee'
@@ -152,7 +227,7 @@ function RoleSelection({ room }: RoleSelectionProps) {
           <div className={styles.info}>
             <strong>예약 전 확인해 주세요</strong>
             <p className={styles.muted}>
-              시작 1시간 전부터 예약 변경·취소가 불가해요. 노쇼 경고가 2회
+              시작 1시간 전부터 예약 취소·역할 변경이 불가해요. 노쇼 경고가 2회
               누적되면 서비스 이용이 제한돼요. 면접관 면접권은 참여 완료 후
               지급돼요.
             </p>
@@ -163,38 +238,30 @@ function RoleSelection({ room }: RoleSelectionProps) {
               setDialog(candidate && !tickets ? 'no-tickets' : 'confirm')
             }
           >
-            {candidate ? '면접권 1장으로 예약하기' : '면접관 자리 예약하기'}
+            {bookedRole ? '역할 변경하기' : reserveLabels[role]}
           </Button>
+          {bookedRole && (
+            <Button
+              variant='secondary'
+              onClick={() =>
+                navigate(reservationPaths.room(room.id), { replace: true })
+              }
+            >
+              예약 상세로 돌아가기
+            </Button>
+          )}
         </aside>
       </div>
       <Dialog
         className={styles.dialog}
         isOpen={dialog !== null}
-        onCancel={() => setDialog(null)}
+        onCancel={closeDialog}
       >
-        <Dialog.Header>
-          {dialog === 'no-tickets'
-            ? '면접권이 부족해요'
-            : dialog === 'unavailable'
-              ? '이 자리는 예약할 수 없어요'
-              : candidate
-                ? '면접권 1장을 사용할까요?'
-                : '이번엔 내가 면접관이에요'}
-        </Dialog.Header>
-        <Dialog.Description>
-          {dialog === 'no-tickets'
-            ? interviewerSeats > 0
-              ? `면접관 자리가 ${interviewerSeats}개 남았어요. 참여를 완료하면 면접권 1장을 받아요.`
-              : '이 방의 면접관 자리는 마감됐어요. 다른 방의 남은 자리를 확인해 주세요.'
-            : dialog === 'unavailable'
-              ? '다른 열린 면접방을 확인해 주세요.'
-              : candidate
-                ? `보유한 면접권 ${tickets}장 중 1장을 사용해요.`
-                : '면접을 끝까지 진행하면 면접권 1장을 받아요.'}
-        </Dialog.Description>
+        <Dialog.Header>{copy.title}</Dialog.Header>
+        <Dialog.Description>{copy.description}</Dialog.Description>
         {dialog === 'confirm' && (
           <Dialog.Body className={styles.info}>
-            {!candidate && (
+            {!candidate && !bookedRole && (
               <div className={styles.chips}>
                 <img
                   width='64'
@@ -214,7 +281,7 @@ function RoleSelection({ room }: RoleSelectionProps) {
             <strong>
               {room.title} · {formatRoomTime(room.startsAt)}
             </strong>
-            <span>취소·변경은 면접 시작 1시간 전까지 가능해요.</span>
+            <span>취소·역할 변경은 면접 시작 1시간 전까지 가능해요.</span>
           </Dialog.Body>
         )}
         <Dialog.Footer>
@@ -230,14 +297,15 @@ function RoleSelection({ room }: RoleSelectionProps) {
             <Button
               display='block'
               variant='secondary'
-              onClick={() => setDialog(null)}
+              disabled={pending}
+              onClick={closeDialog}
             >
               뒤로
             </Button>
           )}
           {dialog === 'confirm' ? (
-            <Button display='block' onClick={confirm}>
-              {candidate ? '면접자로 예약하기' : '면접관으로 예약하기'}
+            <Button display='block' disabled={pending} onClick={confirm}>
+              {pending ? '저장 중…' : confirmLabel}
             </Button>
           ) : dialog === 'no-tickets' && interviewerSeats > 0 ? (
             <Button

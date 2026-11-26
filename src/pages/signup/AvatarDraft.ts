@@ -2,9 +2,10 @@ import type { Avatar, SignupProfile } from '@/types/Signup';
 
 export type { Avatar };
 
-export const avatars = { boy: '남자 아바타', girl: '여자 아바타' } as const;
 export type AvatarDraft = { avatar: Avatar | null; nickname: string };
 
+export const avatars = { boy: '남자 아바타', girl: '여자 아바타' } as const;
+export const emptyAvatarDraft: AvatarDraft = { avatar: null, nickname: '' };
 export const nicknameLimit = 6;
 const segmenter = new Intl.Segmenter('ko', { granularity: 'grapheme' });
 
@@ -18,18 +19,4 @@ export function isComplete(draft: AvatarDraft): draft is SignupProfile {
     draft.nickname.trim().length > 0 &&
     nicknameLength(draft.nickname) <= nicknameLimit
   );
-}
-
-export function initialDraft(state: unknown): AvatarDraft {
-  if (
-    state &&
-    typeof state === 'object' &&
-    'avatar' in state &&
-    (state.avatar === 'boy' || state.avatar === 'girl') &&
-    'nickname' in state &&
-    typeof state.nickname === 'string'
-  ) {
-    return { avatar: state.avatar, nickname: state.nickname };
-  }
-  return { avatar: null, nickname: '' };
 }

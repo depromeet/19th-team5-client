@@ -195,3 +195,4 @@ export const actions = style({
   gap: space[8],
   flexWrap: 'wrap',
 });
+export const actionLink = style({ textDecoration: 'none' });

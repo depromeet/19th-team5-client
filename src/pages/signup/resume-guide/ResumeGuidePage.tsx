@@ -1,6 +1,7 @@
 import { Navigate, useNavigate } from 'react-router';
-import { signupApi } from '@/apis/SignupApi';
 import { Button } from '@/components/common/button';
+import { signupPaths } from '@/constants/common/paths';
+import { useSignupCompletion } from '@/hooks/signup/useSignupCompletion';
 import { isComplete } from '../AvatarDraft';
 import { SignupStep } from '../components/SignupStep';
 import * as styles from '../Signup.css';
@@ -29,7 +30,8 @@ export function ResumeGuidePage() {
   const [draft] = useAvatarDraft();
   const { previewJobLabel } = useSignupOptions();
   const navigate = useNavigate();
-  if (!isComplete(draft)) return <Navigate to='/signup/avatar' replace />;
+  const completion = useSignupCompletion();
+  if (!isComplete(draft)) return <Navigate to={signupPaths.avatar} replace />;
   return (
     <SignupStep
       title='이력서 쓰면 질문이 깊어져요'
@@ -64,7 +66,8 @@ export function ResumeGuidePage() {
           <Button
             size='large'
             display='block'
-            onClick={() => navigate('/signup/resume', { state: draft })}
+            disabled={completion.isPending}
+            onClick={() => navigate(signupPaths.resume)}
           >
             이력서 작성하기
           </Button>
@@ -72,13 +75,16 @@ export function ResumeGuidePage() {
             size='large'
             display='block'
             variant='outline'
-            onClick={async () => {
-              const pass = await signupApi.completeSignup(draft);
-              navigate('/signup/pass', { state: pass });
-            }}
+            disabled={completion.isPending}
+            onClick={() => completion.complete(draft)}
           >
-            건너뛰기
+            {completion.isPending ? '출입증 발급 중…' : '건너뛰기'}
           </Button>
+          {completion.isError && (
+            <p className={styles.helper} role='alert'>
+              출입증을 발급하지 못했어요. 다시 시도해 주세요.
+            </p>
+          )}
         </div>
       </div>
     </SignupStep>

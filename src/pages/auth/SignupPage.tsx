@@ -10,7 +10,10 @@ import { NewPasswordFields } from './components/NewPasswordFields';
 import { useAuthForm } from './useAuthForm';
 
 export function SignupPage() {
-  const { onSubmit, pending, failure, error } = useAuthForm(authApi.signup);
+  const { onSubmit, pending, failure, error } = useAuthForm(
+    authApi.signup,
+    'signup',
+  );
   const [showTerms, setShowTerms] = useState(false);
 
   return (

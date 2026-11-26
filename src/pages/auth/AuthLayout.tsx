@@ -21,7 +21,7 @@ export function AuthLayout({
       <GNB
         variant='guest'
         labels={gnbLabels.guest}
-        lobbyTo='/'
+        lobbyTo='/lobby'
         aboutTo='/#service'
         onLogin={() => navigate('/login')}
         onEnter={() => navigate('/signup')}

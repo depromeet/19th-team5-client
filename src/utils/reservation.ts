@@ -8,6 +8,7 @@ import type {
 export const minute = 60_000;
 export const preparationLeadTime = 60 * minute;
 export const waitingRoomLeadTime = 15 * minute;
+export const interviewDuration = 30 * minute;
 export const seatsPerRole = 2;
 const day = 24 * 60 * minute;
 const seoulOffset = 9 * 60 * minute;
@@ -52,6 +53,10 @@ export function canPrepareQuestions(
 ) {
   const phase = reservationPhase(startsAt, now);
   return role === 'interviewer' && (phase === 'locked' || phase === 'open');
+}
+
+export function canManageReservation(startsAt: number, now: number) {
+  return reservationPhase(startsAt, now) === 'reserved';
 }
 
 export function upcomingBookings(

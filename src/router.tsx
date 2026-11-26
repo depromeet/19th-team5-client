@@ -17,6 +17,7 @@ import { InterviewRoomPage } from '@/pages/interview-room/InterviewRoomPage';
 import { HomePage } from '@/pages/landing/HomePage';
 import { LobbyPage } from '@/pages/lobby/LobbyPage';
 import { MyReservationsPage } from '@/pages/reservation/MyReservationsPage';
+import { RequireReservationAccount } from '@/pages/reservation/RequireReservationAccount';
 import { ReservationLayout } from '@/pages/reservation/ReservationLayout';
 import { ReservationNoticesPage } from '@/pages/reservation/ReservationNoticesPage';
 import { ReservationPage } from '@/pages/reservation/ReservationPage';
@@ -68,15 +69,23 @@ export const router = createBrowserRouter([
   },
   { path: '/lobby', Component: LobbyPage },
   {
-    Component: ReservationLayout,
+    Component: RequireReservationAccount,
     children: [
-      { path: reservationPaths.rooms, Component: ReservationPage },
-      { path: reservationPaths.request, element: <ReservationPage request /> },
-      { path: '/reservations/rooms/:roomId', Component: RoleSelectionPage },
-      { path: reservationPaths.mine, Component: MyReservationsPage },
       {
-        path: reservationPaths.notifications,
-        Component: ReservationNoticesPage,
+        Component: ReservationLayout,
+        children: [
+          { path: reservationPaths.rooms, Component: ReservationPage },
+          {
+            path: reservationPaths.request,
+            element: <ReservationPage request />,
+          },
+          { path: '/reservations/rooms/:roomId', Component: RoleSelectionPage },
+          { path: reservationPaths.mine, Component: MyReservationsPage },
+          {
+            path: reservationPaths.notifications,
+            Component: ReservationNoticesPage,
+          },
+        ],
       },
     ],
   },

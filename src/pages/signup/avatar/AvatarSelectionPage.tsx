@@ -3,6 +3,7 @@ import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router';
 import { signupApi } from '@/apis/SignupApi';
 import { Button } from '@/components/common/button';
+import { signupPaths } from '@/constants/common/paths';
 import {
   type Avatar,
   avatars,
@@ -50,7 +51,7 @@ export function AvatarSelectionPage() {
 
   function confirm(event: FormEvent) {
     event.preventDefault();
-    if (ready) navigate('/signup/resume-guide', { state: draft });
+    if (ready) navigate(signupPaths.resume);
   }
 
   return (

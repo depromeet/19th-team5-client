@@ -52,9 +52,12 @@ function saveRegisteredEntries<T>(entries: Entry<T>[], registered: Entry<T>[]) {
   );
 }
 
-export function createResumeStore(options: SignupOptions) {
+export function createResumeStore(
+  options: SignupOptions,
+  initialDraft?: ResumeDraft,
+) {
   return createStore<ResumeState>()((set, get) => ({
-    draft: createResumeDraft(options),
+    draft: initialDraft ?? createResumeDraft(options),
     pendingFiles: 0,
     setCareer: (careerId) =>
       set(({ draft }) => ({

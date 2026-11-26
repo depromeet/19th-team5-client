@@ -1,5 +1,7 @@
 import { type FormEvent, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
+import { signupPaths } from '@/constants/common/paths';
+import { demoWaitingRoomPath } from '@/mocks/interview/interview';
 import type { AuthOperation } from '@/types/Auth';
 
 const messages = {
@@ -8,9 +10,9 @@ const messages = {
   unavailable: '계정 정보를 처리하지 못했어요. 다시 시도해 주세요.',
 };
 
-export function useAuthForm(submit: AuthOperation) {
+export function useAuthForm(submit: AuthOperation, mode: 'login' | 'signup') {
   const navigate = useNavigate();
-  const { search, hash, state } = useLocation();
+  const { search, hash } = useLocation();
   const [pending, setPending] = useState(false);
   const [failure, setFailure] = useState<keyof typeof messages | null>(null);
   const active = useRef<AbortController | null>(null);
@@ -31,7 +33,8 @@ export function useAuthForm(submit: AuthOperation) {
       const result = await submit({ email, password }, request.signal);
       if (request.signal.aborted) return;
       if (result === 'success') {
-        navigate({ pathname: '/signup/avatar', search, hash }, { state });
+        if (mode === 'login') navigate(demoWaitingRoomPath, { replace: true });
+        else navigate({ pathname: signupPaths.avatar, search, hash });
       } else {
         setFailure(result);
       }

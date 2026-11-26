@@ -1,12 +1,13 @@
 import { IconILowercaseSerifCircleLine } from '@karrotmarket/react-monochrome-icon';
 import { useState } from 'react';
-import { Navigate, useNavigate } from 'react-router';
-import { signupApi } from '@/apis/SignupApi';
+import { Navigate } from 'react-router';
 import { Avatar } from '@/components/common/avatar';
 import { Button } from '@/components/common/button';
 import { Checkbox } from '@/components/common/checkbox';
 import { Radio } from '@/components/common/radio';
-import { canRegisterResume } from '../../../stores/ResumeStore';
+import { signupPaths } from '@/constants/common/paths';
+import { useSignupCompletion } from '@/hooks/signup/useSignupCompletion';
+import { canRegisterResume } from '@/stores/ResumeStore';
 import { isComplete } from '../AvatarDraft';
 import * as signup from '../Signup.css';
 import {
@@ -40,8 +41,8 @@ export function ResumeEditorPage() {
   const [confirmation, setConfirmation] = useState<'register' | 'skip' | null>(
     null,
   );
-  const navigate = useNavigate();
-  if (!isComplete(avatar)) return <Navigate to='/signup/avatar' replace />;
+  const completion = useSignupCompletion();
+  if (!isComplete(avatar)) return <Navigate to={signupPaths.avatar} replace />;
   const experienceCount = resume.experiences.filter((e) => e.saved).length;
   const answerCount = resume.answers.filter((a) => a.saved).length;
   const fileCount = resume.files.length;
@@ -49,16 +50,20 @@ export function ResumeEditorPage() {
     5,
     experienceCount + answerCount + Math.min(1, fileCount),
   );
-  async function confirm() {
-    if (!isComplete(avatar) || !confirmation) return;
+  function confirm() {
+    if (!isComplete(avatar) || !confirmation || completion.isPending) return;
     const registration =
       confirmation === 'register' ? prepareRegistration() : undefined;
     if (registration === null) return;
-    const pass = await signupApi.completeSignup(
+    completion.complete(
       registration ? { ...avatar, resume: registration.submission } : avatar,
+      registration?.commit,
     );
-    registration?.commit();
-    navigate('/signup/pass', { state: pass });
+  }
+  function closeConfirmation() {
+    if (completion.isPending) return;
+    completion.reset();
+    setConfirmation(null);
   }
   const checks = [
     [
@@ -218,7 +223,9 @@ export function ResumeEditorPage() {
       </div>
       <ResumeConfirmationDialog
         isOpen={confirmation !== null}
-        onClose={() => setConfirmation(null)}
+        pending={completion.isPending}
+        failed={completion.isError}
+        onClose={closeConfirmation}
         onConfirm={confirm}
       />
     </div>

@@ -1,49 +1,26 @@
-import { Navigate, useLocation, useNavigate } from 'react-router';
-import { authApi } from '@/apis/AuthApi';
-import { Button } from '@/components/common/button';
+import { Link, Navigate } from 'react-router';
 import { Tag } from '@/components/common/tag';
-import type { PassProgress } from '@/types/Signup';
-import { initialDraft, isComplete } from '../AvatarDraft';
+import { signupPaths } from '@/constants/common/paths';
+import { demoWaitingRoomPath } from '@/mocks/interview/interview';
+import { isComplete } from '../AvatarDraft';
 import * as signup from '../Signup.css';
-import { useAvatarDraft, useSignupOptions } from '../SignupLayout';
+import {
+  useAvatarDraft,
+  useIssuedPass,
+  useSignupOptions,
+} from '../SignupLayout';
 import { PassPreview } from './components/PassPreview';
 import * as s from './VisitorPassPage.css';
 
-function isPassProgress(value: unknown): value is PassProgress {
-  if (!value || typeof value !== 'object') return false;
-  const fields = [
-    'level',
-    'interviewCount',
-    'ticketCount',
-    'noShowCount',
-    'noShowLimit',
-  ] as const;
-  return fields.every((field) => {
-    const number: unknown = Reflect.get(value, field);
-    return (
-      typeof number === 'number' && Number.isInteger(number) && number >= 0
-    );
-  });
-}
-
 export function VisitorPassPage() {
   const [draft] = useAvatarDraft();
-  const { passLevels, initialPassProgress } = useSignupOptions();
-  const { state } = useLocation();
-  const navigate = useNavigate();
-  const signedIn = authApi.currentEmail() !== null;
-  const issued = initialDraft(state);
-  if (
-    !isComplete(issued) ||
-    typeof state?.issuedAt !== 'number' ||
-    !Number.isFinite(new Date(state.issuedAt).getTime())
-  ) {
-    if (!isComplete(draft)) return <Navigate to='/signup/avatar' replace />;
-    return <Navigate to='/signup/resume-guide' state={draft} replace />;
+  const { passLevels } = useSignupOptions();
+  const pass = useIssuedPass();
+  if (!pass) {
+    const to = isComplete(draft) ? signupPaths.resume : signupPaths.avatar;
+    return <Navigate to={to} replace />;
   }
-  const progress = isPassProgress(state.progress)
-    ? state.progress
-    : initialPassProgress;
+  const { avatar, nickname, issuedAt, progress } = pass;
   const currentLevel = passLevels.find(
     (entry) => entry.level === progress.level,
   );
@@ -54,9 +31,9 @@ export function VisitorPassPage() {
   return (
     <div className={s.layout}>
       <PassPreview
-        avatar={issued.avatar}
-        nickname={issued.nickname}
-        issuedAt={state.issuedAt}
+        avatar={avatar}
+        nickname={nickname}
+        issuedAt={issuedAt}
         progress={progress}
         levelLabel={levelLabel}
       />
@@ -104,14 +81,9 @@ export function VisitorPassPage() {
           </div>
         </dl>
         <div className={s.footer}>
-          <Button
-            size='large'
-            display='block'
-            disabled={!signedIn}
-            onClick={() => navigate('/')}
-          >
-            로비로 입장하기
-          </Button>
+          <Link className={s.entryLink} to={demoWaitingRoomPath}>
+            대기실 입장하기
+          </Link>
         </div>
       </section>
     </div>
