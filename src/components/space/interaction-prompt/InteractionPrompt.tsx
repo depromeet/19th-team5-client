@@ -13,7 +13,8 @@ type InteractionPromptProps = Omit<
 };
 
 /**
- * 상호작용 범위 안에 들어왔을 때 보이는 안내. 3D 씬이 생기면 캐릭터 머리 위 24px에 띄운다.
+ * 상호작용 안내. 3D 씬에서는 ScreenAnchored로 대상 캐릭터 머리 위 24px에 띄운다.
+ * 대상이 범위 밖에 있을 때 disabled로 넘기면 흐리게 보여, 어디로 가면 되는지만 알려준다.
  * 단축키를 못 쓰는 환경을 위해 버튼으로 두고, 누르면 같은 상호작용을 실행한다.
  */
 export function InteractionPrompt({
