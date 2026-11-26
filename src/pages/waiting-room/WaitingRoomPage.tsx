@@ -6,7 +6,12 @@ import { useReducer, useState } from 'react';
 import { Navigate, useLocation, useNavigate, useParams } from 'react-router';
 import { Button, CountDown, GNB } from '@/components/common';
 import { WrittenQuestionsOverlay } from '@/components/question-sheet';
-import { InteractionPrompt, SpaceShell } from '@/components/space';
+import {
+  InteractionPrompt,
+  ScreenAnchored,
+  type ScreenInset,
+  SpaceShell,
+} from '@/components/space';
 import {
   ConnectionLostDialog,
   DocumentPeek,
@@ -49,6 +54,7 @@ import {
   interviewDuration,
   waitingRoomLeadTime,
 } from '@/utils/reservation';
+import { createScreenAnchor } from '@/utils/space/screenAnchor';
 import * as styles from './waitingRoomPage.css';
 
 type WaitingRoomProps = {
@@ -134,6 +140,17 @@ function ReservedWaitingRoom({ interviewId }: WaitingRoomEntryProps) {
 const previewQuestionCount = 3;
 
 /**
+ * 말 걸기 안내가 김대리를 따라 움직일 때 비워 둘 화면 가장자리(px).
+ * 위는 방 상태 표시(top 24px · 높이 약 60px), 아래는 마이크 독(bottom 32px · 높이 약 72px)을 피한다.
+ */
+const npcPromptInset: ScreenInset = {
+  top: 96,
+  right: 24,
+  bottom: 120,
+  left: 24,
+};
+
+/**
  * 면접자·면접관이 함께 쓰는 대기실. 공통으로 마이크 테스트, 참가자, 남은 시간, 연결 끊김,
  * 김대리와의 연습을 다루고, 면접관은 작성한 질문지를, 면접자는 내 자소서를 읽기 전용으로 본다.
  */
@@ -152,6 +169,8 @@ function WaitingRoom({
   const [, recheckConnection] = useReducer((count: number) => count + 1, 0);
   const [isMicReady, setIsMicReady] = useState(false);
   const [nearby, setNearby] = useState<WaitingRoomInteractable | null>(null);
+  // 3D 씬이 김대리 머리 위 화면 좌표를 알려주면, 말 걸기 안내를 그 위에 띄운다.
+  const [npcAnchor] = useState(createScreenAnchor);
   const [panel, setPanel] = useState<'npc' | 'document' | null>(null);
   // 카운트다운은 한 번 시작하면 남은 시간이 다시 늘어도 멈추지 않는다.
   const [countdownFrom, setCountdownFrom] = useState<number | null>(null);
@@ -202,7 +221,14 @@ function WaitingRoom({
     <>
       <SpaceShell
         header={<GNB variant='waiting' labels={gnbLabels.waiting} />}
-        scene={<WaitingRoomScene onNearbyChange={setNearby} />}
+        scene={
+          <WaitingRoomScene
+            participants={participants}
+            canMove={isRoomFocused}
+            onNearbyChange={setNearby}
+            npcAnchor={npcAnchor}
+          />
+        }
       >
         <h1 className={visuallyHidden}>면접 대기실</h1>
         {isStarting ? (
@@ -224,13 +250,20 @@ function WaitingRoom({
           title={title}
           remainingSeconds={untilStart}
         />
-        {isRoomFocused && canTalkToNpc && (
-          <InteractionPrompt
-            className={styles.npcPrompt}
-            shortcut={shortcuts.interact}
-            label='김대리에게 말 걸기'
-            onClick={openNpc}
-          />
+        {/* 김대리를 지나치지 않도록 안내는 늘 김대리 머리 위에 두고, 가까이 가야 누를 수 있다. */}
+        {isRoomFocused && (
+          <ScreenAnchored
+            anchor={npcAnchor}
+            fallbackClassName={styles.npcPrompt}
+            inset={npcPromptInset}
+          >
+            <InteractionPrompt
+              shortcut={shortcuts.interact}
+              label='김대리에게 말 걸기'
+              disabled={!canTalkToNpc}
+              onClick={openNpc}
+            />
+          </ScreenAnchored>
         )}
         {!isStarting && (
           <MicDock
