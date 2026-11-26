@@ -1,6 +1,6 @@
 import { IconILowercaseSerifCircleLine } from '@karrotmarket/react-monochrome-icon';
 import { useState } from 'react';
-import { Navigate } from 'react-router';
+import { Navigate, useLocation } from 'react-router';
 import { Avatar } from '@/components/common/avatar';
 import { Button } from '@/components/common/button';
 import { Checkbox } from '@/components/common/checkbox';
@@ -42,7 +42,9 @@ export function ResumeEditorPage() {
     null,
   );
   const completion = useSignupCompletion();
-  if (!isComplete(avatar)) return <Navigate to={signupPaths.avatar} replace />;
+  const { state } = useLocation();
+  if (!isComplete(avatar))
+    return <Navigate to={signupPaths.avatar} state={state} replace />;
   const experienceCount = resume.experiences.filter((e) => e.saved).length;
   const answerCount = resume.answers.filter((a) => a.saved).length;
   const fileCount = resume.files.length;

@@ -1,8 +1,7 @@
-import { Link, Navigate } from 'react-router';
+import { Link, Navigate, useLocation } from 'react-router';
 import { Tag } from '@/components/common/tag';
-import { signupPaths } from '@/constants/common/paths';
 import { demoWaitingRoomPath } from '@/mocks/interview/interview';
-import { isComplete } from '../AvatarDraft';
+import { getSignupResumePath } from '../AvatarDraft';
 import * as signup from '../Signup.css';
 import {
   useAvatarDraft,
@@ -16,9 +15,9 @@ export function VisitorPassPage() {
   const [draft] = useAvatarDraft();
   const { passLevels } = useSignupOptions();
   const pass = useIssuedPass();
+  const { state } = useLocation();
   if (!pass) {
-    const to = isComplete(draft) ? signupPaths.resume : signupPaths.avatar;
-    return <Navigate to={to} replace />;
+    return <Navigate to={getSignupResumePath(draft)} state={state} replace />;
   }
   const { avatar, nickname, issuedAt, progress } = pass;
   const currentLevel = passLevels.find(
@@ -81,7 +80,7 @@ export function VisitorPassPage() {
           </div>
         </dl>
         <div className={s.footer}>
-          <Link className={s.entryLink} to={demoWaitingRoomPath}>
+          <Link className={s.entryLink} to={demoWaitingRoomPath} state={state}>
             대기실 입장하기
           </Link>
         </div>

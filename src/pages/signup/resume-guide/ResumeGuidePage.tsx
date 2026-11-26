@@ -1,4 +1,4 @@
-import { Navigate, useNavigate } from 'react-router';
+import { Navigate, useLocation, useNavigate } from 'react-router';
 import { Button } from '@/components/common/button';
 import { signupPaths } from '@/constants/common/paths';
 import { useSignupCompletion } from '@/hooks/signup/useSignupCompletion';
@@ -31,7 +31,9 @@ export function ResumeGuidePage() {
   const { previewJobLabel } = useSignupOptions();
   const navigate = useNavigate();
   const completion = useSignupCompletion();
-  if (!isComplete(draft)) return <Navigate to={signupPaths.avatar} replace />;
+  const { state } = useLocation();
+  if (!isComplete(draft))
+    return <Navigate to={signupPaths.avatar} state={state} replace />;
   return (
     <SignupStep
       title='이력서 쓰면 질문이 깊어져요'
@@ -67,7 +69,7 @@ export function ResumeGuidePage() {
             size='large'
             display='block'
             disabled={completion.isPending}
-            onClick={() => navigate(signupPaths.resume)}
+            onClick={() => navigate(signupPaths.resume, { state })}
           >
             이력서 작성하기
           </Button>

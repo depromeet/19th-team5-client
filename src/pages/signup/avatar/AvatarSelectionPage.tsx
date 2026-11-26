@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import type { FormEvent } from 'react';
-import { useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 import { signupApi } from '@/apis/SignupApi';
 import { Button } from '@/components/common/button';
 import { signupPaths } from '@/constants/common/paths';
@@ -20,6 +20,7 @@ const avatarChoices: Avatar[] = ['boy', 'girl'];
 export function AvatarSelectionPage() {
   const [draft, setDraft] = useAvatarDraft();
   const navigate = useNavigate();
+  const { state } = useLocation();
   const nicknameSuggestion = useMutation({
     mutationFn: signupApi.suggestNickname,
   });
@@ -51,7 +52,7 @@ export function AvatarSelectionPage() {
 
   function confirm(event: FormEvent) {
     event.preventDefault();
-    if (ready) navigate(signupPaths.resume);
+    if (ready) navigate(signupPaths.resume, { state });
   }
 
   return (

@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 import { signupApi } from '@/apis/SignupApi';
 import { signupPaths } from '@/constants/common/paths';
 import { useAuthStore } from '@/stores/AuthStore';
@@ -9,6 +9,7 @@ import { signupProgressKey } from './useSignupProgress';
 
 export function useSignupCompletion() {
   const navigate = useNavigate();
+  const { state } = useLocation();
   const email = useAuthStore((session) => session.email);
   const queryClient = useQueryClient();
 
@@ -26,7 +27,7 @@ export function useSignupCompletion() {
           signupProgressKey(email),
           (progress) => ({ ...progress, pass }),
         );
-        navigate(signupPaths.pass, { replace: true });
+        navigate(signupPaths.pass, { replace: true, state });
       },
     });
   }

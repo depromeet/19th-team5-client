@@ -8,6 +8,8 @@ import { authApi } from '@/apis/AuthApi';
 import { button } from '@/components/common/button/button.css';
 import * as navStyles from '@/components/common/gnb/gnb.css';
 import { gnbLabels } from '@/constants/common/gnbLabels';
+import { useSignupProgress } from '@/hooks/signup/useSignupProgress';
+import { getSignupResumePath } from '@/pages/signup/AvatarDraft';
 import { useAuthStore } from '@/stores/AuthStore';
 import * as styles from './LandingHero.css';
 
@@ -15,6 +17,11 @@ export function LandingHero({ waitingRoomTo }: { waitingRoomTo: string }) {
   const hero = useRef<HTMLElement>(null);
   const [pastHero, setPastHero] = useState(false);
   const email = useAuthStore((state) => state.email);
+  const signupProgress = useSignupProgress(email);
+  const resumeSignupTo =
+    email && signupProgress.data && !signupProgress.data.pass
+      ? getSignupResumePath(signupProgress.data.avatar)
+      : null;
   const labels = gnbLabels.guest;
 
   useEffect(() => {
@@ -46,6 +53,11 @@ export function LandingHero({ waitingRoomTo }: { waitingRoomTo: string }) {
             {email === null && (
               <Link className={styles.login} to='/login'>
                 {labels.login}
+              </Link>
+            )}
+            {resumeSignupTo && (
+              <Link className={styles.login} to={resumeSignupTo}>
+                가입 이어하기
               </Link>
             )}
           </nav>

@@ -1,5 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
-import { Navigate, useMatch, useOutletContext } from 'react-router';
+import {
+  Navigate,
+  useLocation,
+  useMatch,
+  useOutletContext,
+} from 'react-router';
 import { useStore } from 'zustand';
 import { signupApi } from '@/apis/SignupApi';
 import { Button } from '@/components/common/button';
@@ -27,12 +32,15 @@ export function useIssuedPass() {
 
 export function SignupLayout() {
   const email = useAuthStore((state) => state.email);
-  if (!email) return <Navigate to={signupPaths.account} replace />;
+  const { state } = useLocation();
+  if (!email)
+    return <Navigate to={signupPaths.account} state={state} replace />;
   return <SignupDraftLoader key={email} email={email} />;
 }
 
 function SignupDraftLoader({ email }: { email: string }) {
   const onPass = useMatch(signupPaths.pass);
+  const { state } = useLocation();
   const options = useQuery({
     queryKey: ['signup', 'options'],
     queryFn: signupApi.getOptions,
@@ -62,7 +70,7 @@ function SignupDraftLoader({ email }: { email: string }) {
     );
 
   if (progress.data.pass && !onPass)
-    return <Navigate to={signupPaths.pass} replace />;
+    return <Navigate to={signupPaths.pass} state={state} replace />;
   return (
     <SignupContent
       email={email}

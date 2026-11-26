@@ -1,3 +1,4 @@
+import { reservationPaths } from '@/constants/common/paths';
 import type { InterviewRole } from '@/types/interview/interview';
 import type {
   InterviewRoom,
@@ -57,6 +58,23 @@ export function canPrepareQuestions(
 
 export function canManageReservation(startsAt: number, now: number) {
   return reservationPhase(startsAt, now) === 'reserved';
+}
+
+export function getReservationReturnTo(state: unknown) {
+  if (!state || typeof state !== 'object' || !('reservationReturnTo' in state))
+    return undefined;
+  const { reservationReturnTo } = state;
+  if (typeof reservationReturnTo !== 'string') return undefined;
+  const [pathname] = reservationReturnTo.split(/[?#]/, 1);
+  if (
+    pathname === reservationPaths.rooms ||
+    pathname === reservationPaths.request ||
+    pathname === reservationPaths.mine ||
+    pathname === reservationPaths.notifications ||
+    /^\/reservations\/rooms\/[^/\\]+$/.test(pathname)
+  ) {
+    return reservationReturnTo;
+  }
 }
 
 export function upcomingBookings(

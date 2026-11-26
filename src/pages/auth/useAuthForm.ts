@@ -12,7 +12,7 @@ const messages = {
 
 export function useAuthForm(submit: AuthOperation, mode: 'login' | 'signup') {
   const navigate = useNavigate();
-  const { search, hash } = useLocation();
+  const { search, hash, state } = useLocation();
   const [pending, setPending] = useState(false);
   const [failure, setFailure] = useState<keyof typeof messages | null>(null);
   const active = useRef<AbortController | null>(null);
@@ -33,8 +33,10 @@ export function useAuthForm(submit: AuthOperation, mode: 'login' | 'signup') {
       const result = await submit({ email, password }, request.signal);
       if (request.signal.aborted) return;
       if (result === 'success') {
-        if (mode === 'login') navigate(demoWaitingRoomPath, { replace: true });
-        else navigate({ pathname: signupPaths.avatar, search, hash });
+        if (mode === 'login')
+          navigate(demoWaitingRoomPath, { replace: true, state });
+        else
+          navigate({ pathname: signupPaths.avatar, search, hash }, { state });
       } else {
         setFailure(result);
       }

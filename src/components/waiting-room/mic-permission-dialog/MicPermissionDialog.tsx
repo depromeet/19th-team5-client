@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Button, Dialog } from '@/components/common';
 import * as styles from './micPermissionDialog.css';
 
@@ -11,6 +12,7 @@ type MicPermissionDialogProps = {
   isOpen: boolean;
   isChecking: boolean;
   onRetry: () => void;
+  exitAction?: ReactNode;
 };
 
 /** 브라우저 마이크 권한이 꺼져 있을 때. 권한을 켠 뒤 다시 확인하면 마이크 테스트로 돌아간다. */
@@ -18,6 +20,7 @@ export function MicPermissionDialog({
   isOpen,
   isChecking,
   onRetry,
+  exitAction,
 }: MicPermissionDialogProps) {
   return (
     <Dialog isOpen={isOpen}>
@@ -40,6 +43,7 @@ export function MicPermissionDialog({
         </ol>
       </Dialog.Body>
       <Dialog.Footer>
+        {exitAction}
         <Button
           size='large'
           display='block'

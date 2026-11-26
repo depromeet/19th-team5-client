@@ -1,3 +1,4 @@
+import { signupPaths } from '@/constants/common/paths';
 import type { Avatar, SignupProfile } from '@/types/Signup';
 
 export type { Avatar };
@@ -19,4 +20,8 @@ export function isComplete(draft: AvatarDraft): draft is SignupProfile {
     draft.nickname.trim().length > 0 &&
     nicknameLength(draft.nickname) <= nicknameLimit
   );
+}
+
+export function getSignupResumePath(draft?: AvatarDraft) {
+  return draft && isComplete(draft) ? signupPaths.resume : signupPaths.avatar;
 }
