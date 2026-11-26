@@ -8,10 +8,24 @@ import { authApi } from '@/apis/AuthApi';
 import { button } from '@/components/common/button/button.css';
 import * as navStyles from '@/components/common/gnb/gnb.css';
 import { gnbLabels } from '@/constants/common/gnbLabels';
+import { interviewPaths } from '@/constants/common/paths';
 import { useSignupProgress } from '@/hooks/signup/useSignupProgress';
+import { interviewMock } from '@/mocks/interview/interview';
 import { useAuthStore } from '@/stores/AuthStore';
 import { getSignupResumePath } from '@/utils/signup/avatarDraft';
 import * as styles from './LandingHero.css';
+
+/** 사용성 테스트 과제로 바로 들어가는 링크. 프로토타입 대기실에 역할별로 입장한다. */
+const taskLinks = [
+  {
+    label: 'Task3',
+    to: interviewPaths.waitingRoom(interviewMock.id, { role: 'interviewee' }),
+  },
+  {
+    label: 'Task4',
+    to: interviewPaths.waitingRoom(interviewMock.id, { role: 'interviewer' }),
+  },
+] as const;
 
 export function LandingHero({ waitingRoomTo }: { waitingRoomTo: string }) {
   const hero = useRef<HTMLElement>(null);
@@ -94,6 +108,11 @@ export function LandingHero({ waitingRoomTo }: { waitingRoomTo: string }) {
             <Link className={button({ size: 'large' })} to={waitingRoomTo}>
               면접방 입장하기
             </Link>
+            {taskLinks.map(({ label, to }) => (
+              <Link key={label} className={styles.browseButton} to={to}>
+                {label}
+              </Link>
+            ))}
           </div>
           {email === null ? (
             <p className={styles.heroNote}>
