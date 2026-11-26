@@ -9,13 +9,14 @@ import {
 } from '@/components/lobby';
 import { QuestionSheetOverlay } from '@/components/question-sheet';
 import { InterviewPass } from '@/components/reservation/interview-pass/InterviewPass';
-import { InteractionPrompt, SpaceShell } from '@/components/space';
+import { SpaceShell } from '@/components/space';
 import { gnbLabels } from '@/constants/common/gnbLabels';
 import { reservationPaths, signupPaths } from '@/constants/common/paths';
 import { shortcuts } from '@/constants/space/shortcuts';
 import { useReservationSchedule } from '@/hooks/reservation/useReservationSchedule';
 import { useKeyboardShortcut } from '@/hooks/space/useKeyboardShortcut';
 import { candidates } from '@/mocks/question-sheet/candidates';
+import { myAvatar } from '@/mocks/waiting-room/participants';
 import * as bookingStyles from '@/pages/reservation/reservation.css';
 import { useAuthStore } from '@/stores/AuthStore';
 import { useReservationStore } from '@/stores/reservation/reservationStore';
@@ -25,8 +26,10 @@ import {
   formatRoomTime,
   preparationLeadTime,
 } from '@/utils/reservation';
+import { createScreenAnchor } from '@/utils/space/screenAnchor';
 import { secondsBetween } from '@/utils/time';
 import { BookedInterviewCard } from './BookedInterviewCard';
+import { KioskPrompt } from './KioskPrompt';
 import * as styles from './lobbyPage.css';
 
 export function ReservationLobby() {
@@ -51,11 +54,19 @@ export function ReservationLobby() {
   const readNoticeIds = useReservationStore((state) => state.readNoticeIds);
   const readNotices = useReservationStore((state) => state.readNotices);
   const [nearby, setNearby] = useState<LobbyInteractable | null>(null);
+  // 3D 씬이 키오스크 위 화면 좌표를 알려주면, 키오스크 사용 안내를 그 위에 띄운다.
+  const [kioskAnchor] = useState(createScreenAnchor);
   const notice = notices.find((item) => !readNoticeIds.includes(item.id));
   const openRooms = () => navigate(reservationPaths.rooms);
-  const canUseKiosk = nearby === 'kiosk' && !booking && !sheet;
+  // 출입증·질문지가 떠 있는 동안에는 캐릭터 이동과 공간의 단축키, 상호작용 안내를 쓰지 않는다.
+  const isLobbyFocused = !booking && !sheet;
+  const isNearKiosk = nearby === 'kiosk';
   const closePass = () => navigate('/lobby', { replace: true, state: null });
-  useKeyboardShortcut(shortcuts.interact, openRooms, canUseKiosk);
+  useKeyboardShortcut(
+    shortcuts.interact,
+    openRooms,
+    isLobbyFocused && isNearKiosk,
+  );
   return (
     <>
       <SpaceShell
@@ -81,15 +92,22 @@ export function ReservationLobby() {
             />
           )
         }
-        scene={<LobbyScene onNearbyChange={setNearby} />}
+        scene={
+          <LobbyScene
+            role={next?.role ?? 'interviewee'}
+            avatar={myAvatar}
+            canMove={isLobbyFocused}
+            onNearbyChange={setNearby}
+            kioskAnchor={kioskAnchor}
+          />
+        }
       >
         <h1 className={visuallyHidden}>로비</h1>
-        {canUseKiosk && (
-          <InteractionPrompt
-            className={styles.kioskPrompt}
-            shortcut={shortcuts.interact}
-            label='예약 키오스크 사용하기'
-            onClick={openRooms}
+        {isLobbyFocused && (
+          <KioskPrompt
+            anchor={kioskAnchor}
+            isNear={isNearKiosk}
+            onUse={openRooms}
           />
         )}
         {notice && (
