@@ -1,32 +1,27 @@
-import { type Dispatch, type SetStateAction, useState } from 'react';
+import { useState } from 'react';
 import { Outlet, ScrollRestoration, useMatch } from 'react-router';
 import { GNB } from '@/components/common/gnb';
 import { gnbLabels } from '@/constants/common/gnbLabels';
 import { signupPaths } from '@/constants/common/paths';
+import type { SignupContext } from '@/hooks/signup/useSignupContext';
 import { useSignupDraftPersistence } from '@/hooks/signup/useSignupDraftPersistence';
-import { createResumeStore } from '@/stores/ResumeStore';
+import { createResumeStore } from '@/stores/signup/resumeStore';
 import type { SignupProgress } from '@/stores/signup/signupStorage';
-import type { IssuedPass, SignupOptions } from '@/types/Signup';
-import { type AvatarDraft, emptyAvatarDraft } from '../AvatarDraft';
+import type { SignupOptions } from '@/types/Signup';
+import { emptyAvatarDraft } from '@/utils/signup/avatarDraft';
 import * as styles from '../Signup.css';
 
-export type SignupContext = {
-  avatar: [AvatarDraft, Dispatch<SetStateAction<AvatarDraft>>];
-  resume: ReturnType<typeof createResumeStore>;
-  syncResumeDraft: () => Promise<void>;
+type SignupContentProps = {
+  email: string;
   options: SignupOptions;
-  pass?: IssuedPass;
+  progress: SignupProgress;
 };
 
 export function SignupContent({
   email,
   options,
   progress,
-}: {
-  email: string;
-  options: SignupOptions;
-  progress: SignupProgress;
-}) {
+}: SignupContentProps) {
   const draft = useState(progress.avatar ?? emptyAvatarDraft);
   const [resume] = useState(() => createResumeStore(options, progress.draft));
   const editor = useMatch(signupPaths.resume);

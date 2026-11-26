@@ -4,7 +4,7 @@ import { color, radius, space, typography } from '@/styles/token';
 const narrow = '(max-width: 900px)';
 export const background = style({
   background: color.neutral[50],
-  minHeight: 'calc(100svh - 80px)',
+  minHeight: `calc(100svh - ${space[80]})`,
   color: color.neutral[900],
   paddingBlock: space[40],
   '@media': { [narrow]: { paddingBlock: space[20] } },
@@ -15,12 +15,12 @@ export const layout = style({
   gap: space[24],
   alignItems: 'start',
   maxWidth: 1224,
-  width: 'calc(100% - 48px)',
+  width: `calc(100% - ${space[48]})`,
   marginInline: 'auto',
   '@media': {
     [narrow]: {
       gridTemplateColumns: 'minmax(0, 1fr)',
-      width: 'calc(100% - 32px)',
+      width: `calc(100% - ${space[32]})`,
     },
   },
 });

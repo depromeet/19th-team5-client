@@ -4,10 +4,10 @@ import { authApi } from '@/apis/AuthApi';
 import { Button } from '@/components/common/button';
 import { Checkbox } from '@/components/common/checkbox';
 import { TextField } from '@/components/common/text-field';
+import { useAuthForm } from '@/hooks/auth/useAuthForm';
 import * as styles from './Auth.css';
 import { AuthLayout } from './AuthLayout';
 import { NewPasswordFields } from './components/NewPasswordFields';
-import { useAuthForm } from './useAuthForm';
 
 export function SignupPage() {
   const { state } = useLocation();

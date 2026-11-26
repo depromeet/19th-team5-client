@@ -1,8 +1,4 @@
-import {
-  type Entry,
-  type ResumeDraft,
-  sameAttachment,
-} from '@/pages/signup/resume/ResumeDraft';
+import { type Entry, type ResumeDraft, sameAttachment } from './resumeDraft';
 
 export type ResumeDraftChange = { before: ResumeDraft; after: ResumeDraft };
 

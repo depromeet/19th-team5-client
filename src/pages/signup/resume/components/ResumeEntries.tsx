@@ -18,7 +18,7 @@ import {
   validAnswer,
   validExperience,
   validExperienceDates,
-} from '../ResumeDraft';
+} from '@/utils/signup/resumeDraft';
 import * as s from '../ResumeEditorPage.css';
 
 type EntryListProps<T> = {

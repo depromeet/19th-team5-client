@@ -1,20 +1,18 @@
 import { Link, Navigate, useLocation } from 'react-router';
 import { Tag } from '@/components/common/tag';
+import { useSignupContext } from '@/hooks/signup/useSignupContext';
 import { demoWaitingRoomPath } from '@/mocks/interview/interview';
-import { getSignupResumePath } from '../AvatarDraft';
+import { getSignupResumePath } from '@/utils/signup/avatarDraft';
 import * as signup from '../Signup.css';
-import {
-  useAvatarDraft,
-  useIssuedPass,
-  useSignupOptions,
-} from '../SignupLayout';
 import { PassPreview } from './components/PassPreview';
 import * as s from './VisitorPassPage.css';
 
 export function VisitorPassPage() {
-  const [draft] = useAvatarDraft();
-  const { passLevels } = useSignupOptions();
-  const pass = useIssuedPass();
+  const {
+    avatar: [draft],
+    options: { passLevels },
+    pass,
+  } = useSignupContext();
   const { state } = useLocation();
   if (!pass) {
     return <Navigate to={getSignupResumePath(draft)} state={state} replace />;

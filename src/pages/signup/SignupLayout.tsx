@@ -1,38 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
-import {
-  Navigate,
-  useLocation,
-  useMatch,
-  useOutletContext,
-} from 'react-router';
-import { useStore } from 'zustand';
+import { Navigate, useLocation, useMatch } from 'react-router';
 import { signupApi } from '@/apis/SignupApi';
 import { Button } from '@/components/common/button';
 import { signupPaths } from '@/constants/common/paths';
 import { useSignupProgress } from '@/hooks/signup/useSignupProgress';
 import { useAuthStore } from '@/stores/AuthStore';
-import type { ResumeState } from '@/stores/ResumeStore';
-import { SignupContent, type SignupContext } from './components/SignupContent';
+import { SignupContent } from './components/SignupContent';
 import * as styles from './Signup.css';
-
-export function useAvatarDraft() {
-  return useOutletContext<SignupContext>().avatar;
-}
-export function useResumeStore<T>(select: (state: ResumeState) => T) {
-  return useStore(useOutletContext<SignupContext>().resume, select);
-}
-
-export function useSyncResumeDraft() {
-  return useOutletContext<SignupContext>().syncResumeDraft;
-}
-
-export function useSignupOptions() {
-  return useOutletContext<SignupContext>().options;
-}
-
-export function useIssuedPass() {
-  return useOutletContext<SignupContext>().pass;
-}
 
 export function SignupLayout() {
   const email = useAuthStore((state) => state.email);

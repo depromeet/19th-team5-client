@@ -3,6 +3,7 @@ import type { InterviewRole } from '@/types/interview/interview';
 import type {
   InterviewRoom,
   Reservation,
+  RoomRequest,
   RoomRequestDraft,
 } from '@/types/reservation';
 
@@ -107,6 +108,17 @@ export function requestWeekStart(timestamp: number) {
 
 export function nextRequestWeek(timestamp: number) {
   return requestWeekStart(timestamp) + 7 * day;
+}
+
+export function remainingRequests(requests: RoomRequest[], now: number) {
+  const start = requestWeekStart(now);
+  return Math.max(
+    0,
+    weeklyRequestLimit -
+      requests.filter(
+        (request) => requestWeekStart(request.submittedAt) === start,
+      ).length,
+  );
 }
 
 export function validRoomRequest(draft: RoomRequestDraft) {

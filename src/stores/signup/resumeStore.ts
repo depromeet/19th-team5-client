@@ -1,4 +1,4 @@
-import { createStore } from 'zustand/vanilla';
+import { createStore, type StoreApi } from 'zustand/vanilla';
 import type { ResumeSubmission, SignupOptions } from '@/types/Signup';
 import {
   type Answer,
@@ -13,7 +13,7 @@ import {
   validAnswer,
   validateAttachments,
   validExperience,
-} from '../pages/signup/resume/ResumeDraft';
+} from '@/utils/signup/resumeDraft';
 
 export type ResumeState = {
   draft: ResumeDraft;
@@ -30,6 +30,7 @@ export type ResumeState = {
     commit: () => void;
   } | null;
 };
+export type ResumeStore = StoreApi<ResumeState>;
 
 function submittableEntries<T>(rows: Entry<T>[], valid: (value: T) => boolean) {
   return rows.flatMap((row) => {

@@ -1,7 +1,8 @@
 import { IconArrowClockwiseOvalLine } from '@karrotmarket/react-monochrome-icon';
 import { useState } from 'react';
 import { Button } from '@/components/common/button';
-import { type Avatar, avatars } from '../../AvatarDraft';
+import type { Avatar } from '@/types/Signup';
+import { avatars } from '@/utils/signup/avatarDraft';
 import * as styles from '../../Signup.css';
 
 export function AvatarPreview({ avatar }: { avatar: Avatar }) {

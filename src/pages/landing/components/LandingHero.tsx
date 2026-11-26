@@ -9,8 +9,8 @@ import { button } from '@/components/common/button/button.css';
 import * as navStyles from '@/components/common/gnb/gnb.css';
 import { gnbLabels } from '@/constants/common/gnbLabels';
 import { useSignupProgress } from '@/hooks/signup/useSignupProgress';
-import { getSignupResumePath } from '@/pages/signup/AvatarDraft';
 import { useAuthStore } from '@/stores/AuthStore';
+import { getSignupResumePath } from '@/utils/signup/avatarDraft';
 import * as styles from './LandingHero.css';
 
 export function LandingHero({ waitingRoomTo }: { waitingRoomTo: string }) {

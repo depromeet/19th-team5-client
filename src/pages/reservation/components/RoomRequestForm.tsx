@@ -10,16 +10,14 @@ import {
 } from '@/components/common';
 import { reservationPaths } from '@/constants/common/paths';
 import { useNow } from '@/hooks/common/useNow';
-import {
-  remainingRequests,
-  useReservationStore,
-} from '@/stores/reservation/reservationStore';
+import { useReservationStore } from '@/stores/reservation/reservationStore';
 import type { RoomRequestDraft } from '@/types/reservation';
 import {
   formatRoomDate,
   hourLabel,
   nextRequestWeek,
   reasonLimit,
+  remainingRequests,
   requestHours,
   requestJobs,
   validRoomRequest,
@@ -197,7 +195,7 @@ export function RoomRequestForm() {
           {result === 'error'
             ? '다시 시도해 주세요.'
             : result === 'limit'
-              ? '개설 요청은 일주일에 2번까지 할 수 있어요.'
+              ? `개설 요청은 일주일에 ${weeklyRequestLimit}번까지 할 수 있어요.`
               : `${draft.title.trim()} · ${time} · ${draft.job}`}
         </Dialog.Description>
         {result !== 'error' && (

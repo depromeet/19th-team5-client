@@ -1,6 +1,6 @@
-import type { AvatarDraft } from '@/pages/signup/AvatarDraft';
-import type { ResumeDraft } from '@/pages/signup/resume/ResumeDraft';
 import type { IssuedPass, ResumeSubmission } from '@/types/Signup';
+import type { AvatarDraft } from '@/utils/signup/avatarDraft';
+import type { ResumeDraft } from '@/utils/signup/resumeDraft';
 
 export type SignupProgress = {
   avatar?: AvatarDraft;

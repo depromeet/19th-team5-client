@@ -1,8 +1,8 @@
 import { Navigate, Outlet, useLocation } from 'react-router';
 import { Button } from '@/components/common/button';
 import { useSignupProgress } from '@/hooks/signup/useSignupProgress';
-import { getSignupResumePath } from '@/pages/signup/AvatarDraft';
 import { useAuthStore } from '@/stores/AuthStore';
+import { getSignupResumePath } from '@/utils/signup/avatarDraft';
 import * as styles from './reservation.css';
 
 export function RequireReservationAccount() {

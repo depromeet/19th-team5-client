@@ -27,8 +27,8 @@ export const resumeLimits = {
   attachments: 2,
   attachmentSizeMb: 20,
 } as const;
-export const bytesPerKb = 1024;
-export const bytesPerMb = bytesPerKb * 1024;
+const bytesPerKb = 1024;
+const bytesPerMb = bytesPerKb * 1024;
 
 export const emptyExperience: Experience = {
   title: '',
@@ -140,6 +140,12 @@ export function hasPdfHeader(result: FileReader['result']) {
     result instanceof ArrayBuffer &&
     new TextDecoder().decode(result.slice(0, 1024)).includes('%PDF-')
   );
+}
+
+export function formatFileSize(bytes: number) {
+  if (bytes < bytesPerKb) return `${bytes}B`;
+  if (bytes < bytesPerMb) return `${Number((bytes / bytesPerKb).toFixed(1))}KB`;
+  return `${Number((bytes / bytesPerMb).toFixed(1))}MB`;
 }
 
 export function createResumeDraft({

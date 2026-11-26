@@ -1,8 +1,6 @@
 import { signupPaths } from '@/constants/common/paths';
 import type { Avatar, SignupProfile } from '@/types/Signup';
 
-export type { Avatar };
-
 export type AvatarDraft = { avatar: Avatar | null; nickname: string };
 
 export const avatars = { boy: '남자 아바타', girl: '여자 아바타' } as const;
@@ -14,7 +12,9 @@ export function nicknameLength(text: string) {
   return Array.from(segmenter.segment(text)).length;
 }
 
-export function isComplete(draft: AvatarDraft): draft is SignupProfile {
+export function isCompleteAvatarDraft(
+  draft: AvatarDraft,
+): draft is SignupProfile {
   return (
     draft.avatar !== null &&
     draft.nickname.trim().length > 0 &&
@@ -23,5 +23,7 @@ export function isComplete(draft: AvatarDraft): draft is SignupProfile {
 }
 
 export function getSignupResumePath(draft?: AvatarDraft) {
-  return draft && isComplete(draft) ? signupPaths.resume : signupPaths.avatar;
+  return draft && isCompleteAvatarDraft(draft)
+    ? signupPaths.resume
+    : signupPaths.avatar;
 }

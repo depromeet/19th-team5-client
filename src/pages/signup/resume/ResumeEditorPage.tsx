@@ -8,19 +8,12 @@ import { Checkbox } from '@/components/common/checkbox';
 import { Radio } from '@/components/common/radio';
 import { signupPaths } from '@/constants/common/paths';
 import { useSignupCompletion } from '@/hooks/signup/useSignupCompletion';
-import { canRegisterResume } from '@/stores/ResumeStore';
-import { isComplete } from '../AvatarDraft';
-import * as signup from '../Signup.css';
 import {
-  useAvatarDraft,
   useResumeStore,
-  useSignupOptions,
-  useSyncResumeDraft,
-} from '../SignupLayout';
-import { PortfolioAttachments } from './components/PortfolioAttachments';
-import { ResumeConfirmationDialog } from './components/ResumeConfirmationDialog';
-import { AnswerEntries, ExperienceEntries } from './components/ResumeEntries';
-import { ResumeSection } from './components/ResumeSection';
+  useSignupContext,
+} from '@/hooks/signup/useSignupContext';
+import { canRegisterResume } from '@/stores/signup/resumeStore';
+import { isCompleteAvatarDraft } from '@/utils/signup/avatarDraft';
 import {
   getResumeLimitError,
   getSubmittableEntry,
@@ -29,12 +22,22 @@ import {
   resumeLimits,
   validAnswer,
   validExperience,
-} from './ResumeDraft';
+} from '@/utils/signup/resumeDraft';
+import * as signup from '../Signup.css';
+import { PortfolioAttachments } from './components/PortfolioAttachments';
+import { ResumeConfirmationDialog } from './components/ResumeConfirmationDialog';
+import { AnswerEntries, ExperienceEntries } from './components/ResumeEntries';
+import { ResumeSection } from './components/ResumeSection';
 import * as s from './ResumeEditorPage.css';
 
+type ResumeConfirmation = 'register' | 'skip';
+
 export function ResumeEditorPage() {
-  const [avatar] = useAvatarDraft();
-  const { careers, questions } = useSignupOptions();
+  const {
+    avatar: [avatar],
+    options: { careers, questions },
+    syncResumeDraft,
+  } = useSignupContext();
   const resume = useResumeStore((state) => state.draft);
   const pendingFiles = useResumeStore((state) => state.pendingFiles);
   const setCareer = useResumeStore((state) => state.setCareer);
@@ -44,15 +47,14 @@ export function ResumeEditorPage() {
     (state) => state.prepareRegistration,
   );
   const ready = useResumeStore(canRegisterResume);
-  const [confirmation, setConfirmation] = useState<'register' | 'skip' | null>(
+  const [confirmation, setConfirmation] = useState<ResumeConfirmation | null>(
     null,
   );
   const completion = useSignupCompletion();
-  const syncResumeDraft = useSyncResumeDraft();
   const registrationSync = useMutation({ mutationFn: syncResumeDraft });
   const pending = registrationSync.isPending || completion.isPending;
   const { state } = useLocation();
-  if (!isComplete(avatar))
+  if (!isCompleteAvatarDraft(avatar))
     return <Navigate to={signupPaths.avatar} state={state} replace />;
   const experienceCount = resume.experiences.filter((entry) =>
     getSubmittableEntry(entry, validExperience),
@@ -68,7 +70,7 @@ export function ResumeEditorPage() {
     experienceCount + answerCount + Math.min(1, fileCount),
   );
   function confirm() {
-    if (!isComplete(avatar) || !confirmation || pending) return;
+    if (!isCompleteAvatarDraft(avatar) || !confirmation || pending) return;
     if (confirmation === 'skip') {
       completion.complete(avatar);
       return;

@@ -3,9 +3,9 @@ import { authApi } from '@/apis/AuthApi';
 import logo from '@/assets/icons/auth-logo.svg';
 import { Button } from '@/components/common/button';
 import { TextField } from '@/components/common/text-field';
+import { useAuthForm } from '@/hooks/auth/useAuthForm';
 import * as styles from './Auth.css';
 import { AuthLayout } from './AuthLayout';
-import { useAuthForm } from './useAuthForm';
 
 export function LoginPage() {
   const { state } = useLocation();

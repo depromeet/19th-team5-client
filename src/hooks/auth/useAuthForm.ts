@@ -4,13 +4,15 @@ import { signupPaths } from '@/constants/common/paths';
 import { demoWaitingRoomPath } from '@/mocks/interview/interview';
 import type { AuthOperation } from '@/types/Auth';
 
+type AuthMode = 'login' | 'signup';
+
 const messages = {
   'duplicate-email': '이미 가입한 이메일이에요. 로그인해 주세요.',
   'invalid-credentials': '이메일 또는 비밀번호를 확인해 주세요.',
   unavailable: '계정 정보를 처리하지 못했어요. 다시 시도해 주세요.',
 };
 
-export function useAuthForm(submit: AuthOperation, mode: 'login' | 'signup') {
+export function useAuthForm(submit: AuthOperation, mode: AuthMode) {
   const navigate = useNavigate();
   const { search, hash, state } = useLocation();
   const [pending, setPending] = useState(false);

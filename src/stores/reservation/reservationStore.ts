@@ -14,9 +14,8 @@ import type {
 } from '@/types/reservation';
 import {
   canManageReservation,
-  requestWeekStart,
+  remainingRequests,
   validRoomRequest,
-  weeklyRequestLimit,
 } from '@/utils/reservation';
 
 type ReservationData = {
@@ -47,17 +46,6 @@ type ReservationState = ReservationData & {
 };
 
 const storagePrefix = 'moing:mock:reservations:v1:';
-
-export function remainingRequests(requests: RoomRequest[], now: number) {
-  const start = requestWeekStart(now);
-  return Math.max(
-    0,
-    weeklyRequestLimit -
-      requests.filter(
-        (request) => requestWeekStart(request.submittedAt) === start,
-      ).length,
-  );
-}
 
 function updateSeats(
   room: InterviewRoom,

@@ -2,95 +2,19 @@ import {
   IconPaperclipLine,
   IconXmarkLine,
 } from '@karrotmarket/react-monochrome-icon';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { Button } from '@/components/common/button';
 import { Tag } from '@/components/common/tag';
-import { useResumeStore } from '../../SignupLayout';
-import {
-  bytesPerKb,
-  bytesPerMb,
-  hasPdfHeader,
-  resumeLimits,
-} from '../ResumeDraft';
+import { useResumeAttachments } from '@/hooks/signup/useResumeAttachments';
+import { formatFileSize, resumeLimits } from '@/utils/signup/resumeDraft';
 import * as s from '../ResumeEditorPage.css';
 
-function formatFileSize(bytes: number) {
-  if (bytes < bytesPerKb) return `${bytes}B`;
-  if (bytes < bytesPerMb) return `${Number((bytes / bytesPerKb).toFixed(1))}KB`;
-  return `${Number((bytes / bytesPerMb).toFixed(1))}MB`;
-}
-type Reading = { file: File; loaded: number };
-
 export function PortfolioAttachments() {
-  const files = useResumeStore((state) => state.draft.files);
-  const beginAttachments = useResumeStore((state) => state.beginAttachments);
-  const finishAttachment = useResumeStore((state) => state.finishAttachment);
-  const clearPendingAttachments = useResumeStore(
-    (state) => state.clearPendingAttachments,
-  );
-  const removeAttachment = useResumeStore((state) => state.removeAttachment);
+  const { files, reading, error, attach, cancelRead, removeFile } =
+    useResumeAttachments();
   const input = useRef<HTMLInputElement>(null);
-  const readers = useRef(new Map<File, FileReader>());
-  const [reading, setReading] = useState<Reading[]>([]);
   const [dragging, setDragging] = useState(false);
-  const [error, setError] = useState('');
-  useEffect(() => {
-    const active = readers.current;
-    return () => {
-      for (const reader of active.values()) {
-        reader.onload =
-          reader.onprogress =
-          reader.onabort =
-          reader.onerror =
-            null;
-        reader.abort();
-      }
-      active.clear();
-      clearPendingAttachments();
-    };
-  }, [clearPendingAttachments]);
-  function attach(incoming: FileList | null) {
-    if (!incoming?.length) return;
-    const selected = Array.from(incoming);
-    const batch = beginAttachments(selected);
-    setError(batch.error);
-    if (!batch.started) return;
-    setReading(selected.map((file) => ({ file, loaded: 0 })));
-    for (const file of selected) {
-      const reader = new FileReader();
-      readers.current.set(file, reader);
-      const finish = (attached?: File) => {
-        if (!readers.current.delete(file)) return;
-        setReading((list) => list.filter((item) => item.file !== file));
-        finishAttachment(attached);
-      };
-      reader.onprogress = (e) =>
-        setReading((list) =>
-          list.map((item) =>
-            item.file === file ? { ...item, loaded: e.loaded } : item,
-          ),
-        );
-      reader.onload = () => {
-        if (hasPdfHeader(reader.result)) {
-          finish(file);
-          return;
-        }
-        setError('읽을 수 있는 PDF 파일을 선택해주세요.');
-        finish();
-      };
-      const fail = () => {
-        setError('파일을 읽지 못했어요. 다시 선택해주세요.');
-        finish();
-      };
-      reader.onerror = fail;
-      reader.onabort = () => finish();
-      try {
-        reader.readAsArrayBuffer(file);
-      } catch {
-        fail();
-      }
-    }
-  }
+
   return (
     <div className={s.uploads}>
       <input
@@ -147,10 +71,7 @@ export function PortfolioAttachments() {
             max={file.size || 1}
             aria-label={`${file.name} 첨부 진행률`}
           />
-          <Button
-            variant='outline'
-            onClick={() => readers.current.get(file)?.abort()}
-          >
+          <Button variant='outline' onClick={() => cancelRead(file)}>
             첨부 취소
           </Button>
         </div>
@@ -166,10 +87,7 @@ export function PortfolioAttachments() {
             variant='text'
             className={s.removeFile}
             aria-label={`${file.name} 삭제`}
-            onClick={() => {
-              removeAttachment(file);
-              setError('');
-            }}
+            onClick={() => removeFile(file)}
           >
             <IconXmarkLine size={20} aria-hidden='true' />
           </Button>

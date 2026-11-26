@@ -2,10 +2,10 @@ import { Navigate, useLocation, useNavigate } from 'react-router';
 import { Button } from '@/components/common/button';
 import { signupPaths } from '@/constants/common/paths';
 import { useSignupCompletion } from '@/hooks/signup/useSignupCompletion';
-import { isComplete } from '../AvatarDraft';
+import { useSignupContext } from '@/hooks/signup/useSignupContext';
+import { isCompleteAvatarDraft } from '@/utils/signup/avatarDraft';
 import { SignupStep } from '../components/SignupStep';
 import * as styles from '../Signup.css';
-import { useAvatarDraft, useSignupOptions } from '../SignupLayout';
 import { ResumePreview } from './components/ResumePreview';
 
 const benefits = [
@@ -27,12 +27,14 @@ const benefits = [
 ];
 
 export function ResumeGuidePage() {
-  const [draft] = useAvatarDraft();
-  const { previewJobLabel } = useSignupOptions();
+  const {
+    avatar: [draft],
+    options: { previewJobLabel },
+  } = useSignupContext();
   const navigate = useNavigate();
   const completion = useSignupCompletion();
   const { state } = useLocation();
-  if (!isComplete(draft))
+  if (!isCompleteAvatarDraft(draft))
     return <Navigate to={signupPaths.avatar} state={state} replace />;
   return (
     <SignupStep
