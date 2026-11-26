@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useBlocker } from 'react-router';
+import { useBlocker, useLocation } from 'react-router';
 import { useStore } from 'zustand';
 import { saveWriteReviewDrafts } from '@/mocks/review/WriteReviewSession';
 import { createFeedbackStore } from '@/store/FeedbackStore';
@@ -45,7 +45,11 @@ export function useFeedbackEditor(sheet: InterviewFeedback) {
     sheet.keywords.improvements,
   );
   const invalid = needsStrengths || needsImprovements;
-  const blocker = useBlocker(() => sheet.deadline > Date.now());
+  const { pathname } = useLocation();
+  const blocker = useBlocker(
+    ({ currentLocation }) =>
+      currentLocation.pathname === pathname && sheet.deadline > Date.now(),
+  );
   const exitRequested = blocker.state === 'blocked';
   const resetExit = blocker.reset;
 
