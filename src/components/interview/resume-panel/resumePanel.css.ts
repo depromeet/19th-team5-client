@@ -59,6 +59,7 @@ export const profile = style({
 export const profileText = style({
   display: 'flex',
   flexDirection: 'column',
+  flex: 1,
   gap: space[4],
   minWidth: 0,
 });

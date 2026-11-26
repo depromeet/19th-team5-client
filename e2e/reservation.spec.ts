@@ -149,8 +149,14 @@ test('다음 예약 카드를 펼치고 면접관 질문을 1시간 전부터 �
     `/interviews/${roomId}/waiting-room?role=interviewer`,
   );
   await finishMicTest(page);
-  await page.keyboard.press('q');
-  await expect(saved).toBeVisible();
+  // 대기실에서는 쓴 질문지를 읽기만 한다.
+  await page.getByRole('button', { name: '작성한 질문지 펼치기' }).click();
+  await page.getByRole('button', { name: '자세히 보기' }).click();
+  await expect(
+    page
+      .getByRole('dialog', { name: '작성한 질문지' })
+      .getByText('지원한 직무를 선택한 이유는 무엇인가요?'),
+  ).toBeVisible();
   await page.goto('/lobby');
   await page.clock.fastForward(15 * 60_000);
   const laterCard = page.getByRole('complementary', {

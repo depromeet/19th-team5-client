@@ -7,6 +7,7 @@ import { useFeedbackEditor } from '../hooks/useFeedbackEditor';
 import { FeedbackCandidateTabs } from './FeedbackCandidateTabs';
 import { FeedbackExitDialog } from './FeedbackExitDialog';
 import { FeedbackFields } from './FeedbackFields';
+import { FeedbackSubmitDialog } from './FeedbackSubmitDialog';
 import { FeedbackSummary } from './FeedbackSummary';
 
 export function FeedbackEditor({ sheet }: { sheet: InterviewFeedback }) {
@@ -20,7 +21,7 @@ export function FeedbackEditor({ sheet }: { sheet: InterviewFeedback }) {
     <main className={styles.layout}>
       <article className={styles.sheet} ref={editor.sheetRef}>
         <PageHeading title='오늘의 면접자, 어땠나요?'>
-          키워드와 한 줄 평을 작성하고 이 브라우저 탭에 임시 저장할 수 있어요.
+          면접자마다 키워드와 한 줄 평을 작성해 제출해 주세요.
         </PageHeading>
         <FeedbackCandidateTabs
           candidates={candidates}
@@ -63,10 +64,10 @@ export function FeedbackEditor({ sheet }: { sheet: InterviewFeedback }) {
           </Button>
           <Button
             size='large'
-            disabled={editor.checkDisabled}
-            onClick={editor.checkInput}
+            disabled={editor.submitDisabled}
+            onClick={editor.submit}
           >
-            입력 확인
+            제출하기
           </Button>
           {notice && !editor.showDialog && (
             <p
@@ -87,6 +88,16 @@ export function FeedbackEditor({ sheet }: { sheet: InterviewFeedback }) {
           onContinue={editor.resetExit}
           onLeave={() => editor.saveDraft('leave')}
           onAcknowledge={editor.acknowledgeExpiry}
+        />
+      )}
+      {editor.isSubmitDialogOpen && !editor.showDialog && (
+        <FeedbackSubmitDialog
+          submitted={editor.candidate}
+          remaining={candidates.filter(
+            ({ id }) => !editor.submittedIds.has(id),
+          )}
+          onContinue={editor.continueWriting}
+          onLeave={editor.leaveToLobby}
         />
       )}
     </main>
