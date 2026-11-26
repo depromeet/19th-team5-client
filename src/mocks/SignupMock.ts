@@ -1,4 +1,10 @@
-import type { SignupDataSource, SignupOptions } from '@/types/Signup';
+import { useAuthStore } from '@/stores/AuthStore';
+import { updateSignupProgress } from '@/stores/signup/signupStorage';
+import type {
+  IssuedPass,
+  SignupDataSource,
+  SignupOptions,
+} from '@/types/Signup';
 
 const nicknames = [
   '차분한수달',
@@ -61,12 +67,18 @@ export const signupMock: SignupDataSource = {
     );
     return available[Math.floor(Math.random() * available.length)];
   },
-  async completeSignup({ avatar, nickname }) {
-    return {
+  async completeSignup({ avatar, nickname, resume }) {
+    const { email } = useAuthStore.getState();
+    if (!email) throw new Error('로그인 정보가 없어요.');
+    const pass: IssuedPass = {
       avatar,
       nickname,
       issuedAt: Date.now(),
       progress: { ...initialPassProgress },
     };
+    const progress = await updateSignupProgress(email, (current) =>
+      current.pass ? {} : { avatar: { avatar, nickname }, pass, resume },
+    );
+    return progress.pass ?? pass;
   },
 };

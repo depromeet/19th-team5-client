@@ -3,6 +3,7 @@ import {
   Form,
   Link,
   useActionData,
+  useLocation,
   useNavigation,
 } from 'react-router';
 import { authApi } from '@/apis/AuthApi';
@@ -27,12 +28,13 @@ export function ForgotPasswordPage() {
   const ticket = useAuthStore((state) => state.resetTicket);
   const error = useActionData<typeof requestResetAction>();
   const pending = useNavigation().state !== 'idle';
+  const { state } = useLocation();
   return (
     <AuthLayout
       title='비밀번호 찾기'
       description='가입할 때 사용한 이메일을 입력해 주세요.'
     >
-      <Form method='post' aria-busy={pending}>
+      <Form method='post' state={state} aria-busy={pending}>
         <div className={styles.fields}>
           <TextField
             className={styles.field}
@@ -60,13 +62,13 @@ export function ForgotPasswordPage() {
           <p className={styles.notice}>
             {ticket.email} 계정의 재설정 링크예요. 15분 안에 열어 주세요.
           </p>
-          <Link className={styles.link} to='/reset-password'>
+          <Link className={styles.link} to='/reset-password' state={state}>
             비밀번호 재설정하기
           </Link>
         </section>
       )}
       <div className={styles.links}>
-        <Link className={styles.link} to='/login'>
+        <Link className={styles.link} to='/login' state={state}>
           로그인으로 돌아가기
         </Link>
       </div>

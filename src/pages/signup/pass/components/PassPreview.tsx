@@ -1,7 +1,6 @@
 import { Component, lazy, type ReactNode, Suspense } from 'react';
 import { color } from '@/styles/token';
-import type { PassProgress } from '@/types/Signup';
-import type { Avatar } from '../../AvatarDraft';
+import type { Avatar, PassProgress } from '@/types/Signup';
 import * as s from '../VisitorPassPage.css';
 import { PassCard } from './PassCard';
 import { passLayouts } from './PassCardLayout';

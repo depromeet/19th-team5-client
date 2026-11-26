@@ -13,32 +13,49 @@ import {
   hasExperienceInput,
   monthCount,
   newEntry,
+  type ResumeEntryUpdate,
   resumeLimits,
   validAnswer,
   validExperience,
   validExperienceDates,
-} from '../ResumeDraft';
+} from '@/utils/signup/resumeDraft';
 import * as s from '../ResumeEditorPage.css';
 
 type EntryListProps<T> = {
   entries: Entry<T>[];
-  onChange: (entries: Entry<T>[]) => void;
+  onChange: (update: ResumeEntryUpdate<T>) => void;
 };
 
 function actionsFor<T>(
-  { entries, onChange }: EntryListProps<T>,
+  { onChange }: EntryListProps<T>,
   row: Entry<T>,
+  valid: (value: T) => boolean,
 ) {
-  const update = (changes: Partial<Entry<T>>) =>
-    onChange(entries.map((e) => (e.id === row.id ? { ...e, ...changes } : e)));
-  const remove = () => onChange(entries.filter((e) => e.id !== row.id));
+  const update = (apply: (entry: Entry<T>) => Entry<T>) =>
+    onChange((entries) =>
+      entries.map((entry) => (entry.id === row.id ? apply(entry) : entry)),
+    );
+  const remove = () =>
+    onChange((entries) => entries.filter((entry) => entry.id !== row.id));
   return {
     change: (changes: Partial<T>) =>
-      update({ draft: { ...row.draft, ...changes } }),
-    edit: () => update({ editing: true }),
-    save: () => update({ saved: row.draft, editing: false }),
+      update((entry) => ({ ...entry, draft: { ...entry.draft, ...changes } })),
+    edit: () => update((entry) => ({ ...entry, editing: true })),
+    save: () =>
+      update((entry) =>
+        valid(entry.draft)
+          ? { ...entry, saved: entry.draft, editing: false }
+          : entry,
+      ),
     cancel: () =>
-      row.saved ? update({ draft: row.saved, editing: false }) : remove(),
+      onChange((entries) =>
+        entries.flatMap((entry) => {
+          if (entry.id !== row.id) return [entry];
+          return entry.saved
+            ? [{ ...entry, draft: entry.saved, editing: false }]
+            : [];
+        }),
+      ),
     remove,
   };
 }
@@ -49,7 +66,7 @@ export function ExperienceEntries(props: EntryListProps<Experience>) {
     <div className={s.entries}>
       {entries.map((row, index) => {
         const { draft, saved } = row;
-        const actions = actionsFor(props, row);
+        const actions = actionsFor(props, row, validExperience);
         if (!row.editing && saved)
           return (
             <article key={row.id} className={s.summary}>
@@ -145,7 +162,9 @@ export function ExperienceEntries(props: EntryListProps<Experience>) {
       })}
       <AddButton
         className={s.add}
-        onClick={() => onChange([...entries, newEntry(emptyExperience)])}
+        onClick={() =>
+          onChange((current) => [...current, newEntry(emptyExperience)])
+        }
       >
         + 경험 추가
       </AddButton>
@@ -157,13 +176,15 @@ export function AnswerEntries(
   props: EntryListProps<Answer> & { questions: readonly SignupOption[] },
 ) {
   const { entries, onChange, questions } = props;
-  const nextQuestion = questions.find(
-    ({ id }) => !entries.some((row) => row.draft.questionId === id),
-  );
+  const findNextQuestion = (current: Entry<Answer>[]) =>
+    questions.find(
+      ({ id }) => !current.some((row) => row.draft.questionId === id),
+    );
+  const nextQuestion = findNextQuestion(entries);
   return (
     <div className={s.entries}>
       {entries.map((row, index) => {
-        const actions = actionsFor(props, row);
+        const actions = actionsFor(props, row, validAnswer);
         const questionIndex = questions.findIndex(
           ({ id }) => id === row.draft.questionId,
         );
@@ -231,13 +252,17 @@ export function AnswerEntries(
       <AddButton
         className={s.add}
         disabled={!nextQuestion || entries.length >= resumeLimits.questions}
-        onClick={() => {
-          if (nextQuestion)
-            onChange([
-              ...entries,
-              newEntry({ questionId: nextQuestion.id, text: '' }),
-            ]);
-        }}
+        onClick={() =>
+          onChange((current) => {
+            const question = findNextQuestion(current);
+            if (!question || current.length >= resumeLimits.questions)
+              return current;
+            return [
+              ...current,
+              newEntry({ questionId: question.id, text: '' }),
+            ];
+          })
+        }
       >
         + 문항 추가
       </AddButton>

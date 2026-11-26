@@ -3,8 +3,8 @@ import {
   IconDocumentMagnifyingglassFill,
 } from '@karrotmarket/react-monochrome-icon';
 import { useReducer, useState } from 'react';
-import { Navigate, useNavigate, useParams } from 'react-router';
-import { CountDown, GNB } from '@/components/common';
+import { Navigate, useLocation, useNavigate, useParams } from 'react-router';
+import { Button, CountDown, GNB } from '@/components/common';
 import { WrittenQuestionsOverlay } from '@/components/question-sheet';
 import { InteractionPrompt, SpaceShell } from '@/components/space';
 import {
@@ -27,21 +27,28 @@ import { interviewPaths, reservationPaths } from '@/constants/common/paths';
 import { shortcuts } from '@/constants/space/shortcuts';
 import { useNetworkStatus } from '@/hooks/common/useNetworkStatus';
 import { useNow } from '@/hooks/common/useNow';
+import { useBookedRoom } from '@/hooks/reservation/useBookedRoom';
 import { useKeyboardShortcut } from '@/hooks/space/useKeyboardShortcut';
 import { useRoomMicrophone } from '@/hooks/waiting-room/useRoomMicrophone';
 import { interviewMock, mockCountdowns } from '@/mocks/interview/interview';
-import { useMockCountdown } from '@/mocks/interview/useMockCountdown';
+import {
+  clearMockWaitingClock,
+  useMockWaitingCountdown,
+} from '@/mocks/interview/useMockCountdown';
 import { usePrototypeParams } from '@/mocks/interview/usePrototypeParams';
 import { candidates } from '@/mocks/question-sheet/candidates';
 import { myAttachmentCount, myResume } from '@/mocks/waiting-room/myResume';
 import { npc, npcQuestions } from '@/mocks/waiting-room/npc';
 import { getRoomParticipants } from '@/mocks/waiting-room/participants';
 import { useQuestionSheetStore } from '@/stores/question-sheet/questionSheetStore';
-import { useReservationStore } from '@/stores/reservation/reservationStore';
 import { visuallyHidden } from '@/styles/a11y.css';
 import type { InterviewRole } from '@/types/interview/interview';
-import { formatRoomTime, waitingRoomLeadTime } from '@/utils/reservation';
-import { secondsBetween } from '@/utils/time';
+import {
+  formatRoomTime,
+  getReservationReturnTo,
+  interviewDuration,
+  waitingRoomLeadTime,
+} from '@/utils/reservation';
 import * as styles from './waitingRoomPage.css';
 
 type WaitingRoomProps = {
@@ -50,12 +57,12 @@ type WaitingRoomProps = {
   title: string;
   untilStart: number;
   lobbyPath: string;
+  exit?: { to: string; label: string };
 };
+type WaitingRoomEntryProps = Pick<WaitingRoomProps, 'interviewId'>;
 
 /** 면접 시작 몇 초 전부터 카운트다운을 띄울지. 0초가 되면 면접방으로 들어간다. */
 const startCountdownSeconds = 3;
-
-type WaitingRoomEntryProps = Pick<WaitingRoomProps, 'interviewId'>;
 
 const roomCapacity =
   interviewMock.headcount.interviewee + interviewMock.headcount.interviewer;
@@ -71,42 +78,53 @@ export function WaitingRoomPage() {
 
 function PrototypeWaitingRoom({ interviewId }: WaitingRoomEntryProps) {
   const { role } = usePrototypeParams();
-  const untilStart = useMockCountdown('until-start', mockCountdowns.untilStart);
+  const { key, state } = useLocation();
+  const untilStart = useMockWaitingCountdown(interviewId, role);
+  const returnTo = getReservationReturnTo(state);
   return (
     <WaitingRoom
-      key={`${interviewId}-${role}`}
+      key={`${interviewId}-${role}-${key}`}
       interviewId={interviewId}
       role={role}
       title={interviewMock.roomTitle}
       untilStart={untilStart}
       lobbyPath={interviewPaths.lobby({ role, phase: 'open' })}
+      exit={
+        returnTo
+          ? { to: returnTo, label: '예약 이어하기' }
+          : { to: interviewPaths.lobbyHome, label: '로비로 돌아가기' }
+      }
     />
   );
 }
 
 function ReservedWaitingRoom({ interviewId }: WaitingRoomEntryProps) {
-  const room = useReservationStore((state) =>
-    state.rooms.find((item) => item.id === interviewId),
-  );
-  const reservation = useReservationStore((state) =>
-    state.reservations.find((item) => item.roomId === interviewId),
-  );
+  const { room, reservation } = useBookedRoom(interviewId);
   const now = useNow();
-  const [enteredAt] = useState(Date.now);
   if (
     !room ||
     !reservation ||
-    enteredAt < room.startsAt - waitingRoomLeadTime ||
-    enteredAt >= room.startsAt
+    now < room.startsAt - waitingRoomLeadTime ||
+    now >= room.startsAt + interviewDuration
   ) {
     return <Navigate to={reservationPaths.room(interviewId)} replace />;
+  }
+  if (now >= room.startsAt) {
+    return (
+      <Navigate
+        to={interviewPaths.interviewRoom(interviewId, {
+          role: reservation.role,
+        })}
+        replace
+      />
+    );
   }
   return (
     <WaitingRoom
       interviewId={interviewId}
       role={reservation.role}
       title={`${formatRoomTime(room.startsAt)} ${room.title}`}
-      untilStart={secondsBetween(now, room.startsAt)}
+      untilStart={Math.ceil((room.startsAt - now) / 1000)}
       lobbyPath='/lobby'
     />
   );
@@ -125,6 +143,7 @@ function WaitingRoom({
   title,
   untilStart,
   lobbyPath,
+  exit,
 }: WaitingRoomProps) {
   const navigate = useNavigate();
   const microphone = useRoomMicrophone();
@@ -158,13 +177,20 @@ function WaitingRoom({
   const openNpc = () => setPanel('npc');
   const openDocument = () => setPanel('document');
   const closePanel = () => setPanel(null);
-  const leaveRoom = () => navigate(lobbyPath);
+  const navigateOut = (to: string, replace = false) => {
+    if (exit) clearMockWaitingClock();
+    navigate(to, { replace });
+  };
+  const leaveRoom = () => navigateOut(lobbyPath);
+  const exitAction = exit && (
+    <Button variant='secondary' onClick={() => navigateOut(exit.to, true)}>
+      {exit.label}
+    </Button>
+  );
   // 프로토타입은 서버 응답 없이 대기실에 들어온 역할 그대로 면접방에 들어간다.
   // 대기실로 뒤로 가지 않도록 기록을 바꾼다.
   const enterInterviewRoom = () =>
-    navigate(interviewPaths.interviewRoom(interviewId, { role }), {
-      replace: true,
-    });
+    navigateOut(interviewPaths.interviewRoom(interviewId, { role }), true);
 
   useKeyboardShortcut(
     shortcuts.interact,
@@ -208,8 +234,9 @@ function WaitingRoom({
         )}
         {!isStarting && (
           <MicDock
-            className={styles.dock}
+            className={exit ? styles.dockWithExit : styles.dock}
             isMicOn={isMicOn}
+            exitAction={exitAction}
             onToggleMic={
               microphone.status === 'live'
                 ? microphone.toggleMute
@@ -260,11 +287,13 @@ function WaitingRoom({
         isOpen={!isStarting && !isMicReady && !microphone.isPermissionDenied}
         microphone={microphone}
         onComplete={() => setIsMicReady(true)}
+        exitAction={exitAction}
       />
       <MicPermissionDialog
         isOpen={!isStarting && !isMicReady && microphone.isPermissionDenied}
         isChecking={microphone.status === 'requesting'}
         onRetry={microphone.retry}
+        exitAction={exitAction}
       />
       <NpcPracticeSheet
         isOpen={!isStarting && panel === 'npc'}

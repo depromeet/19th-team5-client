@@ -1,4 +1,7 @@
 import { expect, type Page, test } from '@playwright/test';
+import { installFakeMicrophone } from './support/fakeMicrophone.ts';
+import { submitSignup } from './support/signup.ts';
+import { micTestDialog, waitingRoom } from './support/waitingRoom.ts';
 
 const address = 'reset-member@example.com';
 const oldPassword = 'Original123';
@@ -6,14 +9,7 @@ const newPassword = 'Updated123';
 
 async function registerAndLogOut(page: Page) {
   await page.goto('/signup');
-  await page.getByRole('textbox', { name: '이메일' }).fill(address);
-  await page.getByPlaceholder('영문, 숫자 포함 8자 이상').fill(oldPassword);
-  await page
-    .getByPlaceholder('비밀번호를 다시 입력해 주세요')
-    .fill(oldPassword);
-  await page.getByRole('checkbox').check();
-  await page.getByRole('button', { name: '다음' }).click();
-  await expect(page).toHaveURL(/\/signup\/avatar$/);
+  await submitSignup(page, address, oldPassword);
   await page.goto('/');
   await page.getByRole('button', { name: '로그아웃' }).click();
   await page.getByRole('link', { name: '로그인', exact: true }).click();
@@ -29,6 +25,7 @@ async function requestLink(page: Page, email = address) {
 test('재설정을 새로고침 후 이어서 완료하고 새 비밀번호로 로그인한다', async ({
   page,
 }) => {
+  await installFakeMicrophone(page);
   await page.setViewportSize({ width: 375, height: 812 });
   await registerAndLogOut(page);
   await requestLink(page, 'unknown@example.com');
@@ -70,8 +67,8 @@ test('재설정을 새로고침 후 이어서 완료하고 새 비밀번호로 �
   );
   await loginPassword.fill(newPassword);
   await loginPassword.press('Enter');
-  await expect(page).toHaveURL(/\/signup\/avatar$/);
-  await expect(page.getByRole('textbox', { name: '닉네임' })).toBeVisible();
+  await expect(page).toHaveURL(waitingRoom('interviewee'));
+  await expect(micTestDialog(page)).toBeVisible();
   await page.goto('/reset-password');
   await expect(
     page.getByRole('link', { name: '새 링크 요청하기' }),

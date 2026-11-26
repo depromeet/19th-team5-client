@@ -1,6 +1,10 @@
 import { type FormEvent, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
+import { signupPaths } from '@/constants/common/paths';
+import { demoWaitingRoomPath } from '@/mocks/interview/interview';
 import type { AuthOperation } from '@/types/Auth';
+
+type AuthMode = 'login' | 'signup';
 
 const messages = {
   'duplicate-email': '이미 가입한 이메일이에요. 로그인해 주세요.',
@@ -8,7 +12,7 @@ const messages = {
   unavailable: '계정 정보를 처리하지 못했어요. 다시 시도해 주세요.',
 };
 
-export function useAuthForm(submit: AuthOperation) {
+export function useAuthForm(submit: AuthOperation, mode: AuthMode) {
   const navigate = useNavigate();
   const { search, hash, state } = useLocation();
   const [pending, setPending] = useState(false);
@@ -31,7 +35,10 @@ export function useAuthForm(submit: AuthOperation) {
       const result = await submit({ email, password }, request.signal);
       if (request.signal.aborted) return;
       if (result === 'success') {
-        navigate({ pathname: '/signup/avatar', search, hash }, { state });
+        if (mode === 'login')
+          navigate(demoWaitingRoomPath, { replace: true, state });
+        else
+          navigate({ pathname: signupPaths.avatar, search, hash }, { state });
       } else {
         setFailure(result);
       }

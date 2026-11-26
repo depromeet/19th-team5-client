@@ -40,6 +40,17 @@ export const dock = style({
   transform: 'translateX(-50%)',
 });
 
+export const dockWithExit = style([
+  dock,
+  {
+    '@media': {
+      '(max-width: 640px)': {
+        bottom: `calc(${space[48]} + ${space[64]} + ${space[12]})`,
+      },
+    },
+  },
+]);
+
 /** Figma: 우측 68px · 하단 48px */
 export const documentPeek = style({
   position: 'absolute',

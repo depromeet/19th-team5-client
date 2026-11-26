@@ -1,24 +1,28 @@
 import { useMutation } from '@tanstack/react-query';
 import type { FormEvent } from 'react';
-import { useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 import { signupApi } from '@/apis/SignupApi';
 import { Button } from '@/components/common/button';
+import { signupPaths } from '@/constants/common/paths';
+import { useSignupContext } from '@/hooks/signup/useSignupContext';
+import type { Avatar } from '@/types/Signup';
 import {
-  type Avatar,
   avatars,
-  isComplete,
+  isCompleteAvatarDraft,
   nicknameLength,
   nicknameLimit,
-} from '../AvatarDraft';
+} from '@/utils/signup/avatarDraft';
 import { SignupStep } from '../components/SignupStep';
 import * as styles from '../Signup.css';
-import { useAvatarDraft } from '../SignupLayout';
 import { AvatarPreview } from './components/AvatarPreview';
 
 const avatarChoices: Avatar[] = ['boy', 'girl'];
 export function AvatarSelectionPage() {
-  const [draft, setDraft] = useAvatarDraft();
+  const {
+    avatar: [draft, setDraft],
+  } = useSignupContext();
   const navigate = useNavigate();
+  const { state } = useLocation();
   const nicknameSuggestion = useMutation({
     mutationFn: signupApi.suggestNickname,
   });
@@ -32,7 +36,7 @@ export function AvatarSelectionPage() {
         : '';
   const helper =
     error || '면접 시 사용할 이름이에요. 가입 후에는 바꿀 수 없어요.';
-  const ready = isComplete(draft);
+  const ready = isCompleteAvatarDraft(draft);
 
   function updateNickname(nickname: string) {
     setDraft((prev) => ({ ...prev, nickname }));
@@ -50,7 +54,7 @@ export function AvatarSelectionPage() {
 
   function confirm(event: FormEvent) {
     event.preventDefault();
-    if (ready) navigate('/signup/resume-guide', { state: draft });
+    if (ready) navigate(signupPaths.resume, { state });
   }
 
   return (

@@ -132,7 +132,9 @@ function LobbyView({
 
   const closeNotice = () => setIsNoticeOpen(false);
   const enterWaitingRoom = () =>
-    navigate(interviewPaths.waitingRoom(interviewMock.id, { role }));
+    navigate(interviewPaths.waitingRoom(interviewMock.id, { role }), {
+      state: { fromDemoLobby: true },
+    });
   const openKiosk = () => navigate(reservationPaths.rooms);
   const viewReservation = () => setIsDetailOpen(true);
 

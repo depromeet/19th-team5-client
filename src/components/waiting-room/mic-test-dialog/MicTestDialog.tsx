@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Button, Dialog, Pulse } from '@/components/common';
 import { AvatarPortrait } from '@/components/interview';
 import { useNow } from '@/hooks/common/useNow';
@@ -11,6 +12,7 @@ type MicTestDialogProps = {
   isOpen: boolean;
   microphone: RoomMicrophone;
   onComplete: () => void;
+  exitAction?: ReactNode;
 };
 
 /**
@@ -21,6 +23,7 @@ export function MicTestDialog({
   isOpen,
   microphone,
   onComplete,
+  exitAction,
 }: MicTestDialogProps) {
   const { status, stream, liveSince, devices, deviceId, inputLabel } =
     microphone;
@@ -75,6 +78,7 @@ export function MicTestDialog({
         />
       </Dialog.Body>
       <Dialog.Footer>
+        {exitAction}
         <Button
           size='large'
           display='block'

@@ -10,16 +10,14 @@ import {
 } from '@/components/common';
 import { reservationPaths } from '@/constants/common/paths';
 import { useNow } from '@/hooks/common/useNow';
-import {
-  remainingRequests,
-  useReservationStore,
-} from '@/stores/reservation/reservationStore';
+import { useReservationStore } from '@/stores/reservation/reservationStore';
 import type { RoomRequestDraft } from '@/types/reservation';
 import {
   formatRoomDate,
   hourLabel,
   nextRequestWeek,
   reasonLimit,
+  remainingRequests,
   requestHours,
   requestJobs,
   validRoomRequest,
@@ -27,7 +25,7 @@ import {
 } from '@/utils/reservation';
 import * as styles from '../reservation.css';
 
-type RequestResult = 'submitted' | 'limit' | null;
+type RequestResult = 'submitted' | 'limit' | 'error' | null;
 
 const emptyDraft: RoomRequestDraft = {
   title: '',
@@ -43,6 +41,7 @@ export function RoomRequestForm() {
   const requestRoom = useReservationStore((state) => state.requestRoom);
   const [draft, setDraft] = useState(emptyDraft);
   const [result, setResult] = useState<RequestResult>(null);
+  const [pending, setPending] = useState(false);
   const remaining = remainingRequests(requests, now);
   const quotaReached = remaining === 0;
   const time = draft.hour === null ? '미선택' : hourLabel(draft.hour);
@@ -54,9 +53,13 @@ export function RoomRequestForm() {
     <>
       <form
         className={styles.columns}
-        onSubmit={(event) => {
+        aria-busy={pending}
+        onSubmit={async (event) => {
           event.preventDefault();
-          const response = requestRoom(draft);
+          if (pending) return;
+          setPending(true);
+          const response = await requestRoom(draft);
+          setPending(false);
           if (response !== 'invalid') setResult(response);
         }}
       >
@@ -159,7 +162,7 @@ export function RoomRequestForm() {
               <Button
                 type='submit'
                 size='large'
-                disabled={!validRoomRequest(draft)}
+                disabled={pending || !validRoomRequest(draft)}
               >
                 {draft.hour !== null && draft.job
                   ? `${time} · ${draft.job} 방 요청하기`
@@ -182,20 +185,26 @@ export function RoomRequestForm() {
         onCancel={close}
       >
         <Dialog.Header>
-          {result === 'limit'
-            ? '이번 주 요청권은 여기까지'
-            : '개설 요청을 접수했어요'}
+          {result === 'error'
+            ? '개설 요청을 저장하지 못했어요'
+            : result === 'limit'
+              ? '이번 주 요청권은 여기까지'
+              : '개설 요청을 접수했어요'}
         </Dialog.Header>
         <Dialog.Description>
-          {result === 'limit'
-            ? '개설 요청은 일주일에 2번까지 할 수 있어요.'
-            : `${draft.title.trim()} · ${time} · ${draft.job}`}
+          {result === 'error'
+            ? '다시 시도해 주세요.'
+            : result === 'limit'
+              ? `개설 요청은 일주일에 ${weeklyRequestLimit}번까지 할 수 있어요.`
+              : `${draft.title.trim()} · ${time} · ${draft.job}`}
         </Dialog.Description>
-        <Dialog.Body className={styles.info}>
-          {result === 'limit'
-            ? `다음 요청 가능 시간은 ${formatRoomDate(nextRequestWeek(now))} 0시예요.`
-            : '방이 열린 후 참여할 역할을 선택해 주세요.'}
-        </Dialog.Body>
+        {result !== 'error' && (
+          <Dialog.Body className={styles.info}>
+            {result === 'limit'
+              ? `다음 요청 가능 시간은 ${formatRoomDate(nextRequestWeek(now))} 0시예요.`
+              : '방이 열린 후 참여할 역할을 선택해 주세요.'}
+          </Dialog.Body>
+        )}
         <Dialog.Footer>
           <Button display='block' variant='secondary' onClick={close}>
             닫기

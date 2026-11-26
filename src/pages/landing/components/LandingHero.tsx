@@ -8,13 +8,20 @@ import { authApi } from '@/apis/AuthApi';
 import { button } from '@/components/common/button/button.css';
 import * as navStyles from '@/components/common/gnb/gnb.css';
 import { gnbLabels } from '@/constants/common/gnbLabels';
+import { useSignupProgress } from '@/hooks/signup/useSignupProgress';
 import { useAuthStore } from '@/stores/AuthStore';
+import { getSignupResumePath } from '@/utils/signup/avatarDraft';
 import * as styles from './LandingHero.css';
 
 export function LandingHero({ waitingRoomTo }: { waitingRoomTo: string }) {
   const hero = useRef<HTMLElement>(null);
   const [pastHero, setPastHero] = useState(false);
   const email = useAuthStore((state) => state.email);
+  const signupProgress = useSignupProgress(email);
+  const resumeSignupTo =
+    email && signupProgress.data && !signupProgress.data.pass
+      ? getSignupResumePath(signupProgress.data.avatar)
+      : null;
   const labels = gnbLabels.guest;
 
   useEffect(() => {
@@ -46,6 +53,11 @@ export function LandingHero({ waitingRoomTo }: { waitingRoomTo: string }) {
             {email === null && (
               <Link className={styles.login} to='/login'>
                 {labels.login}
+              </Link>
+            )}
+            {resumeSignupTo && (
+              <Link className={styles.login} to={resumeSignupTo}>
+                가입 이어하기
               </Link>
             )}
           </nav>
@@ -83,9 +95,6 @@ export function LandingHero({ waitingRoomTo }: { waitingRoomTo: string }) {
               면접방 입장하기
             </Link>
           </div>
-          <Link className={styles.navItem} to='/signup/avatar'>
-            가입 · 아바타 만들기
-          </Link>
           {email === null ? (
             <p className={styles.heroNote}>
               로그인 없이 로비부터 둘러볼 수 있어요.

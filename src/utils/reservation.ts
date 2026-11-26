@@ -1,13 +1,16 @@
+import { reservationPaths } from '@/constants/common/paths';
 import type { InterviewRole } from '@/types/interview/interview';
 import type {
   InterviewRoom,
   Reservation,
+  RoomRequest,
   RoomRequestDraft,
 } from '@/types/reservation';
 
 export const minute = 60_000;
 export const preparationLeadTime = 60 * minute;
 export const waitingRoomLeadTime = 15 * minute;
+export const interviewDuration = 30 * minute;
 export const seatsPerRole = 2;
 const day = 24 * 60 * minute;
 const seoulOffset = 9 * 60 * minute;
@@ -54,6 +57,27 @@ export function canPrepareQuestions(
   return role === 'interviewer' && (phase === 'locked' || phase === 'open');
 }
 
+export function canManageReservation(startsAt: number, now: number) {
+  return reservationPhase(startsAt, now) === 'reserved';
+}
+
+export function getReservationReturnTo(state: unknown) {
+  if (!state || typeof state !== 'object' || !('reservationReturnTo' in state))
+    return undefined;
+  const { reservationReturnTo } = state;
+  if (typeof reservationReturnTo !== 'string') return undefined;
+  const [pathname] = reservationReturnTo.split(/[?#]/, 1);
+  if (
+    pathname === reservationPaths.rooms ||
+    pathname === reservationPaths.request ||
+    pathname === reservationPaths.mine ||
+    pathname === reservationPaths.notifications ||
+    /^\/reservations\/rooms\/[^/\\]+$/.test(pathname)
+  ) {
+    return reservationReturnTo;
+  }
+}
+
 export function upcomingBookings(
   rooms: InterviewRoom[],
   reservations: Reservation[],
@@ -84,6 +108,17 @@ export function requestWeekStart(timestamp: number) {
 
 export function nextRequestWeek(timestamp: number) {
   return requestWeekStart(timestamp) + 7 * day;
+}
+
+export function remainingRequests(requests: RoomRequest[], now: number) {
+  const start = requestWeekStart(now);
+  return Math.max(
+    0,
+    weeklyRequestLimit -
+      requests.filter(
+        (request) => requestWeekStart(request.submittedAt) === start,
+      ).length,
+  );
 }
 
 export function validRoomRequest(draft: RoomRequestDraft) {

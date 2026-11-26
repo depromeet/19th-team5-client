@@ -1,11 +1,11 @@
 import { expect, test } from '@playwright/test';
+import { chooseAvatar, skipResume, submitSignup } from './support/signup.ts';
+import { waitingRoom } from './support/waitingRoom.ts';
 
 test.beforeEach(async ({ page }) => {
-  await page.goto('/signup/avatar');
-  await page.getByRole('textbox', { name: '닉네임' }).fill('검증수달');
-  await page.getByRole('radio', { name: '남자 아바타' }).press('Space');
-  await page.getByRole('button', { name: '이 모습으로 할게요' }).click();
-  await expect(page).toHaveURL(/\/signup\/resume-guide$/);
+  await page.goto('/signup');
+  await submitSignup(page);
+  await chooseAvatar(page);
 });
 
 test('3D 텍스처를 기다리는 동안 발급된 방문증을 보여주고 준비되면 전환한다', async ({
@@ -28,7 +28,7 @@ test('3D 텍스처를 기다리는 동안 발급된 방문증을 보여주고 �
   const card = preview.locator('[data-pass-card="visitor-L"]');
   const scene = preview.locator('canvas[data-pass3d]');
   try {
-    await page.getByRole('button', { name: '건너뛰기' }).click();
+    await skipResume(page);
     await request;
     await expect(card).toBeVisible();
     await expect(card).toHaveJSProperty('naturalWidth', 864);
@@ -50,7 +50,7 @@ test('3D 모듈을 받지 못해도 가입 화면에 같은 방문증이 표시�
     blocked = true;
     await route.abort();
   });
-  await page.getByRole('button', { name: '건너뛰기' }).click();
+  await skipResume(page);
   await expect(
     page.getByRole('heading', { name: /출입증 나왔어요/ }),
   ).toBeVisible();
@@ -61,8 +61,8 @@ test('3D 모듈을 받지 못해도 가입 화면에 같은 방문증이 표시�
   await expect(card).toHaveJSProperty('complete', true);
   expect(blocked).toBe(true);
   await expect(
-    page.getByRole('button', { name: '로비로 입장하기' }),
-  ).toBeVisible();
+    page.getByRole('link', { name: '대기실 입장하기' }),
+  ).toHaveAttribute('href', waitingRoom('interviewee'));
 });
 
 test('WebGL을 사용할 수 없으면 정적 방문증의 사진과 비율을 유지한다', async ({
@@ -79,7 +79,7 @@ test('WebGL을 사용할 수 없으면 정적 방문증의 사진과 비율을 �
     });
   });
   const module = page.waitForResponse(/\/lanyard\/Lanyard\.jsx(?:\?.*)?$/);
-  await page.getByRole('button', { name: '건너뛰기' }).click();
+  await skipResume(page);
   await module;
   const card = page.locator(
     '[data-pass-fallback="webgl"] [data-pass-card="visitor-L"]',

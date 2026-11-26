@@ -1,4 +1,4 @@
-import type { Avatar } from '../../AvatarDraft';
+import type { Avatar } from '@/types/Signup';
 import * as styles from '../../Signup.css';
 
 export function ResumePreview({

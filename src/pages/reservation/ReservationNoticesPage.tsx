@@ -10,7 +10,7 @@ export function ReservationNoticesPage() {
   const notices = useOutletContext<RoomNotice[]>();
   const readNotices = useReservationStore((state) => state.readNotices);
   useEffect(() => {
-    readNotices(notices.map((notice) => notice.id));
+    void readNotices(notices.map((notice) => notice.id));
   }, [notices, readNotices]);
   return (
     <>

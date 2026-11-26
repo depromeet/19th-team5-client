@@ -1,4 +1,5 @@
 import { globalStyle, style } from '@vanilla-extract/css';
+import { button } from '@/components/common/button/button.css';
 import { color, radius, space, typography } from '@/styles/token';
 
 export const layout = style({
@@ -162,3 +163,8 @@ export const footer = style({
   marginTop: 'auto',
   paddingTop: space[24],
 });
+
+export const entryLink = style([
+  button({ size: 'large', display: 'block' }),
+  { textDecoration: 'none' },
+]);

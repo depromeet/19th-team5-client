@@ -46,7 +46,6 @@ export function HomePage() {
           </Button>
         ))}
       </div>
-      <Link to='/signup/avatar'>가입 · 아바타 만들기</Link>
       <Link to={reservationPaths.rooms}>면접방 예약</Link>
       <Link to='/write-review'>평가 작성</Link>
       <Link to='/received-review'>받은 리뷰</Link>

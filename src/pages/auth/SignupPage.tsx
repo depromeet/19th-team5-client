@@ -1,16 +1,20 @@
 import { useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useLocation } from 'react-router';
 import { authApi } from '@/apis/AuthApi';
 import { Button } from '@/components/common/button';
 import { Checkbox } from '@/components/common/checkbox';
 import { TextField } from '@/components/common/text-field';
+import { useAuthForm } from '@/hooks/auth/useAuthForm';
 import * as styles from './Auth.css';
 import { AuthLayout } from './AuthLayout';
 import { NewPasswordFields } from './components/NewPasswordFields';
-import { useAuthForm } from './useAuthForm';
 
 export function SignupPage() {
-  const { onSubmit, pending, failure, error } = useAuthForm(authApi.signup);
+  const { state } = useLocation();
+  const { onSubmit, pending, failure, error } = useAuthForm(
+    authApi.signup,
+    'signup',
+  );
   const [showTerms, setShowTerms] = useState(false);
 
   return (
@@ -66,7 +70,7 @@ export function SignupPage() {
           <p className={styles.error} role='alert'>
             {error}{' '}
             {failure === 'duplicate-email' && (
-              <Link to='/login' className={styles.link}>
+              <Link to='/login' state={state} className={styles.link}>
                 로그인
               </Link>
             )}

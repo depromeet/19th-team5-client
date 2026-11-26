@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 import { GNB } from '@/components/common/gnb';
 import { gnbLabels } from '@/constants/common/gnbLabels';
 import * as styles from './Auth.css';
@@ -16,15 +16,16 @@ export function AuthLayout({
   children: ReactNode;
 }) {
   const navigate = useNavigate();
+  const { state } = useLocation();
   return (
     <div className={styles.page}>
       <GNB
         variant='guest'
         labels={gnbLabels.guest}
-        lobbyTo='/'
+        lobbyTo='/lobby'
         aboutTo='/#service'
-        onLogin={() => navigate('/login')}
-        onEnter={() => navigate('/signup')}
+        onLogin={() => navigate('/login', { state })}
+        onEnter={() => navigate('/signup', { state })}
       />
       <main className={styles.main}>
         <section className={styles.card} aria-labelledby='auth-heading'>

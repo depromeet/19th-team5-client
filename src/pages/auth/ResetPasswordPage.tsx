@@ -3,6 +3,7 @@ import {
   Form,
   Link,
   useActionData,
+  useLocation,
   useNavigation,
 } from 'react-router';
 import { authApi } from '@/apis/AuthApi';
@@ -31,13 +32,14 @@ export function ResetPasswordPage() {
   const ticket = useAuthStore((state) => state.resetTicket);
   const result = useActionData<typeof resetPasswordAction>();
   const pending = useNavigation().state !== 'idle';
+  const { state } = useLocation();
   if (result === 'success')
     return (
       <AuthLayout
         title='비밀번호를 변경했어요'
         description='새 비밀번호로 로그인해 주세요.'
       >
-        <Link className={styles.link} to='/login' replace>
+        <Link className={styles.link} to='/login' state={state} replace>
           로그인하기
         </Link>
       </AuthLayout>
@@ -48,7 +50,12 @@ export function ResetPasswordPage() {
         title='재설정 링크를 사용할 수 없어요'
         description='가입한 이메일로 새 링크를 요청해 주세요.'
       >
-        <Link className={styles.link} to='/forgot-password' replace>
+        <Link
+          className={styles.link}
+          to='/forgot-password'
+          state={state}
+          replace
+        >
           새 링크 요청하기
         </Link>
       </AuthLayout>
@@ -58,7 +65,7 @@ export function ResetPasswordPage() {
       title='새 비밀번호 설정'
       description='로그인에 사용할 새 비밀번호를 입력해 주세요.'
     >
-      <Form method='post' aria-busy={pending}>
+      <Form method='post' state={state} aria-busy={pending}>
         <input type='hidden' name='requestId' value={ticket.id} />
         <div className={styles.fields}>
           <NewPasswordFields label='새 비밀번호' />
@@ -78,7 +85,7 @@ export function ResetPasswordPage() {
         )}
       </Form>
       <div className={styles.links}>
-        <Link className={styles.link} to='/login'>
+        <Link className={styles.link} to='/login' state={state}>
           로그인으로 돌아가기
         </Link>
       </div>

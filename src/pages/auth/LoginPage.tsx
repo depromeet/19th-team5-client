@@ -1,14 +1,15 @@
-import { Link } from 'react-router';
+import { Link, useLocation } from 'react-router';
 import { authApi } from '@/apis/AuthApi';
 import logo from '@/assets/icons/auth-logo.svg';
 import { Button } from '@/components/common/button';
 import { TextField } from '@/components/common/text-field';
+import { useAuthForm } from '@/hooks/auth/useAuthForm';
 import * as styles from './Auth.css';
 import { AuthLayout } from './AuthLayout';
-import { useAuthForm } from './useAuthForm';
 
 export function LoginPage() {
-  const { onSubmit, pending, error } = useAuthForm(authApi.login);
+  const { state } = useLocation();
+  const { onSubmit, pending, error } = useAuthForm(authApi.login, 'login');
   return (
     <AuthLayout
       brand={
@@ -57,11 +58,11 @@ export function LoginPage() {
         )}
       </form>
       <div className={styles.links}>
-        <Link className={styles.link} to='/signup'>
+        <Link className={styles.link} to='/signup' state={state}>
           회원가입
         </Link>
         <span aria-hidden='true'>·</span>
-        <Link className={styles.link} to='/forgot-password'>
+        <Link className={styles.link} to='/forgot-password' state={state}>
           비밀번호 찾기
         </Link>
       </div>
