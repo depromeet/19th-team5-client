@@ -24,3 +24,15 @@ export function toDurationString(totalSeconds: number) {
   const { minutes, seconds } = splitSeconds(totalSeconds);
   return `PT${minutes}M${seconds}S`;
 }
+
+/**
+ * 초를 "1분 30초"처럼 읽는 길이로 만든다. 0인 단위는 쓰지 않는다.
+ * @example formatDurationLabel(600) // '10분'
+ * @example formatDurationLabel(90) // '1분 30초'
+ * @example formatDurationLabel(45) // '45초'
+ */
+export function formatDurationLabel(totalSeconds: number) {
+  const { minutes, seconds } = splitSeconds(totalSeconds);
+  if (minutes === 0) return `${seconds}초`;
+  return seconds === 0 ? `${minutes}분` : `${minutes}분 ${seconds}초`;
+}

@@ -4,7 +4,7 @@ import {
 } from '@karrotmarket/react-monochrome-icon';
 import { useState } from 'react';
 import { BottomSheet, Button } from '@/components/common';
-import { useDisclosure } from '@/hooks/useDisclosure';
+import { useDisclosure } from '@/hooks/common/useDisclosure';
 import * as shared from './bottomSheet.stories.css';
 import * as styles from './npcConversationExample.css';
 import { QuestionNavigation } from './QuestionNavigation';

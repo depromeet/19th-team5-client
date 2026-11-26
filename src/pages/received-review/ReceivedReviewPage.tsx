@@ -2,7 +2,7 @@ import { GNB } from '@/components/common/gnb';
 import { PageHeading } from '@/components/review/PageHeading';
 import * as styles from '@/components/review/Review.css';
 import { ReviewLayout } from '@/components/review/ReviewLayout';
-import { gnbLabels } from '@/constants/gnbLabels';
+import { gnbLabels } from '@/constants/common/gnbLabels';
 import { receivedReviewData as review } from '@/mocks/review/ReceivedReviewData';
 import { ResultComments } from './components/ResultComments';
 import { ResultKeywords } from './components/ResultKeywords';

@@ -1,0 +1,163 @@
+import { useReducer, useState } from 'react';
+import { useNavigate, useParams } from 'react-router';
+import { GNB } from '@/components/common';
+import { QuestionSheetOverlay } from '@/components/question-sheet';
+import { InteractionPrompt, SpaceShell } from '@/components/space';
+import {
+  ConnectionLostDialog,
+  MicDock,
+  MicPermissionDialog,
+  MicTestDialog,
+  NpcPracticeSheet,
+  ParticipantsPanel,
+  RoomStatus,
+  type WaitingRoomInteractable,
+  WaitingRoomScene,
+} from '@/components/waiting-room';
+import { gnbLabels } from '@/constants/common/gnbLabels';
+import { interviewPaths } from '@/constants/common/paths';
+import { shortcuts } from '@/constants/space/shortcuts';
+import { useNetworkStatus } from '@/hooks/common/useNetworkStatus';
+import { useKeyboardShortcut } from '@/hooks/space/useKeyboardShortcut';
+import { useRoomMicrophone } from '@/hooks/waiting-room/useRoomMicrophone';
+import { interviewMock, mockCountdowns } from '@/mocks/interview/interview';
+import { useMockCountdown } from '@/mocks/interview/useMockCountdown';
+import { usePrototypeParams } from '@/mocks/interview/usePrototypeParams';
+import { candidates } from '@/mocks/question-sheet/candidates';
+import { npc, npcQuestions } from '@/mocks/waiting-room/npc';
+import { getRoomParticipants } from '@/mocks/waiting-room/participants';
+import { visuallyHidden } from '@/styles/a11y.css';
+import type { InterviewRole } from '@/types/interview/interview';
+import * as styles from './waitingRoomPage.css';
+
+const roomCapacity =
+  interviewMock.headcount.interviewee + interviewMock.headcount.interviewer;
+
+export function WaitingRoomPage() {
+  const { interviewId = interviewMock.id } = useParams();
+  const { role } = usePrototypeParams();
+  // 역할이 바뀌면 마이크 테스트부터 다시 시작한다.
+  return <WaitingRoom key={role} interviewId={interviewId} role={role} />;
+}
+
+/**
+ * 면접자·면접관이 함께 쓰는 대기실. 공통으로 마이크 테스트, 참가자, 남은 시간, 연결 끊김을 다루고
+ * 면접자는 김대리와 연습, 면접관은 2부 질문지를 연다.
+ */
+function WaitingRoom({
+  interviewId,
+  role,
+}: {
+  interviewId: string;
+  role: InterviewRole;
+}) {
+  const navigate = useNavigate();
+  const microphone = useRoomMicrophone();
+  const isOnline = useNetworkStatus();
+  // 다시 연결하기: 실시간 연결이 없는 프로토타입에서는 연결 상태를 다시 읽기만 한다.
+  const [, recheckConnection] = useReducer((count: number) => count + 1, 0);
+  const untilStart = useMockCountdown('until-start', mockCountdowns.untilStart);
+  const [isMicReady, setIsMicReady] = useState(false);
+  const [nearby, setNearby] = useState<WaitingRoomInteractable | null>(null);
+  const [panel, setPanel] = useState<'npc' | 'questions' | null>(null);
+
+  const isInterviewer = role === 'interviewer';
+  const participants = getRoomParticipants(role, isMicReady);
+  const isMicOn = microphone.status === 'live' && !microphone.isMuted;
+  // 다이얼로그·시트가 하나도 없을 때만 단축키와 상호작용 안내를 쓴다.
+  const isRoomFocused = isMicReady && panel === null && isOnline;
+  const canTalkToNpc = !isInterviewer && nearby === 'npc';
+
+  const openNpc = () => setPanel('npc');
+  const openQuestionSheet = () => setPanel('questions');
+  const closePanel = () => setPanel(null);
+  const leaveRoom = () =>
+    navigate(interviewPaths.lobby({ role, phase: 'open' }));
+
+  useKeyboardShortcut(
+    shortcuts.interact,
+    openNpc,
+    isRoomFocused && canTalkToNpc,
+  );
+  useKeyboardShortcut(
+    shortcuts.questionSheet,
+    openQuestionSheet,
+    isRoomFocused && isInterviewer,
+  );
+
+  return (
+    <>
+      <SpaceShell
+        header={<GNB variant='waiting' labels={gnbLabels.waiting} />}
+        scene={<WaitingRoomScene onNearbyChange={setNearby} />}
+      >
+        <h1 className={visuallyHidden}>면접 대기실</h1>
+        <ParticipantsPanel
+          className={styles.participants}
+          participants={participants}
+          capacity={roomCapacity}
+        />
+        <RoomStatus
+          className={styles.status}
+          title={interviewMock.roomTitle}
+          remainingSeconds={untilStart}
+        />
+        {isRoomFocused && canTalkToNpc && (
+          <InteractionPrompt
+            className={styles.npcPrompt}
+            shortcut={shortcuts.interact}
+            label='김대리에게 말 걸기'
+            onClick={openNpc}
+          />
+        )}
+        <MicDock
+          className={styles.dock}
+          isMicOn={isMicOn}
+          onToggleMic={
+            microphone.status === 'live'
+              ? microphone.toggleMute
+              : microphone.retry
+          }
+          onOpenQuestionSheet={isInterviewer ? openQuestionSheet : undefined}
+        />
+      </SpaceShell>
+
+      <MicTestDialog
+        isOpen={!isMicReady && !microphone.isPermissionDenied}
+        microphone={microphone}
+        onComplete={() => setIsMicReady(true)}
+      />
+      <MicPermissionDialog
+        isOpen={!isMicReady && microphone.isPermissionDenied}
+        isChecking={microphone.status === 'requesting'}
+        onRetry={microphone.retry}
+      />
+      {isInterviewer ? (
+        <QuestionSheetOverlay
+          isOpen={panel === 'questions'}
+          interviewId={interviewId}
+          candidates={candidates}
+          timerLabel='시작까지'
+          remainingSeconds={untilStart}
+          exitLabel='저장하고 대기실로'
+          finishDescription='면접 시작 전까지 언제든 다시 고칠 수 있어요'
+          onClose={closePanel}
+        />
+      ) : (
+        <NpcPracticeSheet
+          isOpen={panel === 'npc'}
+          npc={npc}
+          questions={npcQuestions}
+          onClose={closePanel}
+        />
+      )}
+      {!isOnline && (
+        <ConnectionLostDialog
+          rejoinSeconds={mockCountdowns.rejoin}
+          onLeave={leaveRoom}
+          onReconnect={recheckConnection}
+        />
+      )}
+    </>
+  );
+}

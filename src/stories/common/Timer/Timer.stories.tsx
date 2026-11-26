@@ -7,6 +7,7 @@ const meta = {
   component: Timer,
   argTypes: {
     seconds: { control: 'number', description: '표시할 시간(초)' },
+    label: { control: 'text', description: '시간 앞에 붙는 문구' },
     tone: {
       control: 'inline-radio',
       options: ['live', 'default', 'dark'],
@@ -34,6 +35,10 @@ export const Tones: Story = {
       <Timer {...args} tone='dark' />
     </div>
   ),
+};
+
+export const WithLabel: Story = {
+  args: { tone: 'dark', label: '시작까지', seconds: 600 },
 };
 
 export const Running: Story = {

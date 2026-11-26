@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Button } from '@/components/common/button/Button';
 import { Dialog } from '@/components/common/dialog/Dialog';
-import { useDisclosure } from '@/hooks/useDisclosure';
+import { useDisclosure } from '@/hooks/common/useDisclosure';
 
 const meta = {
   title: 'Components/Dialog',
