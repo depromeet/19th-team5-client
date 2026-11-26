@@ -48,6 +48,16 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+export const Password: Story = {
+  name: '비밀번호 표시 전환',
+  args: {
+    type: 'password',
+    label: '비밀번호',
+    showCount: false,
+    autoComplete: 'new-password',
+  },
+};
+
 export const FormattedInputs: Story = {
   name: '날짜 · 시간 · 전화번호 자동 입력',
   render: () => (

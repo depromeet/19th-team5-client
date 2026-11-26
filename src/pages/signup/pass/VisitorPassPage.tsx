@@ -1,4 +1,5 @@
-import { Navigate, useLocation } from 'react-router';
+import { Navigate, useLocation, useNavigate } from 'react-router';
+import { authApi } from '@/apis/AuthApi';
 import { Button } from '@/components/common/button';
 import { Tag } from '@/components/common/tag';
 import type { PassProgress } from '@/types/Signup';
@@ -29,6 +30,8 @@ export function VisitorPassPage() {
   const [draft] = useAvatarDraft();
   const { passLevels, initialPassProgress } = useSignupOptions();
   const { state } = useLocation();
+  const navigate = useNavigate();
+  const signedIn = authApi.currentEmail() !== null;
   const issued = initialDraft(state);
   if (
     !isComplete(issued) ||
@@ -101,7 +104,12 @@ export function VisitorPassPage() {
           </div>
         </dl>
         <div className={s.footer}>
-          <Button size='large' display='block' aria-disabled='true'>
+          <Button
+            size='large'
+            display='block'
+            disabled={!signedIn}
+            onClick={() => navigate('/')}
+          >
             로비로 입장하기
           </Button>
         </div>
