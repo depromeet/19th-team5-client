@@ -1,5 +1,7 @@
-import { Link } from 'react-router';
+import { Link, ScrollRestoration } from 'react-router';
 import { button } from '@/components/common/button/button.css';
+import { interviewPaths } from '@/constants/common/paths';
+import { interviewMock } from '@/mocks/interview/interview';
 import { InterviewFeatures } from './components/InterviewFeatures';
 import { InterviewSteps } from './components/InterviewSteps';
 import { LandingFaq } from './components/LandingFaq';
@@ -11,11 +13,16 @@ import { RolePasses } from './components/RolePasses';
 import { ServiceOverview } from './components/ServiceOverview';
 import * as styles from './HomePage.css';
 
+const waitingRoomTo = interviewPaths.waitingRoom(interviewMock.id, {
+  role: 'interviewee',
+});
+
 export function HomePage() {
   return (
     <main className={styles.page}>
       <title>MOING | 아바타 모의면접</title>
-      <LandingHero />
+      <ScrollRestoration />
+      <LandingHero waitingRoomTo={waitingRoomTo} />
       <InterviewSteps />
       <PeerInterviews />
       <InterviewFeatures />
@@ -28,7 +35,7 @@ export function HomePage() {
         <h2 className={styles.title}>오늘 열린 면접방에 입장해 보세요</h2>
         <Link
           className={button({ variant: 'outline', size: 'large' })}
-          to='/waiting-room'
+          to={waitingRoomTo}
         >
           입장하기
         </Link>

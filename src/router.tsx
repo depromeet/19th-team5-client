@@ -11,8 +11,9 @@ import {
   resetPasswordAction,
 } from '@/pages/auth/ResetPasswordPage';
 import { SignupPage } from '@/pages/auth/SignupPage';
-import { HomePage } from '@/pages/home/HomePage';
+import { HomePage as PrototypeHomePage } from '@/pages/home/HomePage';
 import { InterviewRoomPage } from '@/pages/interview-room/InterviewRoomPage';
+import { HomePage } from '@/pages/landing/HomePage';
 import { LobbyPage } from '@/pages/lobby/LobbyPage';
 import { AvatarSelectionPage } from '@/pages/signup/avatar/AvatarSelectionPage';
 import { VisitorPassPage } from '@/pages/signup/pass/VisitorPassPage';
@@ -24,6 +25,7 @@ import { queryClient } from '@/queries/queryClient';
 
 export const router = createBrowserRouter([
   { path: '/', Component: HomePage },
+  { path: '/prototype', Component: PrototypeHomePage },
   { path: '/login', Component: LoginPage },
   {
     path: '/forgot-password',

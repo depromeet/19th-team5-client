@@ -22,7 +22,7 @@ export function AuthLayout({
         variant='guest'
         labels={gnbLabels.guest}
         lobbyTo='/'
-        aboutTo='/#about'
+        aboutTo='/#service'
         onLogin={() => navigate('/login')}
         onEnter={() => navigate('/signup')}
       />

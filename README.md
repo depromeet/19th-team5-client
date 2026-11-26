@@ -20,6 +20,8 @@ pnpm test:e2e:install       # 최초 1회, Playwright 브라우저 설치
 pnpm dev                    # http://localhost:5173
 ```
 
+랜딩과 로그인·회원가입 진입점은 `/`에 있습니다. 역할별 로비와 리뷰 화면을 확인하는 프로토타입 홈은 `/prototype`에서 열 수 있습니다.
+
 ### 스크립트
 
 | 명령                   | 설명                                        |
