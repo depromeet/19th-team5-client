@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { button } from '@/components/common/button/button.css';
 import * as navStyles from '@/components/common/gnb/gnb.css';
-import { gnbLabels } from '@/constants/gnbLabels';
+import { gnbLabels } from '@/constants/common/gnbLabels';
 import * as styles from './LandingHero.css';
 
 export function LandingHero() {
