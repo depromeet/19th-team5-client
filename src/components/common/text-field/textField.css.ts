@@ -62,9 +62,31 @@ export const input = style({
   color: color.neutral[900],
   selectors: {
     '&::placeholder': { color: color.neutral[400] },
+    '&::-ms-reveal': { display: 'none' },
     '&:disabled': { color: color.neutral[300], cursor: 'not-allowed' },
     '&:disabled::placeholder': { color: color.neutral[300] },
   },
+});
+
+export const visibilityButton = style({
+  display: 'grid',
+  placeItems: 'center',
+  flexShrink: 0,
+  width: space[40],
+  height: space[40],
+  marginInlineEnd: `-${space[8]}`,
+  padding: 0,
+  border: 0,
+  borderRadius: radius[8],
+  color: color.neutral[600],
+  background: 'transparent',
+  cursor: 'pointer',
+  ':hover': { background: color.neutral[50] },
+  ':focus-visible': {
+    outline: `2px solid ${color.primary[500]}`,
+    outlineOffset: -2,
+  },
+  ':disabled': { color: color.neutral[300], cursor: 'not-allowed' },
 });
 
 export const count = style({

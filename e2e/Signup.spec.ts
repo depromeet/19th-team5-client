@@ -1,12 +1,44 @@
 import { expect, test } from '@playwright/test';
 
-test('가입 시작 주소를 아바타 주소로 교체하고 뒤로 가면 이전 페이지로 돌아간다', async ({
+test('가입 정보를 검증한 뒤 아바타로 이동하고 뒤로 가면 가입 폼으로 돌아간다', async ({
   page,
 }) => {
   await page.goto('/');
   await page.goto('/signup/?from=home#nickname');
+  await expect(
+    page.getByRole('heading', { name: '방문 출입증부터 만들어요' }),
+  ).toBeVisible();
+  await page
+    .getByRole('textbox', { name: '이메일' })
+    .fill('tester@example.com');
+  const password = page.getByPlaceholder('영문, 숫자 포함 8자 이상');
+  await password.fill('short');
+  await page.getByPlaceholder('비밀번호를 다시 입력해 주세요').fill('short');
+  const next = page.getByRole('button', { name: '다음' });
+  await next.click();
+  await expect(password).toBeFocused();
+  await password.fill('Example123');
+  await page.getByRole('checkbox').check();
+  await next.click();
+  await expect(page.getByText('비밀번호가 서로 달라요')).toBeVisible();
+  await expect(
+    page.getByPlaceholder('비밀번호를 다시 입력해 주세요'),
+  ).toBeFocused();
+  await page
+    .getByPlaceholder('비밀번호를 다시 입력해 주세요')
+    .fill('Example123');
+  await page.getByRole('checkbox').uncheck();
+  await next.click();
+  await expect(page.getByRole('checkbox')).toBeFocused();
+  await page.getByRole('checkbox').check();
+  await next.click();
   await expect(page).toHaveURL(/\/signup\/avatar\?from=home#nickname$/);
   await expect(page.getByRole('textbox', { name: '닉네임' })).toBeVisible();
+  await page.goBack();
+  await expect(
+    page.getByRole('heading', { name: '방문 출입증부터 만들어요' }),
+  ).toBeVisible();
+  await expect(password).toBeEmpty();
   await page.goBack();
   await expect(
     page.getByRole('link', { name: '가입 · 아바타 만들기' }),

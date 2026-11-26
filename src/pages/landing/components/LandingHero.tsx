@@ -4,14 +4,17 @@ import {
 } from '@karrotmarket/react-monochrome-icon';
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
+import { authApi } from '@/apis/AuthApi';
 import { button } from '@/components/common/button/button.css';
 import * as navStyles from '@/components/common/gnb/gnb.css';
-import { gnbLabels } from '@/constants/gnbLabels';
+import { gnbLabels } from '@/constants/common/gnbLabels';
+import { useAuthStore } from '@/stores/AuthStore';
 import * as styles from './LandingHero.css';
 
-export function LandingHero() {
+export function LandingHero({ waitingRoomTo }: { waitingRoomTo: string }) {
   const hero = useRef<HTMLElement>(null);
   const [pastHero, setPastHero] = useState(false);
+  const email = useAuthStore((state) => state.email);
   const labels = gnbLabels.guest;
 
   useEffect(() => {
@@ -40,17 +43,25 @@ export function LandingHero() {
             <a href='#service' className={styles.navItem}>
               {labels.about}
             </a>
-            <Link className={styles.login} to='/login'>
-              {labels.login}
-            </Link>
+            {email === null && (
+              <Link className={styles.login} to='/login'>
+                {labels.login}
+              </Link>
+            )}
           </nav>
-          <Link
-            className={styles.headerCta}
-            to='/signup'
-            aria-label={`${labels.enter} · 가입 · 아바타 만들기`}
-          >
-            {labels.enter}
-          </Link>
+          {email === null ? (
+            <Link className={styles.headerCta} to='/signup'>
+              회원가입
+            </Link>
+          ) : (
+            <button
+              type='button'
+              className={styles.headerCta}
+              onClick={authApi.logout}
+            >
+              로그아웃
+            </button>
+          )}
         </div>
       </header>
       <section id='top' ref={hero} tabIndex={-1} className={styles.hero}>
@@ -68,13 +79,22 @@ export function LandingHero() {
             <Link className={styles.browseButton} to='/lobby'>
               둘러보기
             </Link>
-            <Link className={button({ size: 'large' })} to='/waiting-room'>
+            <Link className={button({ size: 'large' })} to={waitingRoomTo}>
               면접방 입장하기
             </Link>
           </div>
-          <p className={styles.heroNote}>
-            로그인 없이 로비부터 둘러볼 수 있어요.
-          </p>
+          <Link className={styles.navItem} to='/signup/avatar'>
+            가입 · 아바타 만들기
+          </Link>
+          {email === null ? (
+            <p className={styles.heroNote}>
+              로그인 없이 로비부터 둘러볼 수 있어요.
+            </p>
+          ) : (
+            <p className={styles.heroNote} role='status'>
+              {email} 계정으로 로그인했어요.
+            </p>
+          )}
         </div>
         <a href='#how-it-works' className={styles.scrollHint}>
           서비스 소개
