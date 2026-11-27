@@ -1,9 +1,10 @@
 import type {
   InterviewPhase,
   InterviewRole,
+  InterviewTestTask,
 } from '@/types/interview/interview';
 
-type InterviewRoomParams = { role: InterviewRole; task?: '3' };
+type InterviewRoomParams = { role: InterviewRole; task?: InterviewTestTask };
 
 export const interviewPaths = {
   lobby: (params: { role: InterviewRole; phase: InterviewPhase }) =>

@@ -39,6 +39,7 @@ import {
   customQuestions,
 } from '@/mocks/interview-room/questions';
 import { mockSchedule } from '@/mocks/interview-room/schedule';
+import { task4CustomQuestions } from '@/mocks/interview-room/task4Questions';
 import {
   type MockInterviewSession,
   useMockInterviewSession,
@@ -46,7 +47,10 @@ import {
 import { startWriteReviewSession } from '@/mocks/review/WriteReviewSession';
 import { getRoomParticipants } from '@/mocks/waiting-room/participants';
 import { visuallyHidden } from '@/styles/a11y.css';
-import type { InterviewRole } from '@/types/interview/interview';
+import type {
+  InterviewRole,
+  InterviewTestTask,
+} from '@/types/interview/interview';
 import type { InterviewPart } from '@/types/interview-room/interviewRoom';
 import { formatTime, toDurationString } from '@/utils/formatTime';
 import { createInterviewResultNoticeState } from '@/utils/interview-room/resultNotice';
@@ -62,10 +66,11 @@ type InterviewRoomProps = { interviewId: string; role: InterviewRole };
 type InterviewRoomViewProps = InterviewRoomProps & {
   /** 프로토타입 면접인지. 면접자가 끝내고 로비로 가면 면접 결과 도착 카드를 띄운다. */
   isPrototype?: boolean;
-  isTask3?: boolean;
+  task?: InterviewTestTask;
 };
 type InterviewInProgressProps = InterviewRoomProps & {
   session: MockInterviewSession;
+  task?: InterviewTestTask;
   nearby: InterviewRoomInteractable | null;
   seatAnchor: ScreenAnchor;
 };
@@ -93,15 +98,15 @@ export function InterviewRoomPage() {
 function PrototypeInterviewRoom({
   interviewId,
 }: Pick<InterviewRoomProps, 'interviewId'>) {
-  const { role, isTask3 } = usePrototypeParams();
+  const { role, task } = usePrototypeParams();
   // 역할이나 UT 시나리오를 바꾸면 면접을 처음부터 다시 진행한다.
   return (
     <InterviewRoom
-      key={isTask3 ? 'task3' : role}
+      key={`${role}:${task ?? ''}`}
       interviewId={interviewId}
       role={role}
       isPrototype
-      isTask3={isTask3}
+      task={task}
     />
   );
 }
@@ -136,9 +141,9 @@ function InterviewRoom({
   interviewId,
   role,
   isPrototype = false,
-  isTask3 = false,
+  task,
 }: InterviewRoomViewProps) {
-  const session = useMockInterviewSession(role, isTask3);
+  const session = useMockInterviewSession(role, task);
   const [nearby, setNearby] = useState<InterviewRoomInteractable | null>(null);
   // 대기실에서 함께 기다린 사람들이 그대로 들어온다. 3D 면접장에서는 역할과 아바타만 쓴다.
   const [participants] = useState(() => getRoomParticipants(role, true));
@@ -165,6 +170,7 @@ function InterviewRoom({
           interviewId={interviewId}
           role={role}
           session={session}
+          task={task}
           nearby={nearby}
           seatAnchor={seatAnchor}
         />
@@ -178,6 +184,7 @@ function InterviewInProgress({
   interviewId,
   role,
   session,
+  task,
   nearby,
   seatAnchor,
 }: InterviewInProgressProps) {
@@ -185,6 +192,7 @@ function InterviewInProgress({
   const part = isInterviewPart(session.stage) ? session.stage : null;
   const isSeating = session.stage === 'seating';
   const canSit = isSeating && nearby === 'seat';
+  const isTask4 = task === '4';
 
   useKeyboardShortcut(shortcuts.interact, session.sit, canSit);
 
@@ -228,12 +236,12 @@ function InterviewInProgress({
       {role === 'interviewer' ? (
         part && (
           <InterviewerSheet
-            interviewId={interviewId}
+            interviewId={isTask4 ? `${interviewId}:task4` : interviewId}
             part={part}
             interviewees={interviewees}
             commonQuestions={commonQuestions}
-            customQuestions={customQuestions}
-            fallbackMemos={pastMemos}
+            customQuestions={isTask4 ? task4CustomQuestions : customQuestions}
+            fallbackMemos={isTask4 ? {} : pastMemos}
             dock={<InterviewDock {...dockProps} />}
             onSkipPart={session.skipPart}
             onFinish={session.finish}

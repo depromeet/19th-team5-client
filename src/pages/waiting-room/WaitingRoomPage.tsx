@@ -41,6 +41,7 @@ import {
   useMockWaitingCountdown,
 } from '@/mocks/interview/useMockCountdown';
 import { usePrototypeParams } from '@/mocks/interview/usePrototypeParams';
+import { task4CustomQuestions } from '@/mocks/interview-room/task4Questions';
 import { candidates } from '@/mocks/question-sheet/candidates';
 import {
   myAttachmentCount,
@@ -51,7 +52,10 @@ import { npc, npcQuestions } from '@/mocks/waiting-room/npc';
 import { getRoomParticipants } from '@/mocks/waiting-room/participants';
 import { useQuestionSheetStore } from '@/stores/question-sheet/questionSheetStore';
 import { visuallyHidden } from '@/styles/a11y.css';
-import type { InterviewRole } from '@/types/interview/interview';
+import type {
+  InterviewRole,
+  InterviewTestTask,
+} from '@/types/interview/interview';
 import {
   formatRoomTime,
   getReservationReturnTo,
@@ -67,7 +71,7 @@ type WaitingRoomProps = {
   title: string;
   untilStart: number;
   lobbyPath: string;
-  isTask3?: boolean;
+  task?: InterviewTestTask;
   exit?: { to: string; label: string };
 };
 type WaitingRoomEntryProps = Pick<WaitingRoomProps, 'interviewId'>;
@@ -88,7 +92,7 @@ export function WaitingRoomPage() {
 }
 
 function PrototypeWaitingRoom({ interviewId }: WaitingRoomEntryProps) {
-  const { role, isTask3 } = usePrototypeParams();
+  const { role, task } = usePrototypeParams();
   const { key, state } = useLocation();
   const untilStart = useMockWaitingCountdown(interviewId, role);
   const returnTo = getReservationReturnTo(state);
@@ -97,7 +101,7 @@ function PrototypeWaitingRoom({ interviewId }: WaitingRoomEntryProps) {
       key={`${interviewId}-${role}-${key}`}
       interviewId={interviewId}
       role={role}
-      isTask3={isTask3}
+      task={task}
       title={interviewMock.roomTitle}
       untilStart={untilStart}
       lobbyPath={interviewPaths.lobby({ role, phase: 'open' })}
@@ -166,7 +170,7 @@ function WaitingRoom({
   title,
   untilStart,
   lobbyPath,
-  isTask3 = false,
+  task,
   exit,
 }: WaitingRoomProps) {
   const navigate = useNavigate();
@@ -188,7 +192,7 @@ function WaitingRoom({
   const isStarting = countdownFrom !== null;
 
   const isInterviewer = role === 'interviewer';
-  const resume = isTask3 ? task3Resume : myResume;
+  const resume = task === '3' ? task3Resume : myResume;
   const participants = getRoomParticipants(role, isMicReady);
   const isMicOn = microphone.status === 'live' && !microphone.isMuted;
   // 다이얼로그·시트가 하나도 없을 때만 단축키와 상호작용 안내를 쓴다.
@@ -197,10 +201,21 @@ function WaitingRoom({
   const questionSheet = useQuestionSheetStore(
     (state) => state.sheets[interviewId],
   );
-  // 면접자 순서대로 이어 붙여 미리보기에 쓴다.
-  const writtenQuestions = candidates.flatMap(({ id }) =>
-    (questionSheet?.[id] ?? []).filter(({ text }) => text.trim()),
+  const savedQuestionsByCandidate = Object.fromEntries(
+    candidates.map(({ id }) => [
+      id,
+      (questionSheet?.[id] ?? []).filter(({ text }) => text.trim()),
+    ]),
   );
+  const hasSavedQuestions = Object.values(savedQuestionsByCandidate).some(
+    (questions) => questions.length > 0,
+  );
+  const questionsByCandidate =
+    task === '4' && !hasSavedQuestions
+      ? task4CustomQuestions
+      : savedQuestionsByCandidate;
+  // 면접자 순서대로 이어 붙여 미리보기에 쓴다.
+  const writtenQuestions = Object.values(questionsByCandidate).flat();
 
   const openNpc = () => setPanel('npc');
   const openDocument = () => setPanel('document');
@@ -221,7 +236,7 @@ function WaitingRoom({
     navigateOut(
       interviewPaths.interviewRoom(
         interviewId,
-        isTask3 ? { role, task: '3' } : { role },
+        task ? { role, task } : { role },
       ),
       true,
     );
@@ -352,7 +367,7 @@ function WaitingRoom({
       {isInterviewer ? (
         <WrittenQuestionsOverlay
           isOpen={!isStarting && panel === 'document'}
-          interviewId={interviewId}
+          questionsByCandidate={questionsByCandidate}
           candidates={candidates}
           remainingSeconds={untilStart}
           onClose={closePanel}

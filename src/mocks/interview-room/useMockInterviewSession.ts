@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import { interviewParts } from '@/constants/interview-room/parts';
 import { useNow } from '@/hooks/common/useNow';
-import type { InterviewRole } from '@/types/interview/interview';
+import type {
+  InterviewRole,
+  InterviewTestTask,
+} from '@/types/interview/interview';
 import type {
   InterviewPart,
   InterviewRoomStage,
@@ -10,7 +13,7 @@ import type { ReceivedQuestion } from '@/types/interview-room/question';
 import { isInterviewPart } from '@/utils/interview-room/stage';
 import { secondsBetween } from '@/utils/time';
 import { receivedQuestions, task3ReceivedQuestions } from './questions';
-import { mockSchedule, task3PartSeconds } from './schedule';
+import { mockSchedule, task3PartSeconds, task4PartSeconds } from './schedule';
 
 type StageEntry = { stage: InterviewRoomStage; startedAt: number };
 type PartSeconds = Readonly<Record<InterviewPart, number>>;
@@ -71,9 +74,17 @@ function getTotalRemainingSeconds(
  * 면접관은 미리 앉아 있다고 보고 들어오자마자 1부를 시작한다.
  * API가 생기면 같은 모양을 돌려주는 실시간 훅으로 바꾼다.
  */
-export function useMockInterviewSession(role: InterviewRole, isTask3: boolean) {
-  const partSeconds = isTask3 ? task3PartSeconds : mockSchedule.partSeconds;
-  const questions = isTask3 ? task3ReceivedQuestions : receivedQuestions;
+export function useMockInterviewSession(
+  role: InterviewRole,
+  task?: InterviewTestTask,
+) {
+  const partSeconds =
+    task === '4'
+      ? task4PartSeconds
+      : task === '3'
+        ? task3PartSeconds
+        : mockSchedule.partSeconds;
+  const questions = task === '3' ? task3ReceivedQuestions : receivedQuestions;
   const [entry, setEntry] = useState<StageEntry>(() => ({
     stage: role === 'interviewer' ? 'common' : 'seating',
     startedAt: Date.now(),

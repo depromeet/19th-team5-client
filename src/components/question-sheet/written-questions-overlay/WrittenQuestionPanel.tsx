@@ -1,21 +1,18 @@
 import { useId } from 'react';
-import { useCandidateQuestions } from '@/hooks/question-sheet/useCandidateQuestions';
+import type { QuestionDraft } from '@/types/question-sheet/questionDraft';
 import * as styles from './writtenQuestionPanel.css';
 
-type WrittenQuestionPanelProps = {
-  interviewId: string;
-  candidateId: string;
+type WrittenQuestion = Omit<QuestionDraft, 'answerGuide'> & {
+  answerGuide?: string;
 };
 
 /** 면접자 한 명에게 쓴 2부 질문. 질문 의도와 모범 답변 방향을 함께 보여준다. */
 export function WrittenQuestionPanel({
-  interviewId,
-  candidateId,
-}: WrittenQuestionPanelProps) {
+  questions,
+}: {
+  questions: readonly WrittenQuestion[];
+}) {
   const headingId = useId();
-  const questions = useCandidateQuestions(interviewId, candidateId).filter(
-    ({ text }) => text.trim(),
-  );
 
   return (
     <section className={styles.panel} aria-labelledby={headingId}>
@@ -37,7 +34,7 @@ export function WrittenQuestionPanel({
                 <span className={styles.number}>{index + 1}</span>
                 {question.text}
               </p>
-              {(question.intent.trim() || question.answerGuide.trim()) && (
+              {(question.intent.trim() || question.answerGuide?.trim()) && (
                 <dl className={styles.details}>
                   {question.intent.trim() && (
                     <div className={styles.detail}>
@@ -45,7 +42,7 @@ export function WrittenQuestionPanel({
                       <dd className={styles.detailText}>{question.intent}</dd>
                     </div>
                   )}
-                  {question.answerGuide.trim() && (
+                  {question.answerGuide?.trim() && (
                     <div className={styles.detail}>
                       <dt className={styles.detailLabel}>모범 답변 방향</dt>
                       <dd className={styles.detailText}>
