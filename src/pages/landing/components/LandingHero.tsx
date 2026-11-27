@@ -16,7 +16,7 @@ import { getSignupResumePath } from '@/utils/signup/avatarDraft';
 import * as styles from './LandingHero.css';
 
 type LandingHeroProps = {
-  waitingRoomTo: string;
+  entryTo: string;
 };
 
 /** 사용성 테스트 과제의 시작 화면으로 바로 들어가는 링크. */
@@ -39,7 +39,7 @@ const taskLinks = [
   },
 ] as const;
 
-export function LandingHero({ waitingRoomTo }: LandingHeroProps) {
+export function LandingHero({ entryTo }: LandingHeroProps) {
   const hero = useRef<HTMLElement>(null);
   const [pastHero, setPastHero] = useState(false);
   const email = useAuthStore((state) => state.email);
@@ -117,7 +117,7 @@ export function LandingHero({ waitingRoomTo }: LandingHeroProps) {
             <Link className={styles.browseButton} to={interviewPaths.lobbyHome}>
               둘러보기
             </Link>
-            <Link className={button({ size: 'large' })} to={waitingRoomTo}>
+            <Link className={button({ size: 'large' })} to={entryTo}>
               면접방 입장하기
             </Link>
           </div>

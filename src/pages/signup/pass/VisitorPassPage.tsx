@@ -2,7 +2,6 @@ import { Link, Navigate, useLocation } from 'react-router';
 import { Tag } from '@/components/common/tag';
 import { interviewPaths } from '@/constants/common/paths';
 import { useSignupContext } from '@/hooks/signup/useSignupContext';
-import { getReservationReturnTo } from '@/utils/reservation';
 import { getSignupResumePath } from '@/utils/signup/avatarDraft';
 import * as signup from '../Signup.css';
 import { PassPreview } from './components/PassPreview';
@@ -19,7 +18,6 @@ export function VisitorPassPage() {
     return <Navigate to={getSignupResumePath(draft)} state={state} replace />;
   }
   const { avatar, nickname, issuedAt, progress } = pass;
-  const reservationReturnTo = getReservationReturnTo(state);
   const currentLevel = passLevels.find(
     (entry) => entry.level === progress.level,
   );
@@ -80,11 +78,8 @@ export function VisitorPassPage() {
           </div>
         </dl>
         <div className={s.footer}>
-          <Link
-            className={s.entryLink}
-            to={reservationReturnTo ?? interviewPaths.lobbyHome}
-          >
-            {reservationReturnTo ? '예약 이어하기' : '로비로 입장하기'}
+          <Link className={s.entryLink} to={interviewPaths.lobbyHome}>
+            로비로 입장하기
           </Link>
         </div>
       </section>

@@ -1,7 +1,6 @@
 import { type FormEvent, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
-import { signupPaths } from '@/constants/common/paths';
-import { demoWaitingRoomPath } from '@/mocks/interview/interview';
+import { interviewPaths, signupPaths } from '@/constants/common/paths';
 import type { AuthOperation } from '@/types/Auth';
 
 type AuthMode = 'login' | 'signup';
@@ -36,7 +35,7 @@ export function useAuthForm(submit: AuthOperation, mode: AuthMode) {
       if (request.signal.aborted) return;
       if (result === 'success') {
         if (mode === 'login')
-          navigate(demoWaitingRoomPath, { replace: true, state });
+          navigate(interviewPaths.lobbyHome, { replace: true, state });
         else
           navigate({ pathname: signupPaths.avatar, search, hash }, { state });
       } else {

@@ -29,7 +29,7 @@ async function bookCandidate(page: Page, remaining: number) {
   await expect(page).toHaveURL('/reservations/mine');
 }
 
-test('게스트가 로비 키오스크에서 가입을 마치고 예약하면 출입증에 일정과 역할이 남는다', async ({
+test('게스트가 로비 키오스크에서 가입을 마치면 로비로 돌아오고, 예약하면 출입증에 일정과 역할이 남는다', async ({
   page,
 }) => {
   await page.clock.setFixedTime(reservationStart);
@@ -45,7 +45,11 @@ test('게스트가 로비 키오스크에서 가입을 마치고 예약하면 �
   await submitSignup(page);
   await chooseAvatar(page);
   await skipResume(page);
-  await page.getByRole('link', { name: '예약 이어하기' }).click();
+  await page.getByRole('link', { name: '로비로 입장하기' }).click();
+  await expect(page).toHaveURL('/lobby');
+  await page
+    .getByRole('button', { name: 'Space 예약 키오스크 사용하기' })
+    .press('Space');
   await expect(page).toHaveURL('/reservations');
   await page.getByText('오전', { exact: true }).click();
   await expect(
@@ -277,14 +281,14 @@ test('개설 요청은 입력값을 반영하고 100자, 월요일 0시, 주 2�
   await expect(page.getByText('이번 주 2회 남음')).toBeVisible();
 });
 
-test('개설 알림에서 예약한 면접은 시작 15분 전에 같은 방의 대기실로 연결된다', async ({
+test('예약한 면접은 시작 15분 전에 같은 방의 대기실로 연결된다', async ({
   page,
 }) => {
   await installFakeMicrophone(page);
   await page.clock.install({ time: reservationStart });
   await issueVisitorPass(page);
-  await page.goto('/notifications');
-  await page.getByRole('button', { name: '면접방 보기' }).click();
+  await page.goto('/reservations');
+  await page.getByRole('button', { name: '방 살펴보기' }).first().click();
   const roomId = new URL(page.url()).pathname.split('/').pop();
   await bookCandidate(page, 1);
   await page.goto(`/interviews/${roomId}/waiting-room?role=interviewee`);

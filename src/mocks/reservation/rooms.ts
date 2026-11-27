@@ -1,26 +1,18 @@
-import type { InterviewRoom, RoomRequest } from '@/types/reservation';
-import {
-  minute,
-  requestWeekStart,
-  seatsPerRole,
-  seoulDayStart,
-} from '@/utils/reservation';
+import type { InterviewRoom } from '@/types/reservation';
+import { minute, seatsPerRole, seoulDayStart } from '@/utils/reservation';
 
 type RoomFixture = Pick<InterviewRoom, 'title' | 'job' | 'source' | 'seats'> & {
   hour: number;
 };
 
-const openedRequestId = 'sample-request-a';
-const openedRoom: RoomFixture = {
-  title: '인성면접 A룸',
-  job: '직무 무관',
-  hour: 18,
-  source: 'requested',
-  seats: { interviewee: 1, interviewer: 1 },
-};
-
 const eveningRooms: RoomFixture[] = [
-  openedRoom,
+  {
+    title: '인성면접 A룸',
+    job: '직무 무관',
+    hour: 18,
+    source: 'requested',
+    seats: { interviewee: 1, interviewer: 1 },
+  },
   {
     title: '인성면접 B룸',
     job: '직무 무관',
@@ -54,18 +46,6 @@ const additionalRooms: RoomFixture[] = [
   },
 ];
 
-export function createOpenedRequest(today: number): RoomRequest {
-  const { title, job, hour } = openedRoom;
-  return {
-    id: openedRequestId,
-    title,
-    job,
-    hour,
-    reason: '인성면접을 연습하고 싶어요.',
-    submittedAt: requestWeekStart(today) - 24 * 60 * minute,
-  };
-}
-
 /** UT 세션을 시작한 다음 날부터 이틀간의 방. 같은 방은 새로고침 후에도 일정이 같다. */
 export function createInterviewRooms(today: number): InterviewRoom[] {
   const midnight = seoulDayStart(today);
@@ -81,10 +61,6 @@ export function createInterviewRooms(today: number): InterviewRoom[] {
         id: `room-${startsAt}`,
         startsAt,
         seats: { ...room.seats },
-        openedRequestId:
-          dayIndex === 0 && fixture === openedRoom
-            ? openedRequestId
-            : undefined,
       };
     }),
   );

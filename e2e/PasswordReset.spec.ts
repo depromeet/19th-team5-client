@@ -1,7 +1,5 @@
 import { expect, type Page, test } from '@playwright/test';
-import { installFakeMicrophone } from './support/fakeMicrophone.ts';
 import { submitSignup } from './support/signup.ts';
-import { micTestDialog, waitingRoom } from './support/waitingRoom.ts';
 
 const address = 'reset-member@example.com';
 const oldPassword = 'Original123';
@@ -25,7 +23,6 @@ async function requestLink(page: Page, email = address) {
 test('재설정을 새로고침 후 이어서 완료하고 새 비밀번호로 로그인한다', async ({
   page,
 }) => {
-  await installFakeMicrophone(page);
   await page.setViewportSize({ width: 375, height: 812 });
   await registerAndLogOut(page);
   await requestLink(page, 'unknown@example.com');
@@ -67,8 +64,7 @@ test('재설정을 새로고침 후 이어서 완료하고 새 비밀번호로 �
   );
   await loginPassword.fill(newPassword);
   await loginPassword.press('Enter');
-  await expect(page).toHaveURL(waitingRoom('interviewee'));
-  await expect(micTestDialog(page)).toBeVisible();
+  await expect(page).toHaveURL('/lobby');
   await page.goto('/reset-password');
   await expect(
     page.getByRole('link', { name: '새 링크 요청하기' }),

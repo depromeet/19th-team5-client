@@ -1,7 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { installFakeMicrophone } from './support/fakeMicrophone.ts';
 import { chooseAvatar, skipResume, submitSignup } from './support/signup.ts';
-import { micTestDialog, waitingRoom } from './support/waitingRoom.ts';
 
 test('로그인과 회원가입의 비밀번호를 필드별로 표시하고 다시 가릴 수 있다', async ({
   page,
@@ -95,7 +93,7 @@ test('모바일에서 로그인 화면을 거쳐 가입하고 첫 오류부터 �
   await expect(page.getByRole('textbox', { name: '닉네임' })).toBeVisible();
 });
 
-test('출입증을 발급받은 계정은 새 탭에서 다시 로그인하면 대기실로 이동한다', async ({
+test('출입증을 발급받은 계정은 새 탭에서 다시 로그인하면 로비로 이동한다', async ({
   page,
   context,
 }) => {
@@ -113,7 +111,6 @@ test('출입증을 발급받은 계정은 새 탭에서 다시 로그인하면 �
   await expect(page.getByRole('link', { name: '로그인' })).toBeVisible();
 
   const tab = await context.newPage();
-  await installFakeMicrophone(tab);
   // 새 탭에서 중복 가입을 시도해도 기존 비밀번호가 바뀌지 않는다.
   await tab.goto('/signup');
   await tab
@@ -138,8 +135,7 @@ test('출입증을 발급받은 계정은 새 탭에서 다시 로그인하면 �
   );
   await login.getByPlaceholder('비밀번호를 입력해 주세요').fill(password);
   await login.getByPlaceholder('비밀번호를 입력해 주세요').press('Enter');
-  await expect(tab).toHaveURL(waitingRoom('interviewee'));
-  await expect(micTestDialog(tab)).toBeVisible();
+  await expect(tab).toHaveURL('/lobby');
   await tab.goto('/');
   await expect(tab.getByRole('status')).toContainText(address);
 });
