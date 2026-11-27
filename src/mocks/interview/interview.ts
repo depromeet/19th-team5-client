@@ -1,5 +1,3 @@
-import { interviewPaths } from '@/constants/common/paths';
-
 /**
  * 프로토타입용 면접 데이터. API가 생기면 같은 모양의 응답으로 교체한다.
  * 시간 값은 Figma 시안(14:00 시작, 13:45 대기실 오픈)을 따른다.
@@ -10,13 +8,6 @@ export const interviewMock = {
   roomTitle: '14:00 디자인 면접방',
   headcount: { interviewee: 2, interviewer: 2 },
 } as const;
-
-export const demoWaitingRoomPath = interviewPaths.waitingRoom(
-  interviewMock.id,
-  {
-    role: 'interviewee',
-  },
-);
 
 /** 가짜 시계의 시작값(초). 같은 이름의 카운트다운은 페이지를 옮겨도 이어서 줄어든다. */
 export const mockCountdowns = {

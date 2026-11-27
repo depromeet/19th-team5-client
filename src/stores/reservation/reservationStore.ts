@@ -1,9 +1,6 @@
 import { useStore } from 'zustand';
 import { createStore } from 'zustand/vanilla';
-import {
-  createInterviewRooms,
-  createOpenedRequest,
-} from '@/mocks/reservation/rooms';
+import { createInterviewRooms } from '@/mocks/reservation/rooms';
 import { useAuthStore } from '@/stores/AuthStore';
 import type { InterviewRole } from '@/types/interview/interview';
 import type {
@@ -65,7 +62,7 @@ function createReservationStore(email: string | null) {
     return {
       rooms: createInterviewRooms(now),
       reservations: [],
-      requests: email ? [createOpenedRequest(now)] : [],
+      requests: [],
       readNoticeIds: [],
       tickets: 2,
     };

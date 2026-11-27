@@ -1,5 +1,4 @@
 import { expect, type Page, test } from '@playwright/test';
-import { installFakeMicrophone } from './support/fakeMicrophone.ts';
 
 type StoredResume = {
   draft?: {
@@ -52,7 +51,6 @@ test('두 탭의 서로 다른 편집을 병합하고 제출 직전 다른 탭�
 }) => {
   await startResume(page);
   const otherTab = await context.newPage();
-  await installFakeMicrophone(otherTab);
   // 포커스에 따른 새로 읽기 없이 각 탭에 예전 초안이 남아 있는 상황을 만든다.
   await otherTab.addInitScript(() => {
     window.addEventListener(
@@ -68,7 +66,7 @@ test('두 탭의 서로 다른 편집을 병합하고 제출 직전 다른 탭�
   await login.getByRole('textbox', { name: '이메일' }).fill(email);
   await login.getByPlaceholder('비밀번호를 입력해 주세요').fill(password);
   await login.getByRole('button', { name: '로그인' }).click();
-  await expect(otherTab).toHaveURL(/\/waiting-room\?role=interviewee$/);
+  await expect(otherTab).toHaveURL('/lobby');
   await otherTab.goto('/signup/resume');
   await expect(experienceTitle(otherTab)).toHaveValue('');
 

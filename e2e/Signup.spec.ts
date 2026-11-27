@@ -98,6 +98,7 @@ test('닉네임은 공백 포함 6자까지 허용하고 아바타를 선택해�
   await expect(
     page.getByRole('heading', { name: '예약된 면접이 없습니다' }),
   ).toBeVisible();
+  await expect(page.getByText('요청한 면접방이 열렸어요.')).toBeHidden();
 });
 
 test('가입 정보가 없는 직접 접근을 처리하고 모바일에서 랜덤 이름과 아바타를 변경한다', async ({

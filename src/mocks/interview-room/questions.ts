@@ -108,3 +108,15 @@ export const receivedQuestions = {
     interviewerName: '단단한 곰',
   },
 } as const satisfies Record<InterviewPart, ReceivedQuestion>;
+
+export const task3ReceivedQuestions = {
+  ...receivedQuestions,
+  custom: {
+    ...receivedQuestions.custom,
+    text: '프로젝트에서 개선이 필요하다고 판단한 근거는 무엇이었나요?',
+  },
+  free: {
+    ...receivedQuestions.free,
+    text: '그 개선이 효과가 있었는지는 어떻게 확인했나요?',
+  },
+} as const satisfies Record<InterviewPart, ReceivedQuestion>;

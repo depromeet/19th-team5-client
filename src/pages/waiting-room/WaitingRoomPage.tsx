@@ -41,13 +41,21 @@ import {
   useMockWaitingCountdown,
 } from '@/mocks/interview/useMockCountdown';
 import { usePrototypeParams } from '@/mocks/interview/usePrototypeParams';
+import { task4CustomQuestions } from '@/mocks/interview-room/task4Questions';
 import { candidates } from '@/mocks/question-sheet/candidates';
-import { myAttachmentCount, myResume } from '@/mocks/waiting-room/myResume';
+import {
+  myAttachmentCount,
+  myResume,
+  task3Resume,
+} from '@/mocks/waiting-room/myResume';
 import { npc, npcQuestions } from '@/mocks/waiting-room/npc';
 import { getRoomParticipants } from '@/mocks/waiting-room/participants';
 import { useQuestionSheetStore } from '@/stores/question-sheet/questionSheetStore';
 import { visuallyHidden } from '@/styles/a11y.css';
-import type { InterviewRole } from '@/types/interview/interview';
+import type {
+  InterviewRole,
+  InterviewTestTask,
+} from '@/types/interview/interview';
 import {
   formatRoomTime,
   getReservationReturnTo,
@@ -63,6 +71,7 @@ type WaitingRoomProps = {
   title: string;
   untilStart: number;
   lobbyPath: string;
+  task?: InterviewTestTask;
   exit?: { to: string; label: string };
 };
 type WaitingRoomEntryProps = Pick<WaitingRoomProps, 'interviewId'>;
@@ -83,7 +92,7 @@ export function WaitingRoomPage() {
 }
 
 function PrototypeWaitingRoom({ interviewId }: WaitingRoomEntryProps) {
-  const { role } = usePrototypeParams();
+  const { role, task } = usePrototypeParams();
   const { key, state } = useLocation();
   const untilStart = useMockWaitingCountdown(interviewId, role);
   const returnTo = getReservationReturnTo(state);
@@ -92,6 +101,7 @@ function PrototypeWaitingRoom({ interviewId }: WaitingRoomEntryProps) {
       key={`${interviewId}-${role}-${key}`}
       interviewId={interviewId}
       role={role}
+      task={task}
       title={interviewMock.roomTitle}
       untilStart={untilStart}
       lobbyPath={interviewPaths.lobby({ role, phase: 'open' })}
@@ -160,6 +170,7 @@ function WaitingRoom({
   title,
   untilStart,
   lobbyPath,
+  task,
   exit,
 }: WaitingRoomProps) {
   const navigate = useNavigate();
@@ -181,6 +192,7 @@ function WaitingRoom({
   const isStarting = countdownFrom !== null;
 
   const isInterviewer = role === 'interviewer';
+  const resume = task === '3' ? task3Resume : myResume;
   const participants = getRoomParticipants(role, isMicReady);
   const isMicOn = microphone.status === 'live' && !microphone.isMuted;
   // 다이얼로그·시트가 하나도 없을 때만 단축키와 상호작용 안내를 쓴다.
@@ -189,10 +201,21 @@ function WaitingRoom({
   const questionSheet = useQuestionSheetStore(
     (state) => state.sheets[interviewId],
   );
-  // 면접자 순서대로 이어 붙여 미리보기에 쓴다.
-  const writtenQuestions = candidates.flatMap(({ id }) =>
-    (questionSheet?.[id] ?? []).filter(({ text }) => text.trim()),
+  const savedQuestionsByCandidate = Object.fromEntries(
+    candidates.map(({ id }) => [
+      id,
+      (questionSheet?.[id] ?? []).filter(({ text }) => text.trim()),
+    ]),
   );
+  const hasSavedQuestions = Object.values(savedQuestionsByCandidate).some(
+    (questions) => questions.length > 0,
+  );
+  const questionsByCandidate =
+    task === '4' && !hasSavedQuestions
+      ? task4CustomQuestions
+      : savedQuestionsByCandidate;
+  // 면접자 순서대로 이어 붙여 미리보기에 쓴다.
+  const writtenQuestions = Object.values(questionsByCandidate).flat();
 
   const openNpc = () => setPanel('npc');
   const openDocument = () => setPanel('document');
@@ -210,7 +233,13 @@ function WaitingRoom({
   // 프로토타입은 서버 응답 없이 대기실에 들어온 역할 그대로 면접방에 들어간다.
   // 대기실로 뒤로 가지 않도록 기록을 바꾼다.
   const enterInterviewRoom = () =>
-    navigateOut(interviewPaths.interviewRoom(interviewId, { role }), true);
+    navigateOut(
+      interviewPaths.interviewRoom(
+        interviewId,
+        task ? { role, task } : { role },
+      ),
+      true,
+    );
 
   useKeyboardShortcut(
     shortcuts.interact,
@@ -301,13 +330,13 @@ function WaitingRoom({
               className={styles.documentPeek}
               icon={<IconDocumentFill size={28} aria-hidden='true' />}
               label='내 자소서'
-              title={`자기소개서 ${myResume.resume.length}문항`}
+              title={`자기소개서 ${resume.resume.length}문항`}
               description={`이력·포트폴리오 ${myAttachmentCount}개 · 면접관에게 공유됨`}
               preview={
-                myResume.resume[0] && (
+                resume.resume[0] && (
                   <ResumePreview
-                    question={`Q1. ${myResume.resume[0].question}`}
-                    answer={myResume.resume[0].answer}
+                    question={`Q1. ${resume.resume[0].question}`}
+                    answer={resume.resume[0].answer}
                   />
                 )
               }
@@ -338,7 +367,7 @@ function WaitingRoom({
       {isInterviewer ? (
         <WrittenQuestionsOverlay
           isOpen={!isStarting && panel === 'document'}
-          interviewId={interviewId}
+          questionsByCandidate={questionsByCandidate}
           candidates={candidates}
           remainingSeconds={untilStart}
           onClose={closePanel}
@@ -346,7 +375,7 @@ function WaitingRoom({
       ) : (
         <MyResumeOverlay
           isOpen={!isStarting && panel === 'document'}
-          resume={myResume}
+          resume={resume}
           remainingSeconds={untilStart}
           onClose={closePanel}
         />

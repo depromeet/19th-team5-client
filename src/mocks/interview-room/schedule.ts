@@ -19,3 +19,15 @@ export const mockSchedule = {
   questionDelaySeconds: number;
   evaluationSeconds: number;
 };
+
+export const task3PartSeconds = {
+  common: 60,
+  custom: 60,
+  free: 60,
+} as const satisfies Record<InterviewPart, number>;
+
+export const task4PartSeconds = {
+  common: 40,
+  custom: 40,
+  free: 40,
+} as const satisfies Record<InterviewPart, number>;

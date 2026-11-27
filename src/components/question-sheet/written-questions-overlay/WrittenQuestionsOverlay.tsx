@@ -1,4 +1,4 @@
-import { useId, useState } from 'react';
+import { type ComponentProps, useId, useState } from 'react';
 import { Radio } from '@/components/common';
 import { DocumentOverlay, ResumePanel } from '@/components/interview';
 import { visuallyHidden } from '@/styles/a11y.css';
@@ -8,7 +8,9 @@ import { WrittenQuestionPanel } from './WrittenQuestionPanel';
 
 type WrittenQuestionsOverlayProps = {
   isOpen: boolean;
-  interviewId: string;
+  questionsByCandidate: Readonly<
+    Record<string, ComponentProps<typeof WrittenQuestionPanel>['questions']>
+  >;
   candidates: readonly Candidate[];
   remainingSeconds: number;
   onClose: () => void;
@@ -16,11 +18,11 @@ type WrittenQuestionsOverlayProps = {
 
 /**
  * 면접관이 대기실에서 보는 작성한 질문지. 면접자별 서류와 2부 질문을 읽기만 한다.
- * 질문은 로비에서 QuestionSheetOverlay로 쓴다.
+ * 로비에서 저장했거나 UT에 미리 준비한 질문을 보여준다.
  */
 export function WrittenQuestionsOverlay({
   isOpen,
-  interviewId,
+  questionsByCandidate,
   candidates,
   remainingSeconds,
   onClose,
@@ -32,16 +34,19 @@ export function WrittenQuestionsOverlay({
       remainingSeconds={remainingSeconds}
       onClose={onClose}
     >
-      <WrittenQuestions interviewId={interviewId} candidates={candidates} />
+      <WrittenQuestions
+        questionsByCandidate={questionsByCandidate}
+        candidates={candidates}
+      />
     </DocumentOverlay>
   );
 }
 
 /** 열 때마다 첫 면접자부터 보여주도록 오버레이가 열려 있을 때만 그린다. */
 function WrittenQuestions({
-  interviewId,
+  questionsByCandidate,
   candidates,
-}: Pick<WrittenQuestionsOverlayProps, 'interviewId' | 'candidates'>) {
+}: Pick<WrittenQuestionsOverlayProps, 'questionsByCandidate' | 'candidates'>) {
   const candidateGroupName = useId();
   const [candidateId, setCandidateId] = useState(candidates[0]?.id ?? '');
   const candidate = candidates.find(({ id }) => id === candidateId);
@@ -66,8 +71,7 @@ function WrittenQuestions({
         <div className={styles.columns}>
           <ResumePanel candidate={candidate} />
           <WrittenQuestionPanel
-            interviewId={interviewId}
-            candidateId={candidate.id}
+            questions={questionsByCandidate[candidate.id] ?? []}
           />
         </div>
       )}
