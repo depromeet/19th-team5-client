@@ -2,13 +2,15 @@ import { globalStyle, style } from '@vanilla-extract/css';
 import { button } from '@/components/common/button/button.css';
 import { color, radius, space, typography } from '@/styles/token';
 
+const narrow = '(max-width: 800px)';
+
 export const layout = style({
   display: 'grid',
   gridTemplateColumns: 'minmax(0,600fr) minmax(0,496fr)',
   gap: 'clamp(32px,calc((100vw - 1000px) * .38),128px)',
   minHeight: 'clamp(620px,calc(100svh - 160px),760px)',
   '@media': {
-    '(max-width:800px)': {
+    [narrow]: {
       gridTemplateColumns: 'minmax(0,1fr)',
       gap: space[24],
     },
@@ -19,7 +21,7 @@ export const scene = style({
   overflow: 'hidden',
   minWidth: 0,
   background: color.neutral[0],
-  '@media': { '(max-width:800px)': { height: 'clamp(300px,52svh,480px)' } },
+  '@media': { [narrow]: { height: 'clamp(300px,52svh,480px)' } },
 });
 export const rings = style({
   position: 'absolute',
@@ -48,10 +50,18 @@ const bubble = style({
   paddingInline: space[16],
   borderRadius: radius.full,
   boxShadow: `0 6px 20px ${color.neutral[900]}12`,
+  '@media': {
+    [narrow]: { ...typography.tag, height: space[32], paddingInline: space[8] },
+  },
 });
 export const ticketLabel = style([
   bubble,
-  { top: '33.5%', left: '3.33%', background: color.neutral[0] },
+  {
+    top: '33.5%',
+    left: '3.33%',
+    background: color.neutral[0],
+    '@media': { [narrow]: { left: 0 } },
+  },
 ]);
 export const levelLabel = style([
   bubble,
@@ -60,9 +70,15 @@ export const levelLabel = style([
     right: '7.5%',
     background: color.neutral[800],
     color: color.neutral[0],
+    '@media': { [narrow]: { right: 0 } },
   },
 ]);
-export const cardPreview = style({ position: 'absolute', inset: 0 });
+export const cardPreview = style({
+  position: 'absolute',
+  inset: 0,
+  maskImage: 'linear-gradient(transparent, #000 17%)',
+  filter: `drop-shadow(0 ${space[16]} ${space[24]} ${color.neutral[900]}26)`,
+});
 export const staticPass = style({
   position: 'absolute',
   left: '50%',

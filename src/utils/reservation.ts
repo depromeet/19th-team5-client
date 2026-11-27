@@ -97,6 +97,11 @@ export function hourLabel(hour: number) {
   return `${hour < 12 ? '오전' : '오후'} ${hour % 12 || 12}시`;
 }
 
+export function formatRoomTimeLabel(timestamp: number) {
+  const [hour, minutes] = formatRoomTime(timestamp).split(':').map(Number);
+  return `${hourLabel(hour)}${minutes ? ` ${minutes}분` : ''}`;
+}
+
 export function seoulDayStart(timestamp: number) {
   return Math.floor((timestamp + seoulOffset) / day) * day - seoulOffset;
 }
@@ -130,10 +135,4 @@ export function validRoomRequest(draft: RoomRequestDraft) {
       draft.reason.trim() &&
       draft.reason.length <= reasonLimit,
   );
-}
-
-export function seatLabel({ seats }: InterviewRoom) {
-  if (!seats.interviewer) return `면접자 ${seats.interviewee}자리`;
-  if (!seats.interviewee) return `면접관 ${seats.interviewer}자리`;
-  return `${seats.interviewee + seats.interviewer}자리 남음`;
 }

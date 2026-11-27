@@ -1,6 +1,5 @@
 import { expect, test } from '@playwright/test';
 import { chooseAvatar, skipResume, submitSignup } from './support/signup.ts';
-import { waitingRoom } from './support/waitingRoom.ts';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/signup');
@@ -61,8 +60,8 @@ test('3D 모듈을 받지 못해도 가입 화면에 같은 방문증이 표시�
   await expect(card).toHaveJSProperty('complete', true);
   expect(blocked).toBe(true);
   await expect(
-    page.getByRole('link', { name: '대기실 입장하기' }),
-  ).toHaveAttribute('href', waitingRoom('interviewee'));
+    page.getByRole('link', { name: '로비로 입장하기' }),
+  ).toHaveAttribute('href', '/lobby');
 });
 
 test('WebGL을 사용할 수 없으면 정적 방문증의 사진과 비율을 유지한다', async ({

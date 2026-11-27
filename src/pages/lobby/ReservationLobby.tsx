@@ -165,16 +165,8 @@ export function ReservationLobby() {
         ) : (
           <EmptyInterviewCard
             className={styles.upcoming}
-            action={
-              email && (
-                <Button
-                  variant='secondary'
-                  onClick={() => navigate(reservationPaths.mine)}
-                >
-                  내 예약 보기
-                </Button>
-              )
-            }
+            bookingTo={reservationPaths.rooms}
+            reservationsTo={email ? reservationPaths.mine : undefined}
           />
         )}
         <WorldChatBar className={styles.worldChat} />

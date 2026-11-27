@@ -1,11 +1,7 @@
 import { expect, type Page, test } from '@playwright/test';
 import { installFakeMicrophone } from './support/fakeMicrophone.ts';
 import { chooseAvatar, skipResume, submitSignup } from './support/signup.ts';
-import {
-  finishMicTest,
-  micTestDialog,
-  waitingRoom,
-} from './support/waitingRoom.ts';
+import { finishMicTest } from './support/waitingRoom.ts';
 
 const reservationStart = new Date('2026-11-26T12:00:00+09:00');
 
@@ -36,7 +32,6 @@ async function bookCandidate(page: Page, remaining: number) {
 test('게스트가 로비 키오스크에서 가입을 마치고 예약하면 출입증에 일정과 역할이 남는다', async ({
   page,
 }) => {
-  await installFakeMicrophone(page);
   await page.clock.setFixedTime(reservationStart);
   await page.goto('/lobby');
   await expect(
@@ -50,11 +45,7 @@ test('게스트가 로비 키오스크에서 가입을 마치고 예약하면 �
   await submitSignup(page);
   await chooseAvatar(page);
   await skipResume(page);
-  await page.getByRole('link', { name: '대기실 입장하기' }).click();
-  await expect(page).toHaveURL(waitingRoom('interviewee'));
-  await micTestDialog(page)
-    .getByRole('button', { name: '예약 이어하기' })
-    .click();
+  await page.getByRole('link', { name: '예약 이어하기' }).click();
   await expect(page).toHaveURL('/reservations');
   await page.getByText('오전', { exact: true }).click();
   await expect(

@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { Button, Radio, Tag } from '@/components/common';
+import { Button, Radio } from '@/components/common';
 import { reservationPaths } from '@/constants/common/paths';
 import { useNow } from '@/hooks/common/useNow';
 import { useReservationStore } from '@/stores/reservation/reservationStore';
-import { formatRoomDate, formatRoomTime, seatLabel } from '@/utils/reservation';
+import { formatRoomTime } from '@/utils/reservation';
 import * as styles from '../reservation.css';
+import { RoomCard } from './RoomCard';
 
 type RoomFilter = (typeof filters)[number];
 
@@ -55,50 +56,14 @@ export function RoomList() {
       </div>
       {visible.length ? (
         <div className={styles.grid}>
-          {visible.map((room) => {
-            const booked = reservations.some((item) => item.roomId === room.id);
-            const full = room.seats.interviewer + room.seats.interviewee === 0;
-            return (
-              <article className={styles.roomCard} key={room.id}>
-                <div className={styles.row}>
-                  <div>
-                    <p className={styles.muted}>
-                      {formatRoomDate(room.startsAt)}
-                    </p>
-                    <time
-                      className={styles.time}
-                      dateTime={new Date(room.startsAt).toISOString()}
-                    >
-                      {formatRoomTime(room.startsAt)}
-                    </time>
-                  </div>
-                  <Tag tone={room.source === 'admin' ? 'gray' : 'green'}>
-                    {room.source === 'admin' ? '관리자 방' : '개설된 방'}
-                  </Tag>
-                </div>
-                <h2 className={styles.sectionTitle}>{room.title}</h2>
-                <p className={styles.muted}>익명 음성 · {room.job}</p>
-                <div className={styles.chips}>
-                  <span className={styles.muted}>
-                    면접자 {room.seats.interviewee}자리 · 면접관{' '}
-                    {room.seats.interviewer}자리
-                  </span>
-                  <Tag tone='gray'>
-                    {booked ? '예약됨' : full ? '마감' : seatLabel(room)}
-                  </Tag>
-                </div>
-                <Button
-                  size='large'
-                  display='block'
-                  variant={room.source === 'admin' ? 'primary' : 'outline'}
-                  disabled={full && !booked}
-                  onClick={() => navigate(reservationPaths.room(room.id))}
-                >
-                  {booked ? '내 예약 보기' : '방 살펴보기'}
-                </Button>
-              </article>
-            );
-          })}
+          {visible.map((room) => (
+            <RoomCard
+              key={room.id}
+              room={room}
+              booked={reservations.some((item) => item.roomId === room.id)}
+              onOpen={() => navigate(reservationPaths.room(room.id))}
+            />
+          ))}
         </div>
       ) : (
         <div className={styles.empty}>

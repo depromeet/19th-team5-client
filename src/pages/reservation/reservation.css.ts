@@ -83,24 +83,11 @@ export const columns = style({
   '@media': { [narrow]: { gridTemplateColumns: 'minmax(0, 1fr)' } },
 });
 export const stack = style({ display: 'grid', gap: space[16] });
-export const roleChoices = style([
-  stack,
-  { margin: 0, padding: 0, border: 0, minWidth: 0 },
-]);
 export const grid = style({
   display: 'grid',
   gap: space[20],
   gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 285px), 1fr))',
 });
-export const roomCard = style({
-  display: 'grid',
-  gap: space[16],
-  alignContent: 'start',
-  borderRadius: radius[16],
-  background: color.neutral[50],
-  padding: space[24],
-});
-export const time = style({ ...typography.h2 });
 export const banner = style([
   row,
   {
@@ -109,6 +96,10 @@ export const banner = style([
     borderRadius: radius[16],
   },
 ]);
+export const bannerTitle = style({
+  ...typography.title,
+  margin: `0 0 ${space[8]}`,
+});
 export const info = style({
   background: color.neutral[50],
   borderRadius: radius[12],
@@ -145,53 +136,6 @@ export const value = style({
   color: color.neutral[900],
   margin: 0,
   overflowWrap: 'anywhere',
-});
-export const roleCard = style({
-  ...typography.bodyL,
-  display: 'flex',
-  flexWrap: 'wrap',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  gap: space[16],
-  minHeight: '304px',
-  width: '100%',
-  textAlign: 'left',
-  border: 0,
-  borderRadius: radius[24],
-  padding: space[32],
-  background: color.neutral[0],
-  color: color.neutral[900],
-  cursor: 'pointer',
-  selectors: {
-    '&[aria-pressed=true]': {
-      boxShadow: `inset 0 0 0 3px ${color.primary[500]}`,
-    },
-    '&:disabled': { opacity: 0.6, cursor: 'not-allowed' },
-  },
-  '@media': { [narrow]: { padding: space[20], minHeight: '160px' } },
-});
-export const portrait = style({
-  width: 'clamp(120px, 17vw, 236px)',
-  aspectRatio: '1',
-  borderRadius: radius.full,
-  background: color.neutral[50],
-  objectFit: 'cover',
-  '@media': { [narrow]: { width: space[64] } },
-});
-export const roleCopy = style({
-  display: 'grid',
-  alignContent: 'space-between',
-  alignSelf: 'stretch',
-  gap: space[24],
-});
-export const roleTitle = style([chips, { marginBottom: space[8] }]);
-export const roleHint = style({
-  ...typography.bodySStrong,
-  justifySelf: 'start',
-  borderRadius: radius[8],
-  padding: `${space[8]} ${space[12]}`,
-  background: color.primary[50],
-  color: color.neutral[700],
 });
 export const dialog = style({
   maxWidth: `calc(100% - 2 * ${space[16]})`,
