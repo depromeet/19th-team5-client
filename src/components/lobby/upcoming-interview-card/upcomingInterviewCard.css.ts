@@ -17,6 +17,11 @@ export const upcomingHeader = style({
   gap: space[8],
 });
 
+export const emptyTitle = style([
+  upcomingHeader,
+  { ...typography.bodyLStrong, margin: 0 },
+]);
+
 export const upcomingIcon = style([
   iconBadge,
   {

@@ -17,21 +17,23 @@ export function RoomList() {
   const rooms = useReservationStore((state) => state.rooms);
   const reservations = useReservationStore((state) => state.reservations);
   const now = useNow();
-  const visible = rooms.filter((room) => {
-    if (room.startsAt <= now) return false;
-    switch (filter) {
-      case '관리자 방':
-        return room.source === 'admin';
-      case '개설된 방':
-        return room.source === 'requested';
-      case '오전':
-        return formatRoomTime(room.startsAt) < '12:00';
-      case '오후':
-        return formatRoomTime(room.startsAt) >= '12:00';
-      default:
-        return true;
-    }
-  });
+  const visible = rooms
+    .filter((room) => {
+      if (room.startsAt <= now) return false;
+      switch (filter) {
+        case '관리자 방':
+          return room.source === 'admin';
+        case '개설된 방':
+          return room.source === 'requested';
+        case '오전':
+          return formatRoomTime(room.startsAt) < '12:00';
+        case '오후':
+          return formatRoomTime(room.startsAt) >= '12:00';
+        default:
+          return true;
+      }
+    })
+    .sort((first, second) => first.startsAt - second.startsAt);
   return (
     <>
       <div className={styles.row}>
