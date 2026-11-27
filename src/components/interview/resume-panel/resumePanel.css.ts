@@ -28,13 +28,18 @@ export const tab = style({
   selectors: {
     'button&': {
       ...typography.bodySStrong,
-      minHeight: 0,
+      minWidth: '44px',
       paddingTop: space[16],
       paddingBottom: '18px',
+      paddingInline: 0,
     },
     'button&[aria-selected="true"]': { color: color.neutral[900] },
     'button&[aria-selected="false"]': { color: color.neutral[500] },
-    'button&::after': { height: '2px', borderRadius: 0 },
+    'button&::after': {
+      height: '2px',
+      borderRadius: 0,
+      background: color.neutral[900],
+    },
     'button&:disabled': { cursor: 'not-allowed' },
   },
 });

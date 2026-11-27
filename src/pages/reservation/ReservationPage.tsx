@@ -17,7 +17,7 @@ export function ReservationPage({ request = false }: ReservationPageProps) {
           정해진 시간에 모여, 진짜 사람과 면접을 진행해요
         </p>
       </header>
-      <section className={styles.panel}>
+      <section className={styles.tabbedPanel}>
         <Tabs aria-label='면접 예약'>
           <Tabs.Item
             selected={!request}

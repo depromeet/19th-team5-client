@@ -5,25 +5,23 @@ import { color, radius, space, typography } from '@/styles/token';
 export const root = style({
   position: 'relative',
   display: 'flex',
-  alignItems: 'center',
-  gap: space[20],
+  alignItems: 'stretch',
   boxShadow: `inset 0 -1px 0 ${color.neutral[100]}`,
 });
 
 export const item = recipe({
   base: {
-    ...typography.bodyMStrong,
+    ...typography.title,
     position: 'relative',
     boxSizing: 'border-box',
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
-    minWidth: '44px',
+    minWidth: '100px',
     maxWidth: '200px',
-    minHeight: '48px',
     paddingBlock: space[12],
-    paddingInline: 0,
+    paddingInline: space[12],
     border: 0,
     background: 'transparent',
     cursor: 'pointer',
@@ -37,7 +35,7 @@ export const item = recipe({
   variants: {
     selected: {
       true: {
-        color: color.neutral[800],
+        color: color.primary[500],
         '::after': {
           content: '""',
           position: 'absolute',
@@ -45,7 +43,7 @@ export const item = recipe({
           bottom: 0,
           height: '3px',
           borderRadius: radius.full,
-          background: color.neutral[900],
+          background: color.primary[500],
         },
       },
       false: {

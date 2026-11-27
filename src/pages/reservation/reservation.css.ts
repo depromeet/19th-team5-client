@@ -48,6 +48,13 @@ export const panel = style({
   minWidth: 0,
   '@media': { [narrow]: { padding: space[16] } },
 });
+export const tabbedPanel = style([
+  panel,
+  {
+    paddingBlockStart: space[8],
+    '@media': { [narrow]: { paddingBlockStart: space[8] } },
+  },
+]);
 export const bordered = style([
   panel,
   { border: `1px solid ${color.neutral[200]}`, alignContent: 'start' },
