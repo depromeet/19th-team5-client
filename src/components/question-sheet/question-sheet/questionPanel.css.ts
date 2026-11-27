@@ -1,5 +1,6 @@
 import { globalStyle, style } from '@vanilla-extract/css';
 import { color, radius, space, typography } from '@/styles/token';
+import { mobile } from '../questionSheetLayout.css';
 
 export const panel = style({
   display: 'flex',
@@ -13,7 +14,7 @@ export const panel = style({
   borderRadius: radius[16],
   background: color.neutral[0],
   '@media': {
-    '(max-width: 700px)': { padding: space[16] },
+    [mobile]: { padding: space[16] },
   },
 });
 
@@ -125,7 +126,7 @@ export const deleteButton = style({
       height: space[24],
       margin: `-${space[4]}`,
       padding: 0,
-      color: color.neutral[500],
+      color: color.danger[500],
     },
   },
 });

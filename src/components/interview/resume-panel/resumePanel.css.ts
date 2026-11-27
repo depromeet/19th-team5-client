@@ -1,6 +1,8 @@
 import { style } from '@vanilla-extract/css';
 import { color, radius, space, typography } from '@/styles/token';
 
+const mobile = '(max-width: 700px)';
+
 export const panel = style({
   display: 'flex',
   flexDirection: 'column',
@@ -19,6 +21,11 @@ export const tabs = style({
       alignItems: 'flex-end',
       gap: space[24],
       paddingInline: space[32],
+    },
+  },
+  '@media': {
+    [mobile]: {
+      selectors: { 'div&': { gap: space[16], paddingInline: space[16] } },
     },
   },
 });
@@ -48,6 +55,7 @@ export const paper = style({
   padding: space[32],
   overflowY: 'auto',
   overscrollBehavior: 'contain',
+  '@media': { [mobile]: { padding: space[16] } },
 });
 
 export const profile = style({

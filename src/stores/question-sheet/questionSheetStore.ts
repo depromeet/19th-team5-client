@@ -1,18 +1,13 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-
-export const maxQuestions = 3;
-export const intentMaxLength = 50;
-export const answerGuideMaxLength = 100;
-
-export type QuestionDraft = {
-  id: string;
-  text: string;
-  intent: string;
-  answerGuide: string;
-};
-
-type QuestionPatch = Partial<Omit<QuestionDraft, 'id'>>;
+import type {
+  QuestionDraft,
+  QuestionPatch,
+} from '@/types/question-sheet/questionDraft';
+import {
+  isFinishedQuestion,
+  maxQuestions,
+} from '@/utils/question-sheet/questionDraft';
 
 /** 면접 하나에 면접자별 질문 목록을 둔다. */
 type QuestionSheets = Record<string, Record<string, QuestionDraft[]>>;
@@ -34,22 +29,6 @@ type QuestionSheetState = {
   /** 비어 있거나 조건을 못 채운 질문을 지운다. 나가기 전에 부른다. */
   removeUnfinished: (interviewId: string) => void;
 };
-
-export function isBlankQuestion({ text, intent, answerGuide }: QuestionDraft) {
-  return !text.trim() && !intent.trim() && !answerGuide.trim();
-}
-
-export function isFinishedQuestion({
-  text,
-  intent,
-  answerGuide,
-}: QuestionDraft) {
-  return (
-    text.trim().length > 0 &&
-    intent.length <= intentMaxLength &&
-    answerGuide.length <= answerGuideMaxLength
-  );
-}
 
 function updateSheet(
   sheets: QuestionSheets,

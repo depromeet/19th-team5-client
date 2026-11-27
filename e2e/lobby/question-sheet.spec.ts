@@ -44,6 +44,27 @@ test('랜딩 Task2에서 면접자 자기소개서를 읽고 커스텀 질문을
   await expect(sheet.getByRole('button', { name: question })).toBeVisible();
 });
 
+test('짧은 모바일 화면에서도 서류 알림과 질문지 작성 버튼에 접근할 수 있다', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 480 });
+  await page.goto('/');
+  const taskLinks = page.getByRole('navigation', {
+    name: '사용성 테스트 과제',
+  });
+  await expect(taskLinks).toBeInViewport({ ratio: 1 });
+  await taskLinks.getByRole('link', { name: 'Task2' }).click();
+
+  await page
+    .getByRole('complementary', { name: '면접자 서류 도착!' })
+    .getByRole('button', { name: '확인' })
+    .click({ trial: true });
+  await page.getByRole('button', { name: '질문지 작성' }).click();
+  await expect(
+    page.getByRole('dialog', { name: '면접 준비해볼까요?' }),
+  ).toBeVisible();
+});
+
 test('질문 의도가 50자를 넘으면 알리고, 고치기 전에 나가면 확인한다', async ({
   page,
 }) => {
