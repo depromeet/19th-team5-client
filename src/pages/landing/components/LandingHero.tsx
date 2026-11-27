@@ -31,7 +31,10 @@ const taskLinks = [
   },
   {
     label: 'Task3',
-    to: interviewPaths.waitingRoom(interviewMock.id, { role: 'interviewee' }),
+    to: interviewPaths.waitingRoom(interviewMock.id, {
+      role: 'interviewee',
+      task: '3',
+    }),
   },
   {
     label: 'Task4',

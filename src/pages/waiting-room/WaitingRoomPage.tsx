@@ -42,7 +42,11 @@ import {
 } from '@/mocks/interview/useMockCountdown';
 import { usePrototypeParams } from '@/mocks/interview/usePrototypeParams';
 import { candidates } from '@/mocks/question-sheet/candidates';
-import { myAttachmentCount, myResume } from '@/mocks/waiting-room/myResume';
+import {
+  myAttachmentCount,
+  myResume,
+  task3Resume,
+} from '@/mocks/waiting-room/myResume';
 import { npc, npcQuestions } from '@/mocks/waiting-room/npc';
 import { getRoomParticipants } from '@/mocks/waiting-room/participants';
 import { useQuestionSheetStore } from '@/stores/question-sheet/questionSheetStore';
@@ -63,6 +67,7 @@ type WaitingRoomProps = {
   title: string;
   untilStart: number;
   lobbyPath: string;
+  isTask3?: boolean;
   exit?: { to: string; label: string };
 };
 type WaitingRoomEntryProps = Pick<WaitingRoomProps, 'interviewId'>;
@@ -83,7 +88,7 @@ export function WaitingRoomPage() {
 }
 
 function PrototypeWaitingRoom({ interviewId }: WaitingRoomEntryProps) {
-  const { role } = usePrototypeParams();
+  const { role, isTask3 } = usePrototypeParams();
   const { key, state } = useLocation();
   const untilStart = useMockWaitingCountdown(interviewId, role);
   const returnTo = getReservationReturnTo(state);
@@ -92,6 +97,7 @@ function PrototypeWaitingRoom({ interviewId }: WaitingRoomEntryProps) {
       key={`${interviewId}-${role}-${key}`}
       interviewId={interviewId}
       role={role}
+      isTask3={isTask3}
       title={interviewMock.roomTitle}
       untilStart={untilStart}
       lobbyPath={interviewPaths.lobby({ role, phase: 'open' })}
@@ -160,6 +166,7 @@ function WaitingRoom({
   title,
   untilStart,
   lobbyPath,
+  isTask3 = false,
   exit,
 }: WaitingRoomProps) {
   const navigate = useNavigate();
@@ -181,6 +188,7 @@ function WaitingRoom({
   const isStarting = countdownFrom !== null;
 
   const isInterviewer = role === 'interviewer';
+  const resume = isTask3 ? task3Resume : myResume;
   const participants = getRoomParticipants(role, isMicReady);
   const isMicOn = microphone.status === 'live' && !microphone.isMuted;
   // 다이얼로그·시트가 하나도 없을 때만 단축키와 상호작용 안내를 쓴다.
@@ -210,7 +218,13 @@ function WaitingRoom({
   // 프로토타입은 서버 응답 없이 대기실에 들어온 역할 그대로 면접방에 들어간다.
   // 대기실로 뒤로 가지 않도록 기록을 바꾼다.
   const enterInterviewRoom = () =>
-    navigateOut(interviewPaths.interviewRoom(interviewId, { role }), true);
+    navigateOut(
+      interviewPaths.interviewRoom(
+        interviewId,
+        isTask3 ? { role, task: '3' } : { role },
+      ),
+      true,
+    );
 
   useKeyboardShortcut(
     shortcuts.interact,
@@ -301,13 +315,13 @@ function WaitingRoom({
               className={styles.documentPeek}
               icon={<IconDocumentFill size={28} aria-hidden='true' />}
               label='내 자소서'
-              title={`자기소개서 ${myResume.resume.length}문항`}
+              title={`자기소개서 ${resume.resume.length}문항`}
               description={`이력·포트폴리오 ${myAttachmentCount}개 · 면접관에게 공유됨`}
               preview={
-                myResume.resume[0] && (
+                resume.resume[0] && (
                   <ResumePreview
-                    question={`Q1. ${myResume.resume[0].question}`}
-                    answer={myResume.resume[0].answer}
+                    question={`Q1. ${resume.resume[0].question}`}
+                    answer={resume.resume[0].answer}
                   />
                 )
               }
@@ -346,7 +360,7 @@ function WaitingRoom({
       ) : (
         <MyResumeOverlay
           isOpen={!isStarting && panel === 'document'}
-          resume={myResume}
+          resume={resume}
           remainingSeconds={untilStart}
           onClose={closePanel}
         />

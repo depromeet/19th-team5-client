@@ -62,6 +62,7 @@ type InterviewRoomProps = { interviewId: string; role: InterviewRole };
 type InterviewRoomViewProps = InterviewRoomProps & {
   /** 프로토타입 면접인지. 면접자가 끝내고 로비로 가면 면접 결과 도착 카드를 띄운다. */
   isPrototype?: boolean;
+  isTask3?: boolean;
 };
 type InterviewInProgressProps = InterviewRoomProps & {
   session: MockInterviewSession;
@@ -92,14 +93,15 @@ export function InterviewRoomPage() {
 function PrototypeInterviewRoom({
   interviewId,
 }: Pick<InterviewRoomProps, 'interviewId'>) {
-  const { role } = usePrototypeParams();
-  // 역할을 바꾸면 면접을 처음부터 다시 진행한다.
+  const { role, isTask3 } = usePrototypeParams();
+  // 역할이나 UT 시나리오를 바꾸면 면접을 처음부터 다시 진행한다.
   return (
     <InterviewRoom
-      key={role}
+      key={isTask3 ? 'task3' : role}
       interviewId={interviewId}
       role={role}
       isPrototype
+      isTask3={isTask3}
     />
   );
 }
@@ -134,8 +136,9 @@ function InterviewRoom({
   interviewId,
   role,
   isPrototype = false,
+  isTask3 = false,
 }: InterviewRoomViewProps) {
-  const session = useMockInterviewSession(role);
+  const session = useMockInterviewSession(role, isTask3);
   const [nearby, setNearby] = useState<InterviewRoomInteractable | null>(null);
   // 대기실에서 함께 기다린 사람들이 그대로 들어온다. 3D 면접장에서는 역할과 아바타만 쓴다.
   const [participants] = useState(() => getRoomParticipants(role, true));

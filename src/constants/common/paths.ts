@@ -3,12 +3,14 @@ import type {
   InterviewRole,
 } from '@/types/interview/interview';
 
+type InterviewRoomParams = { role: InterviewRole; task?: '3' };
+
 export const interviewPaths = {
   lobby: (params: { role: InterviewRole; phase: InterviewPhase }) =>
     `/lobby?${new URLSearchParams(params)}`,
-  waitingRoom: (interviewId: string, params: { role: InterviewRole }) =>
+  waitingRoom: (interviewId: string, params: InterviewRoomParams) =>
     `/interviews/${interviewId}/waiting-room?${new URLSearchParams(params)}`,
-  interviewRoom: (interviewId: string, params: { role: InterviewRole }) =>
+  interviewRoom: (interviewId: string, params: InterviewRoomParams) =>
     `/interviews/${encodeURIComponent(interviewId)}/interview-room?${new URLSearchParams(params)}`,
   /** 면접이 끝난 뒤 돌아가는 로비 */
   lobbyHome: '/lobby',

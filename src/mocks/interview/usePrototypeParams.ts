@@ -17,8 +17,10 @@ function pick<Option extends string>(
  */
 export function usePrototypeParams() {
   const [searchParams] = useSearchParams();
+  const role = pick(searchParams.get('role'), roles, 'interviewee');
   return {
-    role: pick(searchParams.get('role'), roles, 'interviewee'),
+    role,
     phase: pick(searchParams.get('phase'), phases, 'prepare'),
+    isTask3: role === 'interviewee' && searchParams.get('task') === '3',
   };
 }

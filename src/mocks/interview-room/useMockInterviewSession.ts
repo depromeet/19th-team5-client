@@ -9,10 +9,11 @@ import type {
 import type { ReceivedQuestion } from '@/types/interview-room/question';
 import { isInterviewPart } from '@/utils/interview-room/stage';
 import { secondsBetween } from '@/utils/time';
-import { receivedQuestions } from './questions';
-import { mockSchedule } from './schedule';
+import { receivedQuestions, task3ReceivedQuestions } from './questions';
+import { mockSchedule, task3PartSeconds } from './schedule';
 
 type StageEntry = { stage: InterviewRoomStage; startedAt: number };
+type PartSeconds = Readonly<Record<InterviewPart, number>>;
 
 const stageOrder = [
   'seating',
@@ -24,17 +25,22 @@ function getNextStage(stage: InterviewRoomStage): InterviewRoomStage {
   return stageOrder[stageOrder.indexOf(stage) + 1] ?? 'finished';
 }
 
-function getStageSeconds(stage: InterviewRoomStage) {
+function getStageSeconds(stage: InterviewRoomStage, partSeconds: PartSeconds) {
   if (stage === 'seating') return mockSchedule.seatingSeconds;
   if (stage === 'finished') return Number.POSITIVE_INFINITY;
-  return mockSchedule.partSeconds[stage];
+  return partSeconds[stage];
 }
 
 /** 시간이 다 된 단계는 끝난 시각에 다음 단계로 넘긴다. 탭이 한동안 멈췄다 돌아와도 순서대로 따라잡는다. */
-function resolveStage(entry: StageEntry, now: number): StageEntry {
+function resolveStage(
+  entry: StageEntry,
+  now: number,
+  partSeconds: PartSeconds,
+): StageEntry {
   let current = entry;
   while (current.stage !== 'finished') {
-    const endsAt = current.startedAt + getStageSeconds(current.stage) * 1000;
+    const endsAt =
+      current.startedAt + getStageSeconds(current.stage, partSeconds) * 1000;
     if (now < endsAt) break;
     current = { stage: getNextStage(current.stage), startedAt: endsAt };
   }
@@ -45,6 +51,7 @@ function resolveStage(entry: StageEntry, now: number): StageEntry {
 function getTotalRemainingSeconds(
   stage: InterviewRoomStage,
   remainingSeconds: number,
+  partSeconds: PartSeconds,
 ) {
   if (stage === 'finished') return 0;
   const laterParts: readonly InterviewPart[] =
@@ -52,7 +59,7 @@ function getTotalRemainingSeconds(
       ? interviewParts
       : interviewParts.slice(interviewParts.indexOf(stage) + 1);
   const laterSeconds = laterParts.reduce(
-    (sum, part) => sum + mockSchedule.partSeconds[part],
+    (sum, part) => sum + partSeconds[part],
     0,
   );
   return stage === 'seating' ? laterSeconds : remainingSeconds + laterSeconds;
@@ -64,24 +71,26 @@ function getTotalRemainingSeconds(
  * 면접관은 미리 앉아 있다고 보고 들어오자마자 1부를 시작한다.
  * API가 생기면 같은 모양을 돌려주는 실시간 훅으로 바꾼다.
  */
-export function useMockInterviewSession(role: InterviewRole) {
+export function useMockInterviewSession(role: InterviewRole, isTask3: boolean) {
+  const partSeconds = isTask3 ? task3PartSeconds : mockSchedule.partSeconds;
+  const questions = isTask3 ? task3ReceivedQuestions : receivedQuestions;
   const [entry, setEntry] = useState<StageEntry>(() => ({
     stage: role === 'interviewer' ? 'common' : 'seating',
     startedAt: Date.now(),
   }));
   const now = useNow(entry.stage !== 'finished');
-  const { stage, startedAt } = resolveStage(entry, now);
+  const { stage, startedAt } = resolveStage(entry, now, partSeconds);
   const elapsedSeconds = secondsBetween(startedAt, now);
   const remainingSeconds =
     stage === 'finished'
       ? 0
-      : Math.max(0, getStageSeconds(stage) - elapsedSeconds);
+      : Math.max(0, getStageSeconds(stage, partSeconds) - elapsedSeconds);
   // 면접관이 질문을 고르는 동안을 흉내 내어, 부가 시작되고 조금 뒤에 질문을 띄운다.
   const receivedQuestion: ReceivedQuestion | null =
     role === 'interviewee' &&
     isInterviewPart(stage) &&
     elapsedSeconds >= mockSchedule.questionDelaySeconds
-      ? receivedQuestions[stage]
+      ? questions[stage]
       : null;
 
   function moveTo(next: InterviewRoomStage) {
@@ -95,8 +104,12 @@ export function useMockInterviewSession(role: InterviewRole) {
     /** 지금 단계의 남은 시간(초) */
     remainingSeconds,
     /** 면접이 끝날 때까지 남은 시간(초) */
-    totalRemainingSeconds: getTotalRemainingSeconds(stage, remainingSeconds),
-    partSeconds: mockSchedule.partSeconds,
+    totalRemainingSeconds: getTotalRemainingSeconds(
+      stage,
+      remainingSeconds,
+      partSeconds,
+    ),
+    partSeconds,
     /** 정해진 시간 안에 앉지 않아 자동으로 앉았는지 */
     isAutoSeated: entry.stage === 'seating' && stage !== 'seating',
     receivedQuestion,
