@@ -1,6 +1,5 @@
 import { expect, test } from '@playwright/test';
 import { chooseAvatar, submitSignup } from './support/signup.ts';
-import { waitingRoom } from './support/waitingRoom.ts';
 
 type StoredResume = {
   draft?: { experiences: { draft: { title: string } }[] };
@@ -75,8 +74,8 @@ test('경험과 답변을 저장·수정하고 등록하면 선택한 아바타�
     page.getByRole('img', { name: /차분한수달님의 MOING 방문 출입증/ }),
   ).toBeVisible();
   await expect(
-    page.getByRole('link', { name: '대기실 입장하기' }),
-  ).toHaveAttribute('href', waitingRoom('interviewee'));
+    page.getByRole('link', { name: '로비로 입장하기' }),
+  ).toHaveAttribute('href', '/lobby');
   await page.reload();
   await expect(
     page.getByRole('heading', { name: /출입증 나왔어요/ }),

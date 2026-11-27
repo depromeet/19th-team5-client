@@ -1,11 +1,7 @@
 import { expect, type Page, test } from '@playwright/test';
 import { installFakeMicrophone } from './support/fakeMicrophone.ts';
 import { chooseAvatar, skipResume, submitSignup } from './support/signup.ts';
-import {
-  finishMicTest,
-  micTestDialog,
-  waitingRoom,
-} from './support/waitingRoom.ts';
+import { finishMicTest } from './support/waitingRoom.ts';
 
 const reservationStart = new Date('2026-11-26T12:00:00+09:00');
 
@@ -36,9 +32,11 @@ async function bookCandidate(page: Page, remaining: number) {
 test('게스트가 로비 키오스크에서 가입을 마치고 예약하면 출입증에 일정과 역할이 남는다', async ({
   page,
 }) => {
-  await installFakeMicrophone(page);
   await page.clock.setFixedTime(reservationStart);
   await page.goto('/lobby');
+  await expect(
+    page.getByRole('complementary', { name: '예약된 면접이 없습니다' }),
+  ).toBeVisible();
   await page
     .getByRole('button', { name: 'Space 예약 키오스크 사용하기' })
     .press('Space');
@@ -47,11 +45,7 @@ test('게스트가 로비 키오스크에서 가입을 마치고 예약하면 �
   await submitSignup(page);
   await chooseAvatar(page);
   await skipResume(page);
-  await page.getByRole('link', { name: '대기실 입장하기' }).click();
-  await expect(page).toHaveURL(waitingRoom('interviewee'));
-  await micTestDialog(page)
-    .getByRole('button', { name: '예약 이어하기' })
-    .click();
+  await page.getByRole('link', { name: '예약 이어하기' }).click();
   await expect(page).toHaveURL('/reservations');
   await page.getByText('오전', { exact: true }).click();
   await expect(
@@ -69,6 +63,45 @@ test('게스트가 로비 키오스크에서 가입을 마치고 예약하면 �
   await page.goto(selectedUrl);
   await expect(page.getByRole('heading', { name: '내 예약' })).toBeVisible();
   await expect(page.getByRole('banner')).toContainText('1장');
+});
+
+test('예약이 없는 로비에서 키오스크의 남은 역할을 보고 면접 개설을 요청한다', async ({
+  page,
+}) => {
+  await page.clock.setFixedTime(reservationStart);
+  await issueVisitorPass(page);
+  await page.goto('/lobby');
+  await expect(
+    page.getByRole('complementary', { name: '예약된 면접이 없습니다' }),
+  ).toBeVisible();
+  await page
+    .getByRole('button', { name: 'Space 예약 키오스크 사용하기' })
+    .press('Space');
+  await expect(page).toHaveURL('/reservations');
+
+  const cards = page.getByRole('article');
+  await expect(
+    cards.filter({ hasText: '개발 프로젝트 경험 면접' }),
+  ).toContainText('면접자 0자리 · 면접관 2자리');
+  await expect(
+    cards.filter({ hasText: '서비스 기획 직무 면접' }),
+  ).toContainText('면접자 2자리 · 면접관 1자리');
+
+  await page.getByRole('tab', { name: '개설 요청' }).click();
+  await expect(page).toHaveURL('/reservations/request');
+  const summary = page.getByRole('complementary');
+  await expect(summary.getByRole('button')).toHaveCount(1);
+  await expect(summary.getByRole('button')).toBeDisabled();
+  await page.getByRole('textbox', { name: '방제' }).fill('개발 직무 면접');
+  await page.getByRole('radio', { name: '오후 8시' }).press('Space');
+  await page.getByRole('radio', { name: '개발' }).press('Space');
+  await page
+    .getByRole('textbox', { name: '개설 요청 이유' })
+    .fill('프로젝트 경험을 설명하는 연습을 하고 싶어요.');
+  await summary.getByRole('button').click();
+  await expect(
+    page.getByRole('dialog', { name: '개설 요청을 접수했어요' }),
+  ).toContainText('개발 직무 면접 · 오후 8시 · 개발');
 });
 
 test('잔액 0장에서도 빈 면접관 자리를 예약하고 예약 시점에는 보상을 지급하지 않는다', async ({

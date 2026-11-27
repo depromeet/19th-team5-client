@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import {
   Button,
@@ -9,58 +8,42 @@ import {
   TextField,
 } from '@/components/common';
 import { reservationPaths } from '@/constants/common/paths';
-import { useNow } from '@/hooks/common/useNow';
-import { useReservationStore } from '@/stores/reservation/reservationStore';
-import type { RoomRequestDraft } from '@/types/reservation';
+import { useRoomRequest } from '@/hooks/reservation/useRoomRequest';
 import {
   formatRoomDate,
   hourLabel,
-  nextRequestWeek,
   reasonLimit,
-  remainingRequests,
   requestHours,
   requestJobs,
-  validRoomRequest,
   weeklyRequestLimit,
 } from '@/utils/reservation';
 import * as styles from '../reservation.css';
 
-type RequestResult = 'submitted' | 'limit' | 'error' | null;
-
-const emptyDraft: RoomRequestDraft = {
-  title: '',
-  job: '',
-  hour: null,
-  reason: '',
-};
-
 export function RoomRequestForm() {
   const navigate = useNavigate();
-  const now = useNow();
-  const requests = useReservationStore((state) => state.requests);
-  const requestRoom = useReservationStore((state) => state.requestRoom);
-  const [draft, setDraft] = useState(emptyDraft);
-  const [result, setResult] = useState<RequestResult>(null);
-  const [pending, setPending] = useState(false);
-  const remaining = remainingRequests(requests, now);
+  const {
+    draft,
+    updateDraft,
+    pending,
+    result,
+    remaining,
+    nextRequestAt,
+    canSubmit,
+    submit,
+    showLimit,
+    closeResult,
+  } = useRoomRequest();
   const quotaReached = remaining === 0;
   const time = draft.hour === null ? '미선택' : hourLabel(draft.hour);
-  const close = () => {
-    if (result === 'submitted') setDraft(emptyDraft);
-    setResult(null);
-  };
+
   return (
     <>
       <form
         className={styles.columns}
         aria-busy={pending}
-        onSubmit={async (event) => {
+        onSubmit={(event) => {
           event.preventDefault();
-          if (pending) return;
-          setPending(true);
-          const response = await requestRoom(draft);
-          setPending(false);
-          if (response !== 'invalid') setResult(response);
+          void submit();
         }}
       >
         <section className={styles.form}>
@@ -77,9 +60,7 @@ export function RoomRequestForm() {
             label='방제'
             placeholder='디자인 직무 면접'
             value={draft.title}
-            onChange={(event) =>
-              setDraft({ ...draft, title: event.target.value })
-            }
+            onChange={(event) => updateDraft({ title: event.target.value })}
           />
           <fieldset className={styles.field}>
             <legend className={styles.legend}>시간대 선택 (필수)</legend>
@@ -90,7 +71,7 @@ export function RoomRequestForm() {
                   name='request-hour'
                   required
                   checked={draft.hour === hour}
-                  onChange={() => setDraft({ ...draft, hour })}
+                  onChange={() => updateDraft({ hour })}
                 >
                   {hourLabel(hour)}
                 </Radio>
@@ -106,7 +87,7 @@ export function RoomRequestForm() {
                   name='request-job'
                   required
                   checked={draft.job === job}
-                  onChange={() => setDraft({ ...draft, job })}
+                  onChange={() => updateDraft({ job })}
                 >
                   {job}
                 </Radio>
@@ -124,9 +105,7 @@ export function RoomRequestForm() {
                 ? '100자 이내로 입력해 주세요.'
                 : undefined
             }
-            onChange={(event) =>
-              setDraft({ ...draft, reason: event.target.value })
-            }
+            onChange={(event) => updateDraft({ reason: event.target.value })}
           />
           <div className={styles.info}>
             <strong>요청한 방이 열리면 알림으로 알려드려요</strong>
@@ -153,36 +132,28 @@ export function RoomRequestForm() {
               개설 요청은 주 {weeklyRequestLimit}회까지 가능해요.
             </p>
           </div>
-          <div className={styles.stack}>
-            {quotaReached ? (
-              <Button size='large' onClick={() => setResult('limit')}>
-                요청 한도 확인
-              </Button>
-            ) : (
-              <Button
-                type='submit'
-                size='large'
-                disabled={pending || !validRoomRequest(draft)}
-              >
-                {draft.hour !== null && draft.job
-                  ? `${time} · ${draft.job} 방 요청하기`
-                  : '방 요청하기'}
-              </Button>
-            )}
-            <Button
-              size='large'
-              variant='outline'
-              onClick={() => navigate(reservationPaths.rooms)}
-            >
-              열린 면접방 보기
+          {quotaReached ? (
+            <Button size='large' display='block' onClick={showLimit}>
+              요청 한도 확인
             </Button>
-          </div>
+          ) : (
+            <Button
+              type='submit'
+              size='large'
+              display='block'
+              disabled={!canSubmit}
+            >
+              {draft.hour !== null && draft.job
+                ? `${time} · ${draft.job} 방 요청하기`
+                : '방 요청하기'}
+            </Button>
+          )}
         </aside>
       </form>
       <Dialog
         className={styles.dialog}
         isOpen={result !== null}
-        onCancel={close}
+        onCancel={closeResult}
       >
         <Dialog.Header>
           {result === 'error'
@@ -201,12 +172,12 @@ export function RoomRequestForm() {
         {result !== 'error' && (
           <Dialog.Body className={styles.info}>
             {result === 'limit'
-              ? `다음 요청 가능 시간은 ${formatRoomDate(nextRequestWeek(now))} 0시예요.`
+              ? `다음 요청 가능 시간은 ${formatRoomDate(nextRequestAt)} 0시예요.`
               : '방이 열린 후 참여할 역할을 선택해 주세요.'}
           </Dialog.Body>
         )}
         <Dialog.Footer>
-          <Button display='block' variant='secondary' onClick={close}>
+          <Button display='block' variant='secondary' onClick={closeResult}>
             닫기
           </Button>
           <Button

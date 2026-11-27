@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router';
+import { IconIdMini } from '@/assets/icons';
 import { Button, Dialog, Tag } from '@/components/common';
 import { reservationPaths } from '@/constants/common/paths';
 import { roleLabels } from '@/constants/interview/roleLabels';
@@ -12,10 +13,12 @@ import {
   canManageReservation,
   formatRoomDate,
   formatRoomTime,
+  formatRoomTimeLabel,
   interviewDuration,
 } from '@/utils/reservation';
 import { ReservedRoomDetails } from './components/ReservedRoomDetails';
 import * as styles from './reservation.css';
+import * as roleStyles from './roleSelection.css';
 
 type RoleDialog =
   | 'confirm'
@@ -171,46 +174,62 @@ function RoleSelection({ room, bookedRole }: RoleSelectionProps) {
         <p className={styles.subtitle}>
           {room.title} · {formatRoomDate(room.startsAt)}{' '}
           {formatRoomTime(room.startsAt)}–
-          {formatRoomTime(room.startsAt + interviewDuration)} · 2:2 면접
+          {formatRoomTime(room.startsAt + interviewDuration)} · 2:2 면접 ·{' '}
+          {room.job}
         </p>
       </header>
-      <div className={styles.columns}>
-        <fieldset className={styles.roleChoices} aria-label='역할 선택'>
+      <div className={roleStyles.layout}>
+        <fieldset className={roleStyles.choices} aria-label='역할 선택'>
           {roles.map((item) => (
             <button
               key={item}
-              className={styles.roleCard}
+              className={roleStyles.card}
               type='button'
               aria-label={roleLabels[item]}
               aria-pressed={role === item}
               disabled={item === bookedRole || !room.seats[item]}
               onClick={() => setRole(item)}
             >
-              <span className={styles.roleCopy}>
+              <span className={roleStyles.copy}>
                 <span>
-                  <span className={styles.roleTitle}>
-                    <strong className={styles.time}>{roleLabels[item]}</strong>
-                    <Tag tone='gray'>
-                      {item === bookedRole
-                        ? '현재 예약'
-                        : room.seats[item] === 0
-                          ? '자리 마감'
-                          : item === 'interviewee'
+                  <span className={roleStyles.title}>
+                    <strong className={roleStyles.name}>
+                      {roleLabels[item]}
+                    </strong>
+                    {item === bookedRole || !room.seats[item] ? (
+                      <Tag tone='gray'>
+                        {item === bookedRole ? '현재 예약' : '자리 마감'}
+                      </Tag>
+                    ) : (
+                      <span className={roleStyles.ticket}>
+                        <IconIdMini
+                          className={roleStyles.ticketIcon}
+                          aria-hidden='true'
+                        />
+                        {item === 'interviewer' && '참여 완료 후 '}
+                        <span className={roleStyles.ticketAmount}>
+                          {item === 'interviewee'
                             ? '면접권 −1장'
-                            : '참여 완료 후 면접권 +1장'}
-                    </Tag>
+                            : '면접권 +1장'}
+                        </span>
+                      </span>
+                    )}
                   </span>
                   {item === 'interviewee'
                     ? '내 답변을 실전처럼 연습해요.'
                     : '좋은 답변을 듣는 눈을 길러요.'}
                 </span>
-                <small className={styles.roleHint}>
+                <small className={roleStyles.hint}>
                   {item === 'interviewee'
                     ? '질문에 답하고 키워드 피드백 받기'
                     : '질문 카드를 고르고 피드백 남기기'}
                 </small>
               </span>
-              <img className={styles.portrait} src={portraits[item]} alt='' />
+              <img
+                className={roleStyles.portrait}
+                src={portraits[item]}
+                alt=''
+              />
             </button>
           ))}
         </fieldset>
@@ -218,19 +237,19 @@ function RoleSelection({ room, bookedRole }: RoleSelectionProps) {
           <h2 className={styles.sectionTitle}>선택한 면접</h2>
           <dl className={styles.facts}>
             <dt>시간대</dt>
-            <dd className={styles.value}>{formatRoomTime(room.startsAt)}</dd>
-            <dt>직군</dt>
-            <dd className={styles.value}>{room.job}</dd>
-            <dt>역할</dt>
-            <dd className={styles.value}>{roleLabels[role]}</dd>
+            <dd className={styles.value}>
+              {formatRoomTimeLabel(room.startsAt)}
+            </dd>
           </dl>
           <div className={styles.info}>
             <strong>예약 전 확인해 주세요</strong>
-            <p className={styles.muted}>
-              시작 1시간 전부터 예약 취소·역할 변경이 불가해요. 노쇼 경고가 2회
-              누적되면 서비스 이용이 제한돼요. 면접관 면접권은 참여 완료 후
-              지급돼요.
-            </p>
+            <ul className={roleStyles.policy}>
+              <li>
+                시작 1시간 전부터 예약을 취소하거나 역할을 바꿀 수 없어요.
+              </li>
+              <li>노쇼 경고가 2회 누적되면 이용이 제한돼요.</li>
+              <li>면접관 면접권은 참여를 마치면 지급돼요.</li>
+            </ul>
           </div>
           <Button
             size='large'

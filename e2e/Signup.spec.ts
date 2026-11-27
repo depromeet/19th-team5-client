@@ -1,7 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { installFakeMicrophone } from './support/fakeMicrophone.ts';
 import { skipResume, submitSignup } from './support/signup.ts';
-import { micTestDialog, waitingRoom } from './support/waitingRoom.ts';
 
 test('가입 정보를 검증한 뒤 아바타로 이동하고 뒤로 가면 가입 폼으로 돌아간다', async ({
   page,
@@ -53,7 +51,6 @@ test('가입 정보를 검증한 뒤 아바타로 이동하고 뒤로 가면 가
 test('닉네임은 공백 포함 6자까지 허용하고 아바타를 선택해야 다음으로 이동한다', async ({
   page,
 }) => {
-  await installFakeMicrophone(page);
   await page.goto('/');
   await page.getByRole('link', { name: '회원가입', exact: true }).click();
   await submitSignup(page);
@@ -96,9 +93,11 @@ test('닉네임은 공백 포함 6자까지 허용하고 아바타를 선택해�
   await page.goto('/signup/avatar');
   await expect(page).toHaveURL('/signup/pass');
   await expect(issuedPass).toBeVisible();
-  await page.getByRole('link', { name: '대기실 입장하기' }).click();
-  await expect(page).toHaveURL(waitingRoom('interviewee'));
-  await expect(micTestDialog(page)).toBeVisible();
+  await page.getByRole('link', { name: '로비로 입장하기' }).click();
+  await expect(page).toHaveURL('/lobby');
+  await expect(
+    page.getByRole('heading', { name: '예약된 면접이 없습니다' }),
+  ).toBeVisible();
 });
 
 test('가입 정보가 없는 직접 접근을 처리하고 모바일에서 랜덤 이름과 아바타를 변경한다', async ({

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { Button, Dialog, GNB } from '@/components/common';
 import {
+  EmptyInterviewCard,
   type LobbyInteractable,
   LobbyScene,
   NoticeCard,
@@ -162,15 +163,11 @@ export function ReservationLobby() {
             now={now}
           />
         ) : (
-          email && (
-            <Button
-              className={styles.upcoming}
-              variant='secondary'
-              onClick={() => navigate(reservationPaths.mine)}
-            >
-              내 예약 보기
-            </Button>
-          )
+          <EmptyInterviewCard
+            className={styles.upcoming}
+            bookingTo={reservationPaths.rooms}
+            reservationsTo={email ? reservationPaths.mine : undefined}
+          />
         )}
         <WorldChatBar className={styles.worldChat} />
       </SpaceShell>
