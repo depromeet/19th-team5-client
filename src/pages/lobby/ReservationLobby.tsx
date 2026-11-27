@@ -164,15 +164,11 @@ export function ReservationLobby() {
               now={now}
             />
           ) : (
-            email && (
-              <Button
-                className={styles.upcoming}
-                variant='secondary'
-                onClick={() => navigate(reservationPaths.mine)}
-              >
-                내 예약 보기
-              </Button>
-            )
+            <EmptyInterviewCard
+              className={styles.upcoming}
+              bookingTo={reservationPaths.rooms}
+              reservationsTo={email ? reservationPaths.mine : undefined}
+            />
           )}
         </div>
         <WorldChatBar className={styles.worldChat} />
