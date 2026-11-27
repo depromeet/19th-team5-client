@@ -37,3 +37,6 @@ export const characterRadius = 0.4;
 
 /** 스케일을 맞춘 캐릭터 키(m). 앉아도 상체는 그대로라 몸 뿌리에서 머리 꼭대기까지 이 높이다. */
 export const characterHeight = 2;
+
+/** 몸 뿌리에서 눈까지의 높이(m). 1인칭 카메라를 둔다. 디자이너 웹 시뮬레이션 값 */
+export const characterEyeHeight = 1.5;

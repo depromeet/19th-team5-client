@@ -14,6 +14,8 @@ export const interviewPaths = {
   lobbyHome: '/lobby',
   /** 면접관이 면접자를 평가하는 화면 */
   writeReview: '/write-review',
+  /** 면접자가 면접관에게 받은 평가(결과)를 보는 화면 */
+  receivedReview: '/received-review',
 };
 
 export const signupPaths = {

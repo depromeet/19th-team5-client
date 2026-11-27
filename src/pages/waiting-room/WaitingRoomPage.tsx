@@ -163,11 +163,12 @@ function WaitingRoom({
   exit,
 }: WaitingRoomProps) {
   const navigate = useNavigate();
-  const microphone = useRoomMicrophone();
+  const [isMicReady, setIsMicReady] = useState(false);
+  // 마이크는 꺼진 채로 들어오지만, 마이크 테스트 동안에는 목소리 크기를 보여주려고 입력을 받는다.
+  const microphone = useRoomMicrophone({ isTesting: !isMicReady });
   const isOnline = useNetworkStatus();
   // 다시 연결하기: 실시간 연결이 없는 프로토타입에서는 연결 상태를 다시 읽기만 한다.
   const [, recheckConnection] = useReducer((count: number) => count + 1, 0);
-  const [isMicReady, setIsMicReady] = useState(false);
   const [nearby, setNearby] = useState<WaitingRoomInteractable | null>(null);
   // 3D 씬이 김대리 머리 위 화면 좌표를 알려주면, 말 걸기 안내를 그 위에 띄운다.
   const [npcAnchor] = useState(createScreenAnchor);

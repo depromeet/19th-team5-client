@@ -53,6 +53,35 @@ test('면접자는 평가 없이 바로 로비로 돌아갈 수 있다', async (
   await expect(page).toHaveURL('/lobby');
 });
 
+test('면접자는 면접을 마치고 로비에서 결과 도착 카드로 받은 결과를 본다', async ({
+  page,
+}) => {
+  await page.goto(interviewRoom('interviewee'));
+  await sit(page);
+  await page.clock.fastForward(roomTiming.part * 3);
+  await page
+    .getByRole('dialog', endDialog)
+    .getByRole('button', { name: '로비로 돌아가기' })
+    .click();
+
+  await expect(page).toHaveURL('/lobby');
+  await expect(page.getByText('면접 결과가 도착했어요')).toBeVisible();
+  await page.getByRole('button', { name: '확인' }).click();
+  await expect(page).toHaveURL('/received-review');
+
+  // 결과 화면에서 뒤로 와도 카드는 다시 뜨지 않는다.
+  await page.goBack();
+  await expect(page).toHaveURL('/lobby');
+  await expect(page.getByRole('heading', { name: '로비' })).toBeAttached();
+  await expect(page.getByText('면접 결과가 도착했어요')).toBeHidden();
+});
+
+test('로비에 그냥 들어오면 면접 결과 도착 카드가 없다', async ({ page }) => {
+  await page.goto('/lobby');
+  await expect(page.getByRole('heading', { name: '로비' })).toBeAttached();
+  await expect(page.getByText('면접 결과가 도착했어요')).toBeHidden();
+});
+
 test('면접관은 면접을 마치면 면접자 평가 화면으로 간다', async ({ page }) => {
   await page.goto(interviewRoom('interviewer'));
   await page.clock.fastForward(roomTiming.part * 3);

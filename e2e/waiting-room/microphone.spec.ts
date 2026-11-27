@@ -59,11 +59,14 @@ test('하단 독에서 마이크를 끄고, 연결이 끊기면 안내한다', a
   await page.goto(waitingRoom('interviewee'));
   await finishMicTest(page);
 
+  // 마이크 테스트를 마쳐도 마이크는 꺼진 채로 시작한다.
   const mic = page.getByRole('button', { name: '마이크', exact: true });
+  await expect(mic).toHaveAttribute('aria-pressed', 'false');
+  await expect(page.getByText('마이크 꺼짐')).toBeVisible();
+  await mic.click();
   await expect(mic).toHaveAttribute('aria-pressed', 'true');
   await mic.click();
   await expect(mic).toHaveAttribute('aria-pressed', 'false');
-  await expect(page.getByText('마이크 꺼짐')).toBeVisible();
 
   await context.setOffline(true);
   const connectionLost = page.getByRole('dialog', {

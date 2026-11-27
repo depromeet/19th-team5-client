@@ -13,7 +13,12 @@ import {
   type StageCardProps,
   TimeStatus,
 } from '@/components/interview-room';
-import { InteractionPrompt, SpaceShell } from '@/components/space';
+import {
+  InteractionPrompt,
+  ScreenAnchored,
+  type ScreenInset,
+  SpaceShell,
+} from '@/components/space';
 import { interviewPaths, reservationPaths } from '@/constants/common/paths';
 import { partLabels } from '@/constants/interview-room/parts';
 import { shortcuts } from '@/constants/space/shortcuts';
@@ -27,6 +32,7 @@ import {
   interviewees,
   interviewers,
   myAvatarImageUrl,
+  myInterviewee,
 } from '@/mocks/interview-room/participants';
 import {
   commonQuestions,
@@ -38,18 +44,40 @@ import {
   useMockInterviewSession,
 } from '@/mocks/interview-room/useMockInterviewSession';
 import { startWriteReviewSession } from '@/mocks/review/WriteReviewSession';
+import { getRoomParticipants } from '@/mocks/waiting-room/participants';
 import { visuallyHidden } from '@/styles/a11y.css';
 import type { InterviewRole } from '@/types/interview/interview';
 import type { InterviewPart } from '@/types/interview-room/interviewRoom';
 import { formatTime, toDurationString } from '@/utils/formatTime';
+import { createInterviewResultNoticeState } from '@/utils/interview-room/resultNotice';
 import { isInterviewPart } from '@/utils/interview-room/stage';
 import { interviewDuration, reservationPhase } from '@/utils/reservation';
+import {
+  createScreenAnchor,
+  type ScreenAnchor,
+} from '@/utils/space/screenAnchor';
 import * as styles from './interviewRoomPage.css';
 
 type InterviewRoomProps = { interviewId: string; role: InterviewRole };
+type InterviewRoomViewProps = InterviewRoomProps & {
+  /** 프로토타입 면접인지. 면접자가 끝내고 로비로 가면 면접 결과 도착 카드를 띄운다. */
+  isPrototype?: boolean;
+};
 type InterviewInProgressProps = InterviewRoomProps & {
   session: MockInterviewSession;
   nearby: InterviewRoomInteractable | null;
+  seatAnchor: ScreenAnchor;
+};
+
+/**
+ * 앉기 안내가 내 자리를 따라 움직일 때 비워 둘 화면 가장자리(px).
+ * 위는 단계 카드(top 139px · 높이 약 100px), 아래는 하단 독(bottom 24px · 높이 약 72px)을 피한다.
+ */
+const seatPromptInset: ScreenInset = {
+  top: 256,
+  right: 24,
+  bottom: 112,
+  left: 24,
 };
 
 export function InterviewRoomPage() {
@@ -66,7 +94,14 @@ function PrototypeInterviewRoom({
 }: Pick<InterviewRoomProps, 'interviewId'>) {
   const { role } = usePrototypeParams();
   // 역할을 바꾸면 면접을 처음부터 다시 진행한다.
-  return <InterviewRoom key={role} interviewId={interviewId} role={role} />;
+  return (
+    <InterviewRoom
+      key={role}
+      interviewId={interviewId}
+      role={role}
+      isPrototype
+    />
+  );
 }
 
 function ReservedInterviewRoom({
@@ -95,29 +130,40 @@ function ReservedInterviewRoom({
  * 면접자는 자리에 앉아 질문을 받고, 면접관은 질문 카드를 보며 면접자마다 메모를 남긴다.
  * 대기실에서 시작 3초 카운트다운이 끝나면 이 화면으로 들어온다.
  */
-function InterviewRoom({ interviewId, role }: InterviewRoomProps) {
+function InterviewRoom({
+  interviewId,
+  role,
+  isPrototype = false,
+}: InterviewRoomViewProps) {
   const session = useMockInterviewSession(role);
   const [nearby, setNearby] = useState<InterviewRoomInteractable | null>(null);
+  // 대기실에서 함께 기다린 사람들이 그대로 들어온다. 3D 면접장에서는 역할과 아바타만 쓴다.
+  const [participants] = useState(() => getRoomParticipants(role, true));
+  // 3D 씬이 내 자리 위 화면 좌표를 알려주면, 앉기 안내를 그 위에 띄운다.
+  const [seatAnchor] = useState(createScreenAnchor);
 
   return (
     <SpaceShell
       header={<GNB variant='interview' />}
       scene={
         <InterviewRoomScene
+          participants={participants}
           isSeated={session.stage !== 'seating'}
           onNearbyChange={setNearby}
+          seatAnchor={seatAnchor}
         />
       }
     >
       <h1 className={visuallyHidden}>면접방</h1>
       {session.stage === 'finished' ? (
-        <InterviewEnd role={role} />
+        <InterviewEnd role={role} isPrototype={isPrototype} />
       ) : (
         <InterviewInProgress
           interviewId={interviewId}
           role={role}
           session={session}
           nearby={nearby}
+          seatAnchor={seatAnchor}
         />
       )}
     </SpaceShell>
@@ -130,10 +176,12 @@ function InterviewInProgress({
   role,
   session,
   nearby,
+  seatAnchor,
 }: InterviewInProgressProps) {
   const microphone = useRoomMicrophone();
   const part = isInterviewPart(session.stage) ? session.stage : null;
-  const canSit = session.stage === 'seating' && nearby === 'seat';
+  const isSeating = session.stage === 'seating';
+  const canSit = isSeating && nearby === 'seat';
 
   useKeyboardShortcut(shortcuts.interact, session.sit, canSit);
 
@@ -194,13 +242,20 @@ function InterviewInProgress({
             className={styles.stageCard}
             {...getIntervieweeCard(session, part)}
           />
-          {canSit && (
-            <InteractionPrompt
-              className={styles.seatPrompt}
-              shortcut={shortcuts.interact}
-              label='앉기'
-              onClick={session.sit}
-            />
+          {/* 내 자리를 찾을 수 있도록 안내는 늘 내 자리 위에 두고, 가까이 가야 누를 수 있다. */}
+          {isSeating && (
+            <ScreenAnchored
+              anchor={seatAnchor}
+              fallbackClassName={styles.seatPrompt}
+              inset={seatPromptInset}
+            >
+              <InteractionPrompt
+                shortcut={shortcuts.interact}
+                label='앉기'
+                disabled={!canSit}
+                onClick={session.sit}
+              />
+            </ScreenAnchored>
           )}
           <InterviewDock className={styles.dock} {...dockProps} />
         </>
@@ -209,9 +264,12 @@ function InterviewInProgress({
   );
 }
 
+/** 면접자 카드에서 내 이름(예: 면접자 A)을 강조한다. */
+const myName = <span className={styles.myName}>{myInterviewee.name}</span>;
+
 /**
- * 면접자 화면 위쪽 카드. 앉기 전에는 할 일을, 부가 시작되면 질문을 기다리는 동안 안내를,
- * 면접관이 고른 질문이 오면 그 질문을 보여준다.
+ * 면접자 화면 위쪽 카드. 앉기 전에는 내가 어떤 이름으로 참여하는지를, 부가 시작되면 질문을 기다리는 동안 안내를,
+ * 면접관이 고른 질문이 오면 내 이름을 앞에 붙여 그 질문을 보여준다.
  */
 function getIntervieweeCard(
   session: MockInterviewSession,
@@ -228,7 +286,7 @@ function getIntervieweeCard(
           </time>
         </>
       ),
-      title: '내 자리로 가서 앉아 주세요',
+      title: <>{myName}로 면접에 참여합니다</>,
     };
   }
 
@@ -239,7 +297,11 @@ function getIntervieweeCard(
       variant: 'question',
       caption: `${order} ${title} · ${question.detail}`,
       byline: `${question.interviewerName} 면접관`,
-      title: question.text,
+      title: (
+        <>
+          {myName}님 {question.text}
+        </>
+      ),
     };
   }
   return {
@@ -256,12 +318,24 @@ function getIntervieweeCard(
  * 면접이 끝나면 역할에 맞는 종료 다이얼로그를 띄운다.
  * 면접관은 면접자 평가 화면으로, 면접자는 면접관 평가(선택)를 거쳐 로비로 간다.
  * 면접방으로 뒤로 돌아오지 않도록 기록을 바꾼다.
+ * 프로토타입 면접은 결과가 바로 도착한 것으로 보고, 로비에 면접 결과 도착 카드를 띄운다.
  */
-function InterviewEnd({ role }: { role: InterviewRole }) {
+function InterviewEnd({
+  role,
+  isPrototype,
+}: {
+  role: InterviewRole;
+  isPrototype: boolean;
+}) {
   const navigate = useNavigate();
   const [isReviewingInterviewers, setIsReviewingInterviewers] = useState(false);
   const backToLobby = () =>
-    navigate(interviewPaths.lobbyHome, { replace: true });
+    navigate(interviewPaths.lobbyHome, {
+      replace: true,
+      state: isPrototype
+        ? createInterviewResultNoticeState(Date.now())
+        : undefined,
+    });
 
   if (role === 'interviewer') {
     return (

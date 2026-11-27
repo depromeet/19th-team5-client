@@ -19,6 +19,13 @@ export type StageSeat = {
   rotz: number;
 };
 
+/** 방에 들어와 처음 서는 자리(scene_data.json links[].spawn). rotz는 바라보는 방향(도) */
+export type StageSpawn = {
+  x: number;
+  y: number;
+  rotz: number;
+};
+
 /** 바닥 범위. 남서쪽 모서리(x, y)와 동서 폭(width)·남북 길이(depth) */
 export type StageArea = { x: number; y: number; width: number; depth: number };
 

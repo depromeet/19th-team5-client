@@ -8,7 +8,8 @@ export type StageCardProps = {
   caption: ReactNode;
   /** caption 뒤에 흐린 점으로 나눠 붙이는 말. 예) 단단한 곰 면접관 */
   byline?: string;
-  title: string;
+  /** 제목. 강조할 말(예: 내 이름)은 요소로 감싸 넘길 수 있다. */
+  title: ReactNode;
   className?: string;
 };
 
