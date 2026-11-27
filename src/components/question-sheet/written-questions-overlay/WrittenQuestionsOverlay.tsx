@@ -3,8 +3,8 @@ import { Radio } from '@/components/common';
 import { DocumentOverlay, ResumePanel } from '@/components/interview';
 import { visuallyHidden } from '@/styles/a11y.css';
 import type { Candidate } from '@/types/question-sheet/candidate';
+import * as styles from '../questionSheetLayout.css';
 import { WrittenQuestionPanel } from './WrittenQuestionPanel';
-import * as styles from './writtenQuestionsOverlay.css';
 
 type WrittenQuestionsOverlayProps = {
   isOpen: boolean;

@@ -1,11 +1,6 @@
 import { useId } from 'react';
-import {
-  type QuestionDraft,
-  useQuestionSheetStore,
-} from '@/stores/question-sheet/questionSheetStore';
+import { useCandidateQuestions } from '@/hooks/question-sheet/useCandidateQuestions';
 import * as styles from './writtenQuestionPanel.css';
-
-const emptyQuestions: QuestionDraft[] = [];
 
 type WrittenQuestionPanelProps = {
   interviewId: string;
@@ -18,9 +13,9 @@ export function WrittenQuestionPanel({
   candidateId,
 }: WrittenQuestionPanelProps) {
   const headingId = useId();
-  const questions = useQuestionSheetStore(
-    (state) => state.sheets[interviewId]?.[candidateId] ?? emptyQuestions,
-  ).filter(({ text }) => text.trim());
+  const questions = useCandidateQuestions(interviewId, candidateId).filter(
+    ({ text }) => text.trim(),
+  );
 
   return (
     <section className={styles.panel} aria-labelledby={headingId}>

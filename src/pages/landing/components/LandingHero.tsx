@@ -15,8 +15,20 @@ import { useAuthStore } from '@/stores/AuthStore';
 import { getSignupResumePath } from '@/utils/signup/avatarDraft';
 import * as styles from './LandingHero.css';
 
-/** 사용성 테스트 과제로 바로 들어가는 링크. 프로토타입 대기실에 역할별로 입장한다. */
+type LandingHeroProps = {
+  waitingRoomTo: string;
+};
+
+/** 사용성 테스트 과제의 시작 화면으로 바로 들어가는 링크. */
 const taskLinks = [
+  {
+    label: 'Task1',
+    to: interviewPaths.lobbyHome,
+  },
+  {
+    label: 'Task2',
+    to: interviewPaths.lobby({ role: 'interviewer', phase: 'prepare' }),
+  },
   {
     label: 'Task3',
     to: interviewPaths.waitingRoom(interviewMock.id, { role: 'interviewee' }),
@@ -27,7 +39,7 @@ const taskLinks = [
   },
 ] as const;
 
-export function LandingHero({ waitingRoomTo }: { waitingRoomTo: string }) {
+export function LandingHero({ waitingRoomTo }: LandingHeroProps) {
   const hero = useRef<HTMLElement>(null);
   const [pastHero, setPastHero] = useState(false);
   const email = useAuthStore((state) => state.email);
@@ -58,7 +70,7 @@ export function LandingHero({ waitingRoomTo }: { waitingRoomTo: string }) {
             {labels.brand}
           </a>
           <nav className={navStyles.menu} aria-label={labels.navigation}>
-            <Link className={styles.navItem} to='/lobby'>
+            <Link className={styles.navItem} to={interviewPaths.lobbyHome}>
               {labels.lobby}
             </Link>
             <a href='#service' className={styles.navItem}>
@@ -102,17 +114,12 @@ export function LandingHero({ waitingRoomTo }: { waitingRoomTo: string }) {
             도착해요.
           </p>
           <div className={styles.heroActions}>
-            <Link className={styles.browseButton} to='/lobby'>
+            <Link className={styles.browseButton} to={interviewPaths.lobbyHome}>
               둘러보기
             </Link>
             <Link className={button({ size: 'large' })} to={waitingRoomTo}>
               면접방 입장하기
             </Link>
-            {taskLinks.map(({ label, to }) => (
-              <Link key={label} className={styles.browseButton} to={to}>
-                {label}
-              </Link>
-            ))}
           </div>
           {email === null ? (
             <p className={styles.heroNote}>
@@ -123,6 +130,13 @@ export function LandingHero({ waitingRoomTo }: { waitingRoomTo: string }) {
               {email} 계정으로 로그인했어요.
             </p>
           )}
+          <nav className={styles.taskLinks} aria-label='사용성 테스트 과제'>
+            {taskLinks.map(({ label, to }) => (
+              <Link key={label} className={styles.taskLink} to={to}>
+                {label}
+              </Link>
+            ))}
+          </nav>
         </div>
         <a href='#how-it-works' className={styles.scrollHint}>
           서비스 소개

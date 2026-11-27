@@ -2,19 +2,19 @@ import { IconTrashcanLine } from '@karrotmarket/react-monochrome-icon';
 import { type RefObject, useEffect, useId, useRef, useState } from 'react';
 import { AddButton, Button, Tag, TextArea } from '@/components/common';
 import { largeTag } from '@/components/interview/largeTag.css';
+import { useCandidateQuestions } from '@/hooks/question-sheet/useCandidateQuestions';
+import { useQuestionSheetStore } from '@/stores/question-sheet/questionSheetStore';
+import type {
+  QuestionDraft,
+  QuestionPatch,
+} from '@/types/question-sheet/questionDraft';
 import {
   answerGuideMaxLength,
   intentMaxLength,
   isBlankQuestion,
   maxQuestions,
-  type QuestionDraft,
-  useQuestionSheetStore,
-} from '@/stores/question-sheet/questionSheetStore';
+} from '@/utils/question-sheet/questionDraft';
 import * as styles from './questionPanel.css';
-
-const emptyQuestions: QuestionDraft[] = [];
-
-type QuestionPatch = Partial<Omit<QuestionDraft, 'id'>>;
 
 type QuestionPanelProps = {
   interviewId: string;
@@ -22,6 +22,19 @@ type QuestionPanelProps = {
   exitLabel: string;
   onSaveExit: () => void;
   onFinish: () => void;
+};
+
+type QuestionItemProps = {
+  number: number;
+  question: QuestionDraft;
+  onRemove: () => void;
+};
+
+type QuestionSummaryProps = QuestionItemProps & { onExpand: () => void };
+
+type QuestionEditorProps = QuestionItemProps & {
+  inputRef: RefObject<HTMLInputElement | null>;
+  onChange: (patch: QuestionPatch) => void;
 };
 
 /** 2부에서 물어볼 질문 작성. 한 번에 질문 하나만 펼쳐서 고친다. */
@@ -34,9 +47,7 @@ export function QuestionPanel({
 }: QuestionPanelProps) {
   const headingId = useId();
   const questionInputRef = useRef<HTMLInputElement>(null);
-  const questions = useQuestionSheetStore(
-    (state) => state.sheets[interviewId]?.[candidateId] ?? emptyQuestions,
-  );
+  const questions = useCandidateQuestions(interviewId, candidateId);
   const addQuestion = useQuestionSheetStore((state) => state.addQuestion);
   const updateQuestion = useQuestionSheetStore((state) => state.updateQuestion);
   const removeQuestion = useQuestionSheetStore((state) => state.removeQuestion);
@@ -86,8 +97,8 @@ export function QuestionPanel({
         {!isEmpty && (
           <>
             <p className={styles.helper}>
-              최대 3개 · 자동 저장 · 의도와 답변 방향은 면접자 질문카드에
-              저장돼요
+              최대 {maxQuestions}개 · 자동 저장 · 의도와 답변 방향은 면접자
+              질문카드에 저장돼요
             </p>
             <ol className={styles.list}>
               {questions.map((question, index) =>
@@ -116,7 +127,7 @@ export function QuestionPanel({
         <AddButton
           className={isEmpty ? styles.emptyAddButton : undefined}
           limited={isFull}
-          description='질문은 3개까지 만들 수 있어요.'
+          description={`질문은 ${maxQuestions}개까지 만들 수 있어요.`}
           onClick={add}
         >
           {isEmpty ? '+ 서류를 읽으며 질문 만들기' : '+ 질문 추가하기'}
@@ -140,12 +151,6 @@ export function QuestionPanel({
   );
 }
 
-type QuestionItemProps = {
-  number: number;
-  question: QuestionDraft;
-  onRemove: () => void;
-};
-
 function DeleteButton({
   number,
   onRemove,
@@ -167,7 +172,7 @@ function QuestionSummary({
   question,
   onExpand,
   onRemove,
-}: QuestionItemProps & { onExpand: () => void }) {
+}: QuestionSummaryProps) {
   const hasIntent = question.intent.trim().length > 0;
   const hasAnswerGuide = question.answerGuide.trim().length > 0;
 
@@ -211,10 +216,7 @@ function QuestionEditor({
   inputRef,
   onChange,
   onRemove,
-}: QuestionItemProps & {
-  inputRef: RefObject<HTMLInputElement | null>;
-  onChange: (patch: QuestionPatch) => void;
-}) {
+}: QuestionEditorProps) {
   const inputId = useId();
 
   // 펼치거나 새로 만든 질문은 바로 입력할 수 있게 한다.

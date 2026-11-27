@@ -1,13 +1,11 @@
 import { useId, useState } from 'react';
 import { Button, Dialog, Radio, Timer } from '@/components/common';
 import { ResumePanel } from '@/components/interview';
-import {
-  isBlankQuestion,
-  isFinishedQuestion,
-  useQuestionSheetStore,
-} from '@/stores/question-sheet/questionSheetStore';
+import { useQuestionSheetStore } from '@/stores/question-sheet/questionSheetStore';
 import { visuallyHidden } from '@/styles/a11y.css';
 import type { Candidate } from '@/types/question-sheet/candidate';
+import { hasUnfinishedQuestion } from '@/utils/question-sheet/questionDraft';
+import * as layout from '../questionSheetLayout.css';
 import { QuestionPanel } from './QuestionPanel';
 import * as styles from './questionSheet.css';
 
@@ -42,19 +40,15 @@ export function QuestionSheet({
   const candidateGroupName = useId();
   const [candidateId, setCandidateId] = useState(candidates[0]?.id ?? '');
   const [dialog, setDialog] = useState<'finish' | 'unsaved' | null>(null);
-  const interviewSheets = useQuestionSheetStore(
-    (state) => state.sheets[interviewId],
-  );
   const removeUnfinished = useQuestionSheetStore(
     (state) => state.removeUnfinished,
   );
   const candidate = candidates.find(({ id }) => id === candidateId);
 
-  const hasUnsavedQuestion = Object.values(interviewSheets ?? {})
-    .flat()
-    .some(
-      (question) => !isBlankQuestion(question) && !isFinishedQuestion(question),
-    );
+  function hasUnsavedQuestion() {
+    const { sheets } = useQuestionSheetStore.getState();
+    return hasUnfinishedQuestion(sheets[interviewId] ?? {});
+  }
 
   function exit() {
     removeUnfinished(interviewId);
@@ -63,12 +57,12 @@ export function QuestionSheet({
   }
 
   function requestSaveExit() {
-    if (hasUnsavedQuestion) setDialog('unsaved');
+    if (hasUnsavedQuestion()) setDialog('unsaved');
     else exit();
   }
 
   function requestFinish() {
-    if (hasUnsavedQuestion) {
+    if (hasUnsavedQuestion()) {
       setDialog('unsaved');
       return;
     }
@@ -87,8 +81,8 @@ export function QuestionSheet({
           <Timer tone='default' seconds={remainingSeconds} />
         </div>
       </div>
-      <div className={styles.body}>
-        <fieldset className={styles.candidates}>
+      <div className={layout.body}>
+        <fieldset className={layout.candidates}>
           <legend className={visuallyHidden}>면접자 선택</legend>
           {candidates.map(({ id, label }) => (
             <Radio
@@ -103,7 +97,7 @@ export function QuestionSheet({
           ))}
         </fieldset>
         {candidate && (
-          <div className={styles.columns}>
+          <div className={layout.columns}>
             <ResumePanel candidate={candidate} />
             <QuestionPanel
               key={candidate.id}

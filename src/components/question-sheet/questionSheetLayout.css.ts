@@ -1,7 +1,7 @@
 import { style } from '@vanilla-extract/css';
 import { space } from '@/styles/token';
 
-const mobile = '(max-width: 700px)';
+export const mobile = '(max-width: 700px)';
 
 export const body = style({
   display: 'flex',
@@ -20,7 +20,7 @@ export const candidates = style({
   border: 0,
 });
 
-/** 질문지 작성 화면과 같은 비율로 서류와 질문을 나눈다. */
+/** 작성 화면과 읽기 전용 화면에 같은 서류·질문 레이아웃을 쓴다. */
 export const columns = style({
   display: 'grid',
   gridTemplateColumns: 'minmax(0, 704fr) minmax(0, 496fr)',

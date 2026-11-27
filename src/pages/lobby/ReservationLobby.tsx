@@ -125,50 +125,52 @@ export function ReservationLobby() {
             onUse={openRooms}
           />
         )}
-        {resultArrivedAt !== undefined ? (
-          <NoticeCard
-            className={styles.notice}
-            time={formatRoomTime(resultArrivedAt)}
-            title='면접 결과가 도착했어요'
-            description='면접관이 남긴 키워드와 한 줄 평을 확인해요.'
-            onClose={dismissResult}
-            actions={<Button onClick={openResult}>확인</Button>}
-          />
-        ) : (
-          notice && (
+        <div className={styles.interviewCards}>
+          {resultArrivedAt !== undefined ? (
             <NoticeCard
               className={styles.notice}
-              time={notice.label}
-              title={notice.title}
-              description={notice.detail}
-              onClose={() => void readNotices([notice.id])}
-              actions={
-                <Button
-                  onClick={() => {
-                    void readNotices([notice.id]);
-                    navigate(notice.to);
-                  }}
-                >
-                  {notice.action}
-                </Button>
-              }
+              time={formatRoomTime(resultArrivedAt)}
+              title='면접 결과가 도착했어요'
+              description='면접관이 남긴 키워드와 한 줄 평을 확인해요.'
+              onClose={dismissResult}
+              actions={<Button onClick={openResult}>확인</Button>}
             />
-          )
-        )}
-        {next ? (
-          <BookedInterviewCard
-            key={next.room.id}
-            room={next.room}
-            role={next.role}
-            now={now}
-          />
-        ) : (
-          <EmptyInterviewCard
-            className={styles.upcoming}
-            bookingTo={reservationPaths.rooms}
-            reservationsTo={email ? reservationPaths.mine : undefined}
-          />
-        )}
+          ) : (
+            notice && (
+              <NoticeCard
+                className={styles.notice}
+                time={notice.label}
+                title={notice.title}
+                description={notice.detail}
+                onClose={() => void readNotices([notice.id])}
+                actions={
+                  <Button
+                    onClick={() => {
+                      void readNotices([notice.id]);
+                      navigate(notice.to);
+                    }}
+                  >
+                    {notice.action}
+                  </Button>
+                }
+              />
+            )
+          )}
+          {next ? (
+            <BookedInterviewCard
+              key={next.room.id}
+              room={next.room}
+              role={next.role}
+              now={now}
+            />
+          ) : (
+            <EmptyInterviewCard
+              className={styles.upcoming}
+              bookingTo={reservationPaths.rooms}
+              reservationsTo={email ? reservationPaths.mine : undefined}
+            />
+          )}
+        </div>
         <WorldChatBar className={styles.worldChat} />
       </SpaceShell>
       {sheet && (

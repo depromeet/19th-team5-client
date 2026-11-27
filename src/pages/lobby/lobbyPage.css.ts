@@ -1,15 +1,17 @@
-import { style } from '@vanilla-extract/css';
+import { globalStyle, style } from '@vanilla-extract/css';
 import { space } from '@/styles/token';
 
 /** HUD 위치는 Figma(1920×1080, GNB 80px 아래 기준) 값을 따른다. */
 const sideInset = '68px';
+const mobile = '(max-width: 700px)';
+const shortScreen = '(max-height: 740px)';
 
 export const notice = style({
   position: 'absolute',
   top: space[24],
   right: sideInset,
   '@media': {
-    '(max-width: 700px)': {
+    [mobile]: {
       right: space[16],
       maxWidth: `calc(100% - 2 * ${space[16]})`,
     },
@@ -21,11 +23,38 @@ export const upcoming = style({
   right: sideInset,
   bottom: space[48],
   '@media': {
-    '(max-width: 700px)': {
+    [mobile]: {
       right: space[16],
       bottom: space[80],
       maxWidth: `calc(100% - 2 * ${space[16]})`,
     },
+  },
+});
+
+/** 높이가 좁으면 알림과 예약 카드가 월드 채팅 위에서 함께 스크롤된다. */
+export const interviewCards = style({
+  display: 'contents',
+  '@media': {
+    [shortScreen]: {
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'flex-end',
+      position: 'absolute',
+      top: space[16],
+      right: sideInset,
+      maxWidth: `calc(100% - 2 * ${space[16]})`,
+      maxHeight: `calc(100% - ${space[16]} - ${space[80]})`,
+      gap: space[12],
+      overflowY: 'auto',
+      overscrollBehaviorY: 'contain',
+    },
+    [`${shortScreen} and ${mobile}`]: { right: space[16] },
+  },
+});
+
+globalStyle(`${interviewCards} > :is(${notice}, ${upcoming})`, {
+  '@media': {
+    [shortScreen]: { position: 'static', flexShrink: 0, maxWidth: '100%' },
   },
 });
 
@@ -34,7 +63,7 @@ export const worldChat = style({
   left: sideInset,
   bottom: space[32],
   '@media': {
-    '(max-width: 700px)': {
+    [mobile]: {
       left: space[16],
       bottom: space[12],
       maxWidth: `calc(100% - 2 * ${space[16]})`,

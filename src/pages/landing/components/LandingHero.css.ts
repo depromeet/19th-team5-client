@@ -128,6 +128,18 @@ export const browseButton = style([
   button({ variant: 'outline', size: 'large' }),
   { boxShadow: `inset 0 0 0 1px ${color.neutral[100]}` },
 ]);
+export const taskLinks = style({
+  display: 'grid',
+  gridTemplateColumns: 'repeat(4, 1fr)',
+  gap: space[8],
+  '@media': {
+    '(max-width: 319px)': { gridTemplateColumns: 'repeat(2, 1fr)' },
+  },
+});
+export const taskLink = style([
+  button({ variant: 'outline' }),
+  { '@media': { [mobile]: { paddingInline: space[12] } } },
+]);
 export const heroNote = style({
   ...typography.bodyS,
   color: color.neutral[500],
