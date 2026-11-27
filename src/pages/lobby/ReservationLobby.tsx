@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { Button, Dialog, GNB } from '@/components/common';
 import {
+  EmptyInterviewCard,
   type LobbyInteractable,
   LobbyScene,
   NoticeCard,

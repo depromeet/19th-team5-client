@@ -1,6 +1,7 @@
 import { style } from '@vanilla-extract/css';
+import { button } from '@/components/common/button/button.css';
 import { color, radius, space, typography } from '@/styles/token';
-import { content, iconBadge } from '../lobbyCard.css';
+import { content, iconBadge, label } from '../lobbyCard.css';
 
 /** Figma의 예약 카드는 본문과 버튼 사이 간격이 12px로 알림 카드(16px)보다 좁다. */
 export const upcomingCard = style({
@@ -16,6 +17,22 @@ export const upcomingHeader = style({
   alignItems: 'center',
   gap: space[8],
 });
+
+export const reservationsLink = style([
+  label,
+  {
+    textDecoration: 'none',
+    selectors: { '&:hover': { textDecoration: 'underline' } },
+  },
+]);
+
+export const bookingLink = style([
+  button({ display: 'block' }),
+  {
+    textDecoration: 'none',
+    selectors: { 'a&': { background: color.primary[500] } },
+  },
+]);
 
 export const upcomingIcon = style([
   iconBadge,

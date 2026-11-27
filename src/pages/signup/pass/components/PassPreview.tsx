@@ -80,6 +80,7 @@ export function PassPreview({
                   finish='matte'
                   damping={0.75}
                   breeze={0.15}
+                  intro={false}
                 />
               </Suspense>
             </PassArtworkBoundary>

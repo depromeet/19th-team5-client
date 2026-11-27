@@ -17,7 +17,7 @@ export function ReservationPage({ request = false }: ReservationPageProps) {
           정해진 시간에 모여, 진짜 사람과 면접을 진행해요
         </p>
       </header>
-      <section className={styles.panel}>
+      <section className={styles.tabbedPanel}>
         <Tabs aria-label='면접 예약'>
           <Tabs.Item
             selected={!request}
@@ -37,9 +37,10 @@ export function ReservationPage({ request = false }: ReservationPageProps) {
       {!request && (
         <aside className={styles.banner}>
           <div>
-            <h2 className={styles.sectionTitle}>원하는 시간대가 없나요?</h2>
+            <h2 className={styles.bannerTitle}>원하는 시간대가 없나요?</h2>
             <p className={styles.muted}>
-              시간대와 직군을 남겨 주세요. 개설 요청은 주 2회까지 가능해요.
+              시간대와 직군을 남겨 주세요. 방이 열리면 알려드려요. 개설 요청은
+              주 2회까지 가능해요.
             </p>
           </div>
           <Button
