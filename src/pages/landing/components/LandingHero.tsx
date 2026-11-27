@@ -15,8 +15,16 @@ import { useAuthStore } from '@/stores/AuthStore';
 import { getSignupResumePath } from '@/utils/signup/avatarDraft';
 import * as styles from './LandingHero.css';
 
-/** 사용성 테스트 과제로 바로 들어가는 링크. 프로토타입 대기실에 역할별로 입장한다. */
+/** 사용성 테스트 과제의 시작 화면으로 바로 들어가는 링크. */
 const taskLinks = [
+  {
+    label: 'Task1',
+    to: interviewPaths.lobbyHome,
+  },
+  {
+    label: 'Task2',
+    to: interviewPaths.lobby({ role: 'interviewer', phase: 'prepare' }),
+  },
   {
     label: 'Task3',
     to: interviewPaths.waitingRoom(interviewMock.id, { role: 'interviewee' }),

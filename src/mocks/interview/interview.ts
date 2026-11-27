@@ -22,6 +22,8 @@ export const demoWaitingRoomPath = interviewPaths.waitingRoom(
 export const mockCountdowns = {
   /** TODO(테스트): 직접 확인하기 쉽게 10초로 줄여 두었다. 시안 값은 45분(45 * 60) */
   untilOpen: 10,
+  /** 면접관이 자기소개서를 읽고 질문을 작성하는 시간은 시안과 동일하게 둔다. */
+  interviewerUntilOpen: 45 * 60,
   /** TODO(테스트): 직접 확인하기 쉽게 1분으로 줄여 두었다. 시안 값은 15분(15 * 60) */
   untilStart: 60,
   rejoin: 3 * 60,

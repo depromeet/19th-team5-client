@@ -12,6 +12,38 @@ async function openQuestionSheet(page: Page) {
   return sheet;
 }
 
+test('랜딩 Task2에서 면접자 자기소개서를 읽고 커스텀 질문을 저장한다', async ({
+  page,
+}) => {
+  await page.clock.install();
+  await page.goto('/');
+  await page.getByRole('link', { name: 'Task2' }).click();
+  await expect(page).toHaveURL('/lobby?role=interviewer&phase=prepare');
+
+  await page.clock.fastForward(15_000);
+  await expect(
+    page.getByRole('complementary', { name: '면접자 서류 도착!' }),
+  ).toBeVisible();
+
+  const openSheet = page.getByRole('button', { name: '질문지 작성' });
+  await openSheet.click();
+  const sheet = page.getByRole('dialog', { name: '면접 준비해볼까요?' });
+  await expect(
+    sheet.getByRole('tabpanel', { name: '자기소개서' }),
+  ).toContainText('예약 완료율을 18% 높였어요.');
+
+  const question = '예약 완료율은 어떤 기준으로 측정했나요?';
+  await sheet.getByRole('button', { name: '질문 만들기', exact: true }).click();
+  await sheet
+    .getByRole('textbox', { name: '질문', exact: true })
+    .fill(question);
+  await sheet.getByRole('button', { name: '저장하고 로비로' }).click();
+  await expect(sheet).toBeHidden();
+
+  await openSheet.click();
+  await expect(sheet.getByRole('button', { name: question })).toBeVisible();
+});
+
 test('질문 의도가 50자를 넘으면 알리고, 고치기 전에 나가면 확인한다', async ({
   page,
 }) => {

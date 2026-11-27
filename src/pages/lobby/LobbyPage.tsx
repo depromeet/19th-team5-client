@@ -35,6 +35,7 @@ type LobbyViewProps = {
   role: InterviewRole;
   phase: InterviewPhase;
   remainingSeconds: number;
+  progress: number;
   isQuestionSheetOpen: boolean;
   onOpenQuestionSheet: () => void;
 };
@@ -49,13 +50,11 @@ const countdowns = {
     key: 'until-open',
     label: '대기실 오픈까지',
     questionSheetLabel: '대기실 입장까지',
-    seconds: mockCountdowns.untilOpen,
   },
   open: {
     key: 'until-start',
     label: '면접 시작까지',
     questionSheetLabel: '시작까지',
-    seconds: mockCountdowns.untilStart,
   },
 } as const satisfies Record<InterviewPhase, object>;
 
@@ -64,13 +63,9 @@ const upcomingLabels = {
   open: '예약된 면접',
 } as const satisfies Record<InterviewPhase, string>;
 
-/** 진행 바는 첫 알림(시안 기준 시작 1시간 전)부터 면접 시작까지 흐른 비율을 보여준다. */
-const noticeToStartSeconds =
-  mockCountdowns.untilOpen + mockCountdowns.untilStart;
-
 export function LobbyPage() {
   const [params] = useSearchParams();
-  // 역할·단계 URL은 기존 대기실 UT의 가속 시계를 사용한다.
+  // 역할·단계 URL은 사용성 테스트의 프로토타입 예약을 사용한다.
   return params.has('role') || params.has('phase') ? (
     <PrototypeLobby />
   ) : (
@@ -83,7 +78,20 @@ function PrototypeLobby() {
   // 질문지는 LobbyView 밖에 두어, 작성 중에 대기실 오픈 단계로 넘어가도 닫히지 않게 한다.
   const [isQuestionSheetOpen, setIsQuestionSheetOpen] = useState(false);
   const countdown = countdowns[phase];
-  const remainingSeconds = useMockCountdown(countdown.key, countdown.seconds);
+  const isPreparing = phase === 'prepare';
+  const preparationSeconds =
+    role === 'interviewer'
+      ? mockCountdowns.interviewerUntilOpen
+      : mockCountdowns.untilOpen;
+  const remainingSeconds = useMockCountdown(
+    isPreparing ? `${role}-${countdown.key}` : countdown.key,
+    isPreparing ? preparationSeconds : mockCountdowns.untilStart,
+  );
+  const secondsUntilStart = isPreparing
+    ? remainingSeconds + mockCountdowns.untilStart
+    : remainingSeconds;
+  const progress =
+    1 - secondsUntilStart / (preparationSeconds + mockCountdowns.untilStart);
 
   return (
     <>
@@ -91,6 +99,7 @@ function PrototypeLobby() {
         role={role}
         phase={phase}
         remainingSeconds={remainingSeconds}
+        progress={progress}
         isQuestionSheetOpen={isQuestionSheetOpen}
         onOpenQuestionSheet={() => setIsQuestionSheetOpen(true)}
       />
@@ -114,6 +123,7 @@ function LobbyView({
   role,
   phase,
   remainingSeconds,
+  progress,
   isQuestionSheetOpen,
   onOpenQuestionSheet,
 }: LobbyViewProps) {
@@ -137,10 +147,6 @@ function LobbyView({
   const tickets = useReservationStore((state) => state.tickets);
 
   const countdown = countdowns[phase];
-  const secondsUntilStart =
-    phase === 'prepare'
-      ? remainingSeconds + mockCountdowns.untilStart
-      : remainingSeconds;
   const notice = lobbyNotices[phase][role];
 
   const closeNotice = () => setIsNoticeOpen(false);
@@ -235,7 +241,7 @@ function LobbyView({
           summary={`${participationLabels[role]} · 면접자 ${interviewMock.headcount.interviewee} · 면접관 ${interviewMock.headcount.interviewer}`}
           countdownLabel={countdown.label}
           remainingSeconds={remainingSeconds}
-          progress={1 - secondsUntilStart / noticeToStartSeconds}
+          progress={progress}
           onClose={() => setIsUpcomingOpen(false)}
           actions={
             <>
