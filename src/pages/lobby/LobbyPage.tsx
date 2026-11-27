@@ -9,7 +9,7 @@ import {
   WorldChatBar,
 } from '@/components/lobby';
 import { QuestionSheetOverlay } from '@/components/question-sheet';
-import { InteractionPrompt, SpaceShell } from '@/components/space';
+import { SpaceShell } from '@/components/space';
 import { gnbLabels } from '@/constants/common/gnbLabels';
 import { interviewPaths, reservationPaths } from '@/constants/common/paths';
 import { shortcuts } from '@/constants/space/shortcuts';
@@ -19,12 +19,15 @@ import { useMockCountdown } from '@/mocks/interview/useMockCountdown';
 import { usePrototypeParams } from '@/mocks/interview/usePrototypeParams';
 import { lobbyNotices } from '@/mocks/lobby/notices';
 import { candidates } from '@/mocks/question-sheet/candidates';
+import { myAvatar } from '@/mocks/waiting-room/participants';
 import { useReservationStore } from '@/stores/reservation/reservationStore';
 import { visuallyHidden } from '@/styles/a11y.css';
 import type {
   InterviewPhase,
   InterviewRole,
 } from '@/types/interview/interview';
+import { createScreenAnchor } from '@/utils/space/screenAnchor';
+import { KioskPrompt } from './KioskPrompt';
 import * as styles from './lobbyPage.css';
 import { ReservationLobby } from './ReservationLobby';
 
@@ -84,9 +87,7 @@ function PrototypeLobby() {
 
   return (
     <>
-      {/* 역할·단계가 바뀌면 닫았던 카드도 다시 보여준다. */}
       <LobbyView
-        key={`${role}-${phase}`}
         role={role}
         phase={phase}
         remainingSeconds={remainingSeconds}
@@ -118,9 +119,21 @@ function LobbyView({
 }: LobbyViewProps) {
   const navigate = useNavigate();
   const [nearby, setNearby] = useState<LobbyInteractable | null>(null);
+  // 3D 씬이 키오스크 위 화면 좌표를 알려주면, 키오스크 사용 안내를 그 위에 띄운다.
+  const [kioskAnchor] = useState(createScreenAnchor);
   const [isNoticeOpen, setIsNoticeOpen] = useState(true);
   const [isUpcomingOpen, setIsUpcomingOpen] = useState(true);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  // 역할·단계가 바뀌면 닫았던 카드도 다시 보여준다. 화면을 다시 마운트하지 않고 카드 상태만 되돌려서,
+  // 3D 로비를 새로 불러오지 않고 걸어 다니던 내 캐릭터도 제자리에 둔다.
+  const view = `${role}-${phase}`;
+  const [cardView, setCardView] = useState(view);
+  if (cardView !== view) {
+    setCardView(view);
+    setIsNoticeOpen(true);
+    setIsUpcomingOpen(true);
+    setIsDetailOpen(false);
+  }
   const tickets = useReservationStore((state) => state.tickets);
 
   const countdown = countdowns[phase];
@@ -138,10 +151,14 @@ function LobbyView({
   const openKiosk = () => navigate(reservationPaths.rooms);
   const viewReservation = () => setIsDetailOpen(true);
 
-  // 질문지가 떠 있는 동안에는 공간의 단축키와 상호작용 안내를 쓰지 않는다.
-  const canUseKiosk =
-    nearby === 'kiosk' && !isQuestionSheetOpen && !isDetailOpen;
-  useKeyboardShortcut(shortcuts.interact, openKiosk, canUseKiosk);
+  // 질문지·예약 상세가 떠 있는 동안에는 캐릭터 이동과 공간의 단축키, 상호작용 안내를 쓰지 않는다.
+  const isLobbyFocused = !isQuestionSheetOpen && !isDetailOpen;
+  const isNearKiosk = nearby === 'kiosk';
+  useKeyboardShortcut(
+    shortcuts.interact,
+    openKiosk,
+    isLobbyFocused && isNearKiosk,
+  );
 
   // 대기실 오픈 시간이 되면 오픈 단계로 넘어가 "대기실 문 열렸어요" 알림을 보여준다.
   const isWaitingRoomDue = phase === 'prepare' && remainingSeconds === 0;
@@ -173,15 +190,22 @@ function LobbyView({
           onBookInterview={openKiosk}
         />
       }
-      scene={<LobbyScene onNearbyChange={setNearby} />}
+      scene={
+        <LobbyScene
+          role={role}
+          avatar={myAvatar}
+          canMove={isLobbyFocused}
+          onNearbyChange={setNearby}
+          kioskAnchor={kioskAnchor}
+        />
+      }
     >
       <h1 className={visuallyHidden}>로비</h1>
-      {canUseKiosk && (
-        <InteractionPrompt
-          className={styles.kioskPrompt}
-          shortcut={shortcuts.interact}
-          label='예약 키오스크 사용하기'
-          onClick={openKiosk}
+      {isLobbyFocused && (
+        <KioskPrompt
+          anchor={kioskAnchor}
+          isNear={isNearKiosk}
+          onUse={openKiosk}
         />
       )}
       {isNoticeOpen && (

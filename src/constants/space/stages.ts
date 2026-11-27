@@ -6,6 +6,42 @@ import type {
 } from '@/types/space/stage';
 
 /**
+ * 로비(main.glb). 이 GLB에는 로비와 면접자·면접관 복도, 파우더룸·카페가 한 공간으로 이어져 있다.
+ * 걷기 격자는 로비 구역(areas.lobby)만 써서, 북서쪽 파우더룸 입구에서는 더 들어가지 못한다.
+ * 복도 입구는 디자이너 데이터에서도 차단봉으로 막혀 있다. 로비에서는 아직 앉지 않아서 좌석은 옮기지 않았다.
+ * 좌표는 scene_data.json(areas.lobby · resv)과 GLB의 키오스크 화면 위치를 Blender 좌표 그대로 옮겼다.
+ * 로비는 월드 x 0~28, y 0~20에 있다.
+ */
+export const lobbyStage = {
+  url: '/models/MOING_interview_center/glb_web_compressed/main.glb',
+  area: { x: 0, y: 0, width: 28, depth: 20 },
+  walkGrid: {
+    url: '/models/MOING_interview_center/data/walk_grid/grid_lobby.bin',
+    x0: 0,
+    y0: 0,
+    nx: 280,
+    ny: 200,
+    cell: 0.1,
+  },
+  /**
+   * 남쪽 정문(x 12~16)으로 들어와 처음 서는 자리. 로비 가운데이고,
+   * 디자이너가 방 스폰(links[].spawn)을 둔 것처럼 문에서 1.2m 안쪽이다.
+   */
+  entrance: { x: 14, y: 1.2 },
+  /**
+   * 리셉션 데스크의 예약 키오스크. 화면 3대가 1.67m 간격으로 나란히 있다.
+   * 가운데 화면(screen)과 그 앞에 서서 쓰는 자리(resv의 가운데)
+   */
+  kiosk: {
+    screen: { x: 12.9, y: 17.43 },
+    visitorSpot: { x: 12.9, y: 16.25 },
+  },
+} as const satisfies Omit<StageLayout, 'seats'> & {
+  entrance: BlenderPoint;
+  kiosk: { screen: BlenderPoint; visitorSpot: BlenderPoint };
+};
+
+/**
  * 면접자 대기실 01(cand_wait_01). 면접 시작 전 면접자·면접관이 함께 쓰는 대기실로 쓴다.
  * 좌표는 3D 디자이너가 넘긴 scene_data.json(areas.cand_wait_01 · npcs · hr)을 Blender 좌표 그대로 옮겼다.
  * 이 방은 월드 x 92~103.5에 있다. GLB를 옮기지 않고 그대로 그려야 좌표가 맞는다.

@@ -42,7 +42,10 @@ export const worldChat = style({
   },
 });
 
-/** 3D 씬이 생기면 키오스크 앞 캐릭터 머리 위로 옮긴다. */
+/**
+ * 키오스크 사용 안내의 기본 위치(Figma). 3D 씬이 키오스크 위 좌표를 알려주면 그 위 24px로 옮겨 가고,
+ * 씬을 불러오는 중이거나 3D를 쓸 수 없을 때만 이 자리에 있다.
+ */
 export const kioskPrompt = style({
   position: 'absolute',
   top: '380px',
