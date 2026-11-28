@@ -306,6 +306,9 @@ globalStyle(`${checklist} li`, {
   color: color.neutral[700],
 });
 globalStyle(`${checklist} li:nth-child(2)`, { background: color.neutral[50] });
+globalStyle(`${checklist} li[data-complete='true']`, {
+  color: color.primary[500],
+});
 globalStyle(`${checklist} li small`, {
   ...typography.caption,
   marginLeft: 'auto',

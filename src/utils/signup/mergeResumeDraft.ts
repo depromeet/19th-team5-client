@@ -68,14 +68,9 @@ export function mergeResumeDraft(
   stored: ResumeDraft,
   { before, after }: ResumeDraftChange,
 ): ResumeDraft {
-  const changedCareer =
-    before.careerId !== after.careerId ||
-    before.hasSelectedCareer !== after.hasSelectedCareer;
   return {
-    careerId: changedCareer ? after.careerId : stored.careerId,
-    hasSelectedCareer: changedCareer
-      ? after.hasSelectedCareer
-      : stored.hasSelectedCareer,
+    careerId:
+      before.careerId === after.careerId ? stored.careerId : after.careerId,
     experiences: mergeEntries(
       stored.experiences,
       before.experiences,

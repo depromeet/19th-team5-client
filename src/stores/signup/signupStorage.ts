@@ -8,6 +8,9 @@ export type SignupProgress = {
   pass?: IssuedPass;
   resume?: ResumeSubmission;
 };
+type StoredSignupProgress = Omit<SignupProgress, 'draft'> & {
+  draft?: ResumeDraft & { hasSelectedCareer?: boolean };
+};
 type SignupUpdate =
   | Partial<SignupProgress>
   | ((current: SignupProgress) => Partial<SignupProgress>);
@@ -15,6 +18,17 @@ type SignupUpdate =
 const databaseName = 'moing:mock:signup';
 const storeName = 'progress';
 let connection: Promise<IDBDatabase> | undefined;
+
+function normalizeStoredProgress(
+  stored: StoredSignupProgress = {},
+): SignupProgress {
+  if (stored.draft?.hasSelectedCareer === undefined) return stored;
+  const { hasSelectedCareer, ...draft } = stored.draft;
+  return {
+    ...stored,
+    draft: { ...draft, careerId: hasSelectedCareer ? draft.careerId : null },
+  };
+}
 
 function openDatabase() {
   connection ??= new Promise<IDBDatabase>((resolve, reject) => {
@@ -43,7 +57,7 @@ export async function readSignupProgress(email: string) {
       .transaction(storeName)
       .objectStore(storeName)
       .get(email);
-    request.onsuccess = () => resolve(request.result ?? {});
+    request.onsuccess = () => resolve(normalizeStoredProgress(request.result));
     request.onerror = () => reject(request.error);
   });
 }
@@ -59,7 +73,7 @@ export async function updateSignupProgress(
     const request = store.get(email);
     let next: SignupProgress = {};
     request.onsuccess = () => {
-      const current: SignupProgress = request.result ?? {};
+      const current = normalizeStoredProgress(request.result);
       const changes = typeof update === 'function' ? update(current) : update;
       next = { ...current, ...changes };
       store.put(next, email);
