@@ -14,8 +14,7 @@ export type Entry<T> = {
 };
 export type ResumeEntryUpdate<T> = (entries: Entry<T>[]) => Entry<T>[];
 export type ResumeDraft = {
-  careerId: string;
-  hasSelectedCareer: boolean;
+  careerId: string | null;
   experiences: Entry<Experience>[];
   answers: Entry<Answer>[];
   files: File[];
@@ -148,13 +147,9 @@ export function formatFileSize(bytes: number) {
   return `${Number((bytes / bytesPerMb).toFixed(1))}MB`;
 }
 
-export function createResumeDraft({
-  defaultCareerId,
-  questions,
-}: SignupOptions): ResumeDraft {
+export function createResumeDraft({ questions }: SignupOptions): ResumeDraft {
   return {
-    careerId: defaultCareerId,
-    hasSelectedCareer: false,
+    careerId: null,
     // 두 탭이 초안 저장 전에 열려도 각각 같은 기본 항목을 편집한다.
     experiences: [newEntry(emptyExperience, 'initial-experience')],
     answers: questions.length

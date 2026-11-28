@@ -1,10 +1,12 @@
-import { IconILowercaseSerifCircleLine } from '@karrotmarket/react-monochrome-icon';
+import {
+  IconCheckmarkLine,
+  IconILowercaseSerifCircleLine,
+} from '@karrotmarket/react-monochrome-icon';
 import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Navigate, useLocation } from 'react-router';
 import { Avatar } from '@/components/common/avatar';
 import { Button } from '@/components/common/button';
-import { Checkbox } from '@/components/common/checkbox';
 import { Radio } from '@/components/common/radio';
 import { signupPaths } from '@/constants/common/paths';
 import { useSignupCompletion } from '@/hooks/signup/useSignupCompletion';
@@ -166,27 +168,17 @@ export function ResumeEditorPage() {
                   *
                 </span>
               </legend>
-              {careers.map(({ id, label }) => {
-                const checked = resume.careerId === id;
-                const confirmCareer = () => {
-                  if (checked && !resume.hasSelectedCareer) setCareer(id);
-                };
-                return (
-                  <Radio
-                    key={id}
-                    name='career'
-                    value={id}
-                    checked={checked}
-                    onChange={() => setCareer(id)}
-                    onClick={confirmCareer}
-                    onKeyUp={(event) => {
-                      if (event.key === ' ') confirmCareer();
-                    }}
-                  >
-                    {label}
-                  </Radio>
-                );
-              })}
+              {careers.map(({ id, label }) => (
+                <Radio
+                  key={id}
+                  name='career'
+                  value={id}
+                  checked={resume.careerId === id}
+                  onChange={() => setCareer(id)}
+                >
+                  {label}
+                </Radio>
+              ))}
             </fieldset>
           </div>
           <div className={s.sideCard}>
@@ -217,13 +209,11 @@ export function ResumeEditorPage() {
               맞춤 질문이 준비돼요
             </div>
             <ul className={s.checklist}>
-              {checks.map(([name, detail, checked]) => (
-                <li key={name}>
-                  <Checkbox
-                    disabled
-                    checked={checked}
-                    aria-label={`${name} 작성 여부`}
-                  />
+              {checks.map(([name, detail, complete]) => (
+                <li key={name} data-complete={complete}>
+                  {complete && (
+                    <IconCheckmarkLine size={18} aria-hidden='true' />
+                  )}
                   {name}
                   <small>{detail}</small>
                 </li>

@@ -51,7 +51,7 @@ function getRegistration({ draft, pendingFiles }: ResumeState) {
   )
     return null;
   if (
-    !draft.hasSelectedCareer &&
+    draft.careerId === null &&
     !experiences.length &&
     !answers.length &&
     !draft.files.length
@@ -87,7 +87,7 @@ export function createResumeStore(
     pendingFiles: 0,
     setCareer: (careerId) =>
       set(({ draft }) => ({
-        draft: { ...draft, careerId, hasSelectedCareer: true },
+        draft: { ...draft, careerId },
       })),
     setExperiences: (update) =>
       set(({ draft }) => ({
@@ -130,7 +130,7 @@ export function createResumeStore(
       if (!registration) return null;
       return {
         submission: {
-          careerId: state.draft.careerId,
+          careerId: state.draft.careerId ?? options.defaultCareerId,
           experiences: registration.experiences.map(({ value }) => value),
           answers: registration.answers.map(({ value }) => value),
           files: state.draft.files,

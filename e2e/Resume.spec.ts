@@ -128,14 +128,20 @@ test('PDF 형식·용량·개수를 검증하고 첨부 삭제 후 건너뛸 수
   await expect(page).toHaveURL(/\/signup\/pass$/);
 });
 
-test('기본 경력을 직접 선택하면 지원 정보만으로 등록할 수 있다', async ({
+test('미선택 상태에서 경력을 고르면 지원 정보만으로 등록할 수 있다', async ({
   page,
 }) => {
   const career = page.getByRole('radio', { name: '신입', exact: true });
   const register = page.getByRole('button', { name: '등록하고 시작하기' });
-  await expect(career).toBeChecked();
+  const status = page.getByRole('listitem').filter({ hasText: '지원 정보' });
+  await expect(page.getByRole('radio', { checked: true })).toHaveCount(0);
+  await expect(status.getByText('미작성')).toBeVisible();
+  await expect(status.locator('svg')).toHaveCount(0);
   await expect(register).toBeDisabled();
   await career.press('Space');
+  await expect(career).toBeChecked();
+  await expect(status.getByText('완료')).toBeVisible();
+  await expect(status.locator('svg')).toBeVisible();
   await expect(register).toBeEnabled();
   await register.click();
   const dialog = page.getByRole('dialog', { name: '여기까지만 작성할까요?' });
