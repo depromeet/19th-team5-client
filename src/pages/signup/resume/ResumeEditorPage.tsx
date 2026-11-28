@@ -95,12 +95,9 @@ export function ResumeEditorPage() {
     completion.reset();
     setConfirmation(null);
   }
+  const hasCareer = careers.some(({ id }) => id === resume.careerId);
   const checks = [
-    [
-      '지원 정보',
-      resume.hasSelectedCareer ? '완료' : '미작성',
-      resume.hasSelectedCareer,
-    ],
+    ['지원 정보', hasCareer ? '완료' : '미작성', hasCareer],
     ['경험 · 경력', `${experienceCount}개`, experienceCount > 0],
     ['자기소개서', `${answerCount}개`, answerCount > 0],
     ['포트폴리오 · 첨부', `선택 · ${fileCount}개`, fileCount > 0],
