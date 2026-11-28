@@ -8,6 +8,7 @@ import {
   InterviewerSheet,
   type InterviewRoomInteractable,
   InterviewRoomScene,
+  LeaveInterviewDialog,
   PartStepper,
   StageCard,
   type StageCardProps,
@@ -194,11 +195,15 @@ function InterviewInProgress({
   const canSit = isSeating && nearby === 'seat';
   const isTask4 = task === '4';
 
+  const navigate = useNavigate();
+  const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
+
   useKeyboardShortcut(shortcuts.interact, session.sit, canSit);
 
-  const leaveInterview = () => {
-    // TODO(면접 나가기): 나가기 흐름이 정해지면 연결한다. 프로토타입에서는 동작하지 않는다.
-  };
+  // 나가기를 누르면 확인 다이얼로그를 띄우고, 확인하면 로비로 간다. 면접방으로 뒤로 돌아오지 않도록 기록을 바꾼다.
+  const leaveInterview = () => setIsLeaveDialogOpen(true);
+  const confirmLeave = () =>
+    navigate(interviewPaths.lobbyHome, { replace: true });
 
   const dockProps = {
     isMicOn: microphone.status === 'live' && !microphone.isMuted,
@@ -271,6 +276,11 @@ function InterviewInProgress({
           <InterviewDock className={styles.dock} {...dockProps} />
         </>
       )}
+      <LeaveInterviewDialog
+        isOpen={isLeaveDialogOpen}
+        onCancel={() => setIsLeaveDialogOpen(false)}
+        onConfirm={confirmLeave}
+      />
     </>
   );
 }
